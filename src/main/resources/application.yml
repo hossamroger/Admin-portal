@@ -1,0 +1,54 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+
+spring:
+  datasource:
+    # ===== EDIT THESE FOR YOUR ORACLE INSTANCE =====
+    url: jdbc:oracle:thin:@10.32.47.141:1521:shjstgdb1
+    username: BPM_DATA
+    password: BPM_DATA
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      pool-name: dbexplorer-pool
+
+dbexplorer:
+  # Schema (owner) to introspect. Leave empty to use the connection user's own schema.
+  default-schema: ""
+  # When true, only SELECT statements are allowed; all INSERT/UPDATE/DELETE/DDL are blocked.
+  read-only: false
+  # Max rows returned by a single query / data-browse request.
+  max-rows: 1000
+  # Statement timeout in seconds (0 = no timeout).
+  query-timeout-seconds: 60
+
+  auth:
+    enabled: true            # set false to disable login entirely (open mode)
+    # Passwords: use "{noop}plain" for quick testing, or a BCrypt hash for real use
+    # (generate one and store it as "{bcrypt}$2a$..." or just "$2a$...").
+    # Privileges: SELECT, INSERT, UPDATE, DELETE, EXECUTE_SQL
+    # allowed-tables: whitelist of table/view names; leave empty = sees everything.
+    # Users are now managed in the database (DBX_USERS table).
+    # Default admin/admin123 is created automatically on the first run.
+    users: []
+
+  # Audit log — records every action asynchronously (never slows a request).
+  audit:
+    enabled: true
+    auto-create-table: true   # create DBX_AUDIT_LOG on startup if missing
+    log-reads: true           # set false to log only data-changing actions
+    queue-capacity: 10000     # in-memory buffer; events beyond this are dropped, not queued
+    batch-size: 500           # rows per background insert
+    table: DBX_AUDIT_LOG
+
+logging:
+  level:
+    com.example.dbexplorer: INFO

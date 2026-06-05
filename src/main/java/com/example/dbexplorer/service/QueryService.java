@@ -1,0 +1,266 @@
+package com.example.dbexplorer.service;
+
+import com.example.dbexplorer.config.AppProperties;
+import com.example.dbexplorer.dto.QueryDtos.QueryResult;
+import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.sql.*;
+import java.util.*;
+
+@Service
+public class QueryService {
+
+    private final DataSource dataSource;
+    private final AppProperties props;
+    private final SchemaService schema;
+    private final AuthService auth;
+
+    public QueryService(DataSource dataSource, AppProperties props, SchemaService schema, AuthService auth) {
+        this.dataSource = dataSource;
+        this.props = props;
+        this.schema = schema;
+        this.auth = auth;
+    }
+
+    /** Execute a (possibly multi-statement) SQL script. Returns one result per statement. */
+    public List<QueryResult> runScript(String script, Integer maxRowsOverride) {
+        int maxRows = maxRowsOverride != null && maxRowsOverride > 0
+                ? Math.min(maxRowsOverride, props.getMaxRows())
+                : props.getMaxRows();
+
+        List<String> statements = SqlSplitter.split(script);
+        List<QueryResult> results = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection()) {
+            for (String stmt : statements) {
+                if (stmt.trim().isEmpty()) continue;
+                results.add(execOne(conn, stmt, maxRows));
+            }
+        } catch (SQLException e) {
+            QueryResult r = new QueryResult();
+            r.error = "Connection error: " + e.getMessage();
+            results.add(r);
+        }
+        return results;
+    }
+
+    private QueryResult execOne(Connection conn, String sql, int maxRows) {
+        QueryResult r = new QueryResult();
+        r.statement = sql.length() > 500 ? sql.substring(0, 500) + " ..." : sql;
+        long start = System.currentTimeMillis();
+
+        // Enforce read-only mode.
+        if (props.isReadOnly() && !isReadOnlyStatement(sql)) {
+            r.error = "Read-only mode is enabled. Only SELECT statements are permitted.";
+            return r;
+        }
+
+        try (Statement st = conn.createStatement()) {
+            if (props.getQueryTimeoutSeconds() > 0) {
+                st.setQueryTimeout(props.getQueryTimeoutSeconds());
+            }
+            st.setMaxRows(maxRows + 1); // fetch one extra to detect truncation
+
+            boolean hasRs = st.execute(sql);
+            if (hasRs) {
+                try (ResultSet rs = st.getResultSet()) {
+                    fillResultSet(r, rs, maxRows);
+                    r.resultSet = true;
+                }
+            } else {
+                r.resultSet = false;
+                r.updateCount = st.getUpdateCount();
+            }
+        } catch (SQLException e) {
+            r.error = "ORA error: " + e.getMessage();
+        }
+        r.elapsedMs = System.currentTimeMillis() - start;
+        return r;
+    }
+
+    private void fillResultSet(QueryResult r, ResultSet rs, int maxRows) throws SQLException {
+        ResultSetMetaData md = rs.getMetaData();
+        int cols = md.getColumnCount();
+        List<String> colNames = new ArrayList<>();
+        for (int i = 1; i <= cols; i++) colNames.add(md.getColumnLabel(i));
+        r.columns = colNames;
+
+        List<List<Object>> rows = new ArrayList<>();
+        int n = 0;
+        while (rs.next()) {
+            if (n >= maxRows) { r.truncated = true; break; }
+            List<Object> row = new ArrayList<>(cols);
+            for (int i = 1; i <= cols; i++) {
+                row.add(safeValue(rs, i, md.getColumnType(i)));
+            }
+            rows.add(row);
+            n++;
+        }
+        r.rows = rows;
+    }
+
+    /** Browse a single table/view with pagination + optional sorting (works on 11g+). */
+    public QueryResult browseTable(String tableName, int page, int pageSize, String sortCol, String sortDir, javax.servlet.http.HttpServletRequest req) {
+        String safe = sanitizeIdentifier(tableName);
+        String tableFilter = auth.getTableFilters(auth.effectiveUser(req)).get(safe);
+        String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
+        int start = page * pageSize;
+        int end = start + pageSize;
+
+        String orderBy = "";
+        if (sortCol != null && !sortCol.trim().isEmpty()) {
+            String col = sortCol.trim().toUpperCase();
+            if (!schema.getColumnNames(safe).contains(col)) {
+                throw new IllegalArgumentException("Unknown sort column: " + sortCol);
+            }
+            String dir = "DESC".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
+            orderBy = " ORDER BY \"" + col + "\" " + dir;
+        }
+
+        String inner = "SELECT * FROM \"" + safe + "\"" + filterClause + orderBy;
+        String paged =
+            "SELECT * FROM ( " +
+            "  SELECT a.*, ROWNUM rnum_ FROM ( " + inner + " ) a WHERE ROWNUM <= " + end +
+            ") WHERE rnum_ > " + start;
+
+        List<QueryResult> rs = runScript(paged, pageSize);
+        QueryResult res = rs.get(0);
+        if (res.columns != null && res.columns.contains("RNUM_")) {
+            int idx = res.columns.indexOf("RNUM_");
+            res.columns.remove(idx);
+            if (res.rows != null) for (List<Object> row : res.rows) row.remove(idx);
+        }
+        return res;
+    }
+
+    public long countTable(String tableName, javax.servlet.http.HttpServletRequest req) {
+        String safe = sanitizeIdentifier(tableName);
+        String tableFilter = auth.getTableFilters(auth.effectiveUser(req)).get(safe);
+        String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
+        try (Connection conn = dataSource.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM \"" + safe + "\"" + filterClause)) {
+            return rs.next() ? rs.getLong(1) : 0L;
+        } catch (SQLException e) {
+            return -1L;
+        }
+    }
+
+    public Map<String, Object> getTableInsights(String tableName, javax.servlet.http.HttpServletRequest req) {
+        String safe = sanitizeIdentifier(tableName);
+        String tableFilter = auth.getTableFilters(auth.effectiveUser(req)).get(safe);
+        String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
+        
+        Map<String, Object> insights = new HashMap<>();
+        try (Connection conn = dataSource.getConnection()) {
+            // 1. Get Columns and Types
+            List<Map<String, String>> columns = new ArrayList<>();
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, safe, null)) {
+                while (rs.next()) {
+                    Map<String, String> col = new HashMap<>();
+                    col.put("name", rs.getString("COLUMN_NAME"));
+                    col.put("type", rs.getString("TYPE_NAME"));
+                    columns.add(col);
+                }
+            }
+
+            List<Map<String, Object>> colStats = new ArrayList<>();
+            for (Map<String, String> col : columns) {
+                String colName = "\"" + col.get("name") + "\"";
+                String type = col.get("type");
+                Map<String, Object> stats = new HashMap<>();
+                stats.put("column", col.get("name"));
+                stats.put("type", type);
+
+                // Basic stats: Nulls and Unique values
+                try (Statement st = conn.createStatement();
+                     ResultSet rs = st.executeQuery("SELECT COUNT(*), COUNT(" + colName + "), COUNT(DISTINCT " + colName + ") FROM \"" + safe + "\"" + filterClause)) {
+                    if (rs.next()) {
+                        long total = rs.getLong(1);
+                        long nonNull = rs.getLong(2);
+                        stats.put("totalRows", total);
+                        stats.put("nullCount", total - nonNull);
+                        stats.put("uniqueCount", rs.getLong(3));
+                    }
+                }
+
+                // Time-based stats for DATE/TIMESTAMP columns
+                if (type.contains("DATE") || type.contains("TIMESTAMP")) {
+                    Map<String, Long> timeStats = new java.util.LinkedHashMap<>();
+                    String[] periods = {"1", "6", "12", "24"}; // months
+                    for (String p : periods) {
+                        String timeSql = "SELECT COUNT(*) FROM \"" + safe + "\"" + 
+                                       (filterClause.isEmpty() ? " WHERE " : filterClause + " AND ") +
+                                       colName + " >= ADD_MONTHS(SYSDATE, -" + p + ")";
+                        try (Statement st = conn.createStatement();
+                             ResultSet rs = st.executeQuery(timeSql)) {
+                            if (rs.next()) timeStats.put("last_" + p + "_months", rs.getLong(1));
+                        }
+                    }
+                    stats.put("timeAnalysis", timeStats);
+                }
+
+                // Numeric stats
+                if (type.contains("NUMBER") || type.contains("FLOAT") || type.contains("DECIMAL")) {
+                    try (Statement st = conn.createStatement();
+                         ResultSet rs = st.executeQuery("SELECT MIN(" + colName + "), MAX(" + colName + "), AVG(" + colName + ") FROM \"" + safe + "\"" + filterClause)) {
+                        if (rs.next()) {
+                            stats.put("min", rs.getObject(1));
+                            stats.put("max", rs.getObject(2));
+                            stats.put("avg", rs.getObject(3));
+                        }
+                    }
+                }
+                
+                colStats.add(stats);
+            }
+            insights.put("columnStats", colStats);
+        } catch (SQLException e) {
+            insights.put("error", e.getMessage());
+        }
+        return insights;
+    }
+
+    // ---- helpers ----
+
+    private static Object safeValue(ResultSet rs, int i, int sqlType) throws SQLException {
+        switch (sqlType) {
+            case Types.BLOB:
+            case Types.BINARY:
+            case Types.VARBINARY:
+            case Types.LONGVARBINARY:
+                Object b = rs.getObject(i);
+                return b == null ? null : "[BLOB]";
+            case Types.CLOB:
+            case Types.NCLOB:
+                Clob clob = rs.getClob(i);
+                if (clob == null) return null;
+                long len = clob.length();
+                String s = clob.getSubString(1, (int) Math.min(len, 2000));
+                return len > 2000 ? s + " ...[truncated]" : s;
+            case Types.TIMESTAMP:
+            case Types.DATE:
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                Object ts = rs.getObject(i);
+                return ts == null ? null : ts.toString();
+            default:
+                return rs.getObject(i);
+        }
+    }
+
+    private boolean isReadOnlyStatement(String sql) {
+        String head = sql.trim().toUpperCase();
+        return head.startsWith("SELECT") || head.startsWith("WITH")
+                || head.startsWith("EXPLAIN") || head.startsWith("DESC");
+    }
+
+    /** Allow only safe identifier characters to avoid breaking the quoted name. */
+    private static String sanitizeIdentifier(String name) {
+        String n = name.toUpperCase();
+        if (!n.matches("[A-Z0-9_$#]+")) {
+            throw new IllegalArgumentException("Invalid object name: " + name);
+        }
+        return n;
+    }
+}
