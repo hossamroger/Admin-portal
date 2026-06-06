@@ -14,13 +14,11 @@ public class QueryService {
     private final DataSource dataSource;
     private final AppProperties props;
     private final SchemaService schema;
-    private final AuthService auth;
 
-    public QueryService(DataSource dataSource, AppProperties props, SchemaService schema, AuthService auth) {
+    public QueryService(DataSource dataSource, AppProperties props, SchemaService schema) {
         this.dataSource = dataSource;
         this.props = props;
         this.schema = schema;
-        this.auth = auth;
     }
 
     /** Execute a (possibly multi-statement) SQL script. Returns one result per statement. */
@@ -101,9 +99,9 @@ public class QueryService {
     }
 
     /** Browse a single table/view with pagination + optional sorting (works on 11g+). */
-    public QueryResult browseTable(String tableName, int page, int pageSize, String sortCol, String sortDir, javax.servlet.http.HttpServletRequest req) {
+    public QueryResult browseTable(String tableName, int page, int pageSize, String sortCol, String sortDir, Map<String, String> tableFilters) {
         String safe = sanitizeIdentifier(tableName);
-        String tableFilter = auth.getTableFilters(auth.effectiveUser(req)).get(safe);
+        String tableFilter = tableFilters != null ? tableFilters.get(safe) : null;
         String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
         int start = page * pageSize;
         int end = start + pageSize;
@@ -124,8 +122,12 @@ public class QueryService {
             "  SELECT a.*, ROWNUM rnum_ FROM ( " + inner + " ) a WHERE ROWNUM <= " + end +
             ") WHERE rnum_ > " + start;
 
-        List<QueryResult> rs = runScript(paged, pageSize);
-        QueryResult res = rs.get(0);
+        QueryResult res = new QueryResult();
+        try (Connection conn = dataSource.getConnection()) {
+            res = execOne(conn, paged, pageSize);
+        } catch (SQLException e) {
+            res.error = "Connection error: " + e.getMessage();
+        }
         if (res.columns != null && res.columns.contains("RNUM_")) {
             int idx = res.columns.indexOf("RNUM_");
             res.columns.remove(idx);
@@ -134,9 +136,9 @@ public class QueryService {
         return res;
     }
 
-    public long countTable(String tableName, javax.servlet.http.HttpServletRequest req) {
+    public long countTable(String tableName, Map<String, String> tableFilters) {
         String safe = sanitizeIdentifier(tableName);
-        String tableFilter = auth.getTableFilters(auth.effectiveUser(req)).get(safe);
+        String tableFilter = tableFilters != null ? tableFilters.get(safe) : null;
         String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
         try (Connection conn = dataSource.getConnection();
              Statement st = conn.createStatement();
@@ -147,78 +149,107 @@ public class QueryService {
         }
     }
 
-    public Map<String, Object> getTableInsights(String tableName, javax.servlet.http.HttpServletRequest req) {
+    public Map<String, Object> getTableInsights(String tableName, Map<String, String> tableFilters) {
         String safe = sanitizeIdentifier(tableName);
-        String tableFilter = auth.getTableFilters(auth.effectiveUser(req)).get(safe);
+        String tableFilter = tableFilters != null ? tableFilters.get(safe) : null;
         String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
-        
+
         Map<String, Object> insights = new HashMap<>();
-        try (Connection conn = dataSource.getConnection()) {
-            // 1. Get Columns and Types
-            List<Map<String, String>> columns = new ArrayList<>();
-            try (ResultSet rs = conn.getMetaData().getColumns(null, null, safe, null)) {
+        String owner = schema.resolveSchema();
+
+        // Get columns from all_tab_columns (uses schema cache, no JDBC metadata)
+        List<Map<String, String>> columns = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                 "SELECT column_name, data_type FROM all_tab_columns WHERE owner = ? AND table_name = ? ORDER BY column_id")) {
+            ps.setString(1, owner);
+            ps.setString(2, safe);
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, String> col = new HashMap<>();
-                    col.put("name", rs.getString("COLUMN_NAME"));
-                    col.put("type", rs.getString("TYPE_NAME"));
+                    col.put("name", rs.getString("column_name"));
+                    col.put("type", rs.getString("data_type"));
                     columns.add(col);
                 }
             }
-
-            List<Map<String, Object>> colStats = new ArrayList<>();
-            for (Map<String, String> col : columns) {
-                String colName = "\"" + col.get("name") + "\"";
-                String type = col.get("type");
-                Map<String, Object> stats = new HashMap<>();
-                stats.put("column", col.get("name"));
-                stats.put("type", type);
-
-                // Basic stats: Nulls and Unique values
-                try (Statement st = conn.createStatement();
-                     ResultSet rs = st.executeQuery("SELECT COUNT(*), COUNT(" + colName + "), COUNT(DISTINCT " + colName + ") FROM \"" + safe + "\"" + filterClause)) {
-                    if (rs.next()) {
-                        long total = rs.getLong(1);
-                        long nonNull = rs.getLong(2);
-                        stats.put("totalRows", total);
-                        stats.put("nullCount", total - nonNull);
-                        stats.put("uniqueCount", rs.getLong(3));
-                    }
-                }
-
-                // Time-based stats for DATE/TIMESTAMP columns
-                if (type.contains("DATE") || type.contains("TIMESTAMP")) {
-                    Map<String, Long> timeStats = new java.util.LinkedHashMap<>();
-                    String[] periods = {"1", "6", "12", "24"}; // months
-                    for (String p : periods) {
-                        String timeSql = "SELECT COUNT(*) FROM \"" + safe + "\"" + 
-                                       (filterClause.isEmpty() ? " WHERE " : filterClause + " AND ") +
-                                       colName + " >= ADD_MONTHS(SYSDATE, -" + p + ")";
-                        try (Statement st = conn.createStatement();
-                             ResultSet rs = st.executeQuery(timeSql)) {
-                            if (rs.next()) timeStats.put("last_" + p + "_months", rs.getLong(1));
-                        }
-                    }
-                    stats.put("timeAnalysis", timeStats);
-                }
-
-                // Numeric stats
-                if (type.contains("NUMBER") || type.contains("FLOAT") || type.contains("DECIMAL")) {
-                    try (Statement st = conn.createStatement();
-                         ResultSet rs = st.executeQuery("SELECT MIN(" + colName + "), MAX(" + colName + "), AVG(" + colName + ") FROM \"" + safe + "\"" + filterClause)) {
-                        if (rs.next()) {
-                            stats.put("min", rs.getObject(1));
-                            stats.put("max", rs.getObject(2));
-                            stats.put("avg", rs.getObject(3));
-                        }
-                    }
-                }
-                
-                colStats.add(stats);
-            }
-            insights.put("columnStats", colStats);
         } catch (SQLException e) {
             insights.put("error", e.getMessage());
+            return insights;
         }
+
+        // Build a single UNION ALL query for basic stats across all columns
+        List<Map<String, Object>> colStats = new ArrayList<>();
+        if (!columns.isEmpty()) {
+            StringBuilder unionSql = new StringBuilder();
+            for (int i = 0; i < columns.size(); i++) {
+                if (i > 0) unionSql.append(" UNION ALL ");
+                String colName = "\"" + columns.get(i).get("name") + "\"";
+                unionSql.append("SELECT COUNT(*), COUNT(").append(colName)
+                        .append("), COUNT(DISTINCT ").append(colName)
+                        .append(") FROM \"").append(safe).append("\"").append(filterClause);
+            }
+            try (Connection conn = dataSource.getConnection();
+                 Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(unionSql.toString())) {
+                int idx = 0;
+                while (rs.next() && idx < columns.size()) {
+                    Map<String, String> col = columns.get(idx);
+                    Map<String, Object> stats = new HashMap<>();
+                    stats.put("column", col.get("name"));
+                    stats.put("type", col.get("type"));
+                    long total = rs.getLong(1);
+                    long nonNull = rs.getLong(2);
+                    stats.put("totalRows", total);
+                    stats.put("nullCount", total - nonNull);
+                    stats.put("uniqueCount", rs.getLong(3));
+                    colStats.add(stats);
+                    idx++;
+                }
+            } catch (SQLException e) {
+                insights.put("error", e.getMessage());
+                return insights;
+            }
+
+            // Numeric and date extra stats (per typed column)
+            try (Connection conn = dataSource.getConnection()) {
+                for (int i = 0; i < columns.size(); i++) {
+                    Map<String, String> col = columns.get(i);
+                    Map<String, Object> stats = colStats.get(i);
+                    String type = col.get("type");
+                    String colName = "\"" + col.get("name") + "\"";
+
+                    if (type.contains("DATE") || type.contains("TIMESTAMP")) {
+                        Map<String, Long> timeStats = new LinkedHashMap<>();
+                        String[] periods = {"1", "6", "12", "24"};
+                        for (String p : periods) {
+                            String timeSql = "SELECT COUNT(*) FROM \"" + safe + "\"" +
+                                (filterClause.isEmpty() ? " WHERE " : filterClause + " AND ") +
+                                colName + " >= ADD_MONTHS(SYSDATE, -" + p + ")";
+                            try (Statement st = conn.createStatement();
+                                 ResultSet rs = st.executeQuery(timeSql)) {
+                                if (rs.next()) timeStats.put("last_" + p + "_months", rs.getLong(1));
+                            }
+                        }
+                        stats.put("timeAnalysis", timeStats);
+                    }
+
+                    if (type.contains("NUMBER") || type.contains("FLOAT") || type.contains("DECIMAL")) {
+                        try (Statement st = conn.createStatement();
+                             ResultSet rs = st.executeQuery("SELECT MIN(" + colName + "), MAX(" + colName + "), AVG(" + colName + ") FROM \"" + safe + "\"" + filterClause)) {
+                            if (rs.next()) {
+                                stats.put("min", rs.getObject(1));
+                                stats.put("max", rs.getObject(2));
+                                stats.put("avg", rs.getObject(3));
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                insights.put("partialError", e.getMessage());
+            }
+        }
+
+        insights.put("columnStats", colStats);
         return insights;
     }
 

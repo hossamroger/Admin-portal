@@ -32,7 +32,7 @@ public class DataController {
         @SuppressWarnings("unchecked")
         Map<String, Object> values = (Map<String, Object>) body.get("values");
         http.setAttribute("auditDetail", "columns=" + (values != null ? values.keySet() : "{}"));
-        int n = data.insert(table, values, http);
+        int n = data.insert(table, values, auth.getTableFilters(u));
         return result(n, "inserted");
     }
 
@@ -49,7 +49,7 @@ public class DataController {
         @SuppressWarnings("unchecked")
         Map<String, Object> values = (Map<String, Object>) body.get("values");
         http.setAttribute("auditDetail", "key=" + key + " set=" + (values != null ? values.keySet() : "{}"));
-        int n = data.update(table, key, values, http);
+        int n = data.update(table, key, values, auth.getTableFilters(u));
         return result(n, "updated");
     }
 
@@ -64,7 +64,7 @@ public class DataController {
         @SuppressWarnings("unchecked")
         Map<String, Object> key = (Map<String, Object>) body.get("key");
         http.setAttribute("auditDetail", "key=" + key);
-        int n = data.delete(table, key, http);
+        int n = data.delete(table, key, auth.getTableFilters(u));
         return result(n, "deleted");
     }
 

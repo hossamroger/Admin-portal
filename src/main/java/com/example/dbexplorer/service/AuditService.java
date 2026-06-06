@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Fire-and-forget audit logging.
@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 @Service
 public class AuditService {
 
-    private static final Logger LOG = Logger.getLogger(AuditService.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(AuditService.class);
 
     private final JdbcTemplate jdbc;
     private final AppProperties.Audit cfg;
@@ -92,7 +92,7 @@ public class AuditService {
                 Thread.currentThread().interrupt();
             } catch (Exception ex) {
                 // never let the writer die; back off briefly so we don't spin on a DB error
-                LOG.log(Level.WARNING, "Audit batch write failed: " + ex.getMessage());
+                LOG.warn("Audit batch write failed: {}", ex.getMessage());
                 sleep(2000);
             }
         }
@@ -117,7 +117,7 @@ public class AuditService {
                 "SELECT COUNT(*) FROM user_tables WHERE table_name = ?", Integer.class, t);
             if (n != null && n > 0) { tableReady = true; return; }
             if (!cfg.isAutoCreateTable()) {
-                LOG.warning("Audit table " + t + " not found and auto-create is off; auditing disabled.");
+                LOG.warn("Audit table {} not found and auto-create is off; auditing disabled.", t);
                 return;
             }
             jdbc.execute(
@@ -135,11 +135,10 @@ public class AuditService {
                 ")");
             jdbc.execute("CREATE INDEX " + t + "_TIME_IX ON " + t + " (event_time)");
             tableReady = true;
-            LOG.info("Created audit table " + t);
+            LOG.info("Created audit table {}", t);
         } catch (Exception ex) {
             // best-effort: if we can't see/create the table, disable writes but keep the app running
-            LOG.log(Level.WARNING, "Could not prepare audit table " + t +
-                " (" + ex.getMessage() + "). Auditing will be skipped.");
+            LOG.warn("Could not prepare audit table {} ({}). Auditing will be skipped.", t, ex.getMessage());
             tableReady = false;
         }
     }

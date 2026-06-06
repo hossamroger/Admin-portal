@@ -33,6 +33,7 @@ public class AuthController {
         }
         // fresh session to avoid fixation
         req.getSession(true).setAttribute(AuthService.SESSION_USER, u.get().getUsername());
+        auth.cacheUser(req, u.get());
         return ResponseEntity.ok(meBody(u.get()));
     }
 

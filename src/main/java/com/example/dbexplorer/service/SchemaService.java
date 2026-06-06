@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,14 +17,24 @@ public class SchemaService {
 
     private final JdbcTemplate jdbc;
     private final AppProperties props;
+    private String cachedSchema;
 
     public SchemaService(JdbcTemplate jdbc, AppProperties props) {
         this.jdbc = jdbc;
         this.props = props;
     }
 
+    @PostConstruct
+    public void init() {
+        this.cachedSchema = resolveSchema0();
+    }
+
     /** Resolve the schema/owner to introspect. */
     public String resolveSchema() {
+        return this.cachedSchema;
+    }
+
+    private String resolveSchema0() {
         if (StringUtils.hasText(props.getDefaultSchema())) {
             return props.getDefaultSchema().trim().toUpperCase();
         }
