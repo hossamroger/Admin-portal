@@ -18,7 +18,7 @@
 
   <button mat-stroked-button class="sync-btn" [class.changed]="changed()"
           (click)="sync()" [disabled]="syncing()"
-          matTooltip="Sync with the latest DB changes">
+          matTooltip="Sync with latest DB changes">
     <mat-icon [class.spin]="syncing()">sync</mat-icon>
     <span class="hide-handset">{{ changed() ? 'Changes — Sync' : 'Sync' }}</span>
   </button>
@@ -69,12 +69,25 @@
               <mat-panel-description>{{ count(g.type) }}</mat-panel-description>
             </mat-expansion-panel-header>
 
+            <!-- Search box shown once objects are loaded -->
+            @if (!isLoading(g.type) && objects(g.type).length > 0) {
+              <div class="search-box">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input
+                  class="search-input"
+                  placeholder="Filter tables…"
+                  [value]="filterText()"
+                  (input)="filterText.set($any($event.target).value)"
+                  (click)="$event.stopPropagation()">
+              </div>
+            }
+
             @if (isLoading(g.type)) {
               <div class="loading"><mat-spinner diameter="20" /></div>
-            } @else if (objects(g.type).length === 0) {
-              <div class="empty-group">(none)</div>
+            } @else if (filteredObjects(g.type).length === 0) {
+              <div class="empty-group">{{ filterText() ? 'No matches' : '(none)' }}</div>
             } @else {
-              @for (obj of objects(g.type); track obj.name) {
+              @for (obj of filteredObjects(g.type); track obj.name) {
                 <a class="obj mono" [routerLink]="linkFor(obj)" routerLinkActive="active"
                    (click)="onObjectClick(drawer.close.bind(drawer))">{{ obj.name }}</a>
               }

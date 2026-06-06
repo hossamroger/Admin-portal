@@ -8,9 +8,9 @@
   position: relative;
   z-index: 3;
   gap: 12px;
-  background: #fff;
+  background: white;
   border-bottom: 1px solid var(--app-line);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 
   .brand {
     display: flex;
@@ -18,30 +18,22 @@
     gap: 9px;
     font-weight: 700;
     font-size: 16px;
+    color: var(--app-fg);
 
     .dot {
       width: 11px;
       height: 11px;
-      border-radius: 4px;
+      border-radius: 3px;
       background: var(--app-accent);
-      box-shadow: 0 2px 6px rgba(63, 182, 168, 0.35);
+      box-shadow: 0 2px 6px rgba(0, 102, 53, 0.4);
     }
-  }
-
-  .schema-pill {
-    font-size: 12px;
-    color: #2a8e82;
-    background: #eef9f7;
-    border: 1px solid #d0ece8;
-    padding: 3px 10px;
-    border-radius: 6px;
   }
 
   .ro-pill {
     font-size: 11px;
-    color: #e05561;
+    color: var(--app-error);
     background: #fff5f5;
-    border: 1px solid #ffe3e3;
+    border: 1px solid #f3c4c8;
     padding: 3px 9px;
     border-radius: 6px;
   }
@@ -49,9 +41,12 @@
   .spacer { flex: 1; }
 
   .sync-btn {
+    border-color: var(--app-line);
+    color: var(--app-muted);
+
     &.changed {
       border-color: var(--app-accent);
-      color: #2a8e82;
+      color: var(--app-accent);
       animation: pulse 1.6s ease-out infinite;
     }
     .spin { animation: spin 0.8s linear infinite; }
@@ -60,9 +55,9 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(63, 182, 168, 0.45); }
-  70%  { box-shadow: 0 0 0 7px rgba(63, 182, 168, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(63, 182, 168, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(0, 102, 53, 0.35); }
+  70%  { box-shadow: 0 0 0 7px rgba(0, 102, 53, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 102, 53, 0); }
 }
 
 .menu-head {
@@ -70,18 +65,15 @@
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid var(--app-line);
-  small { color: var(--app-muted); }
+  small { color: var(--app-faint); }
 }
 
-.shell-body {
-  flex: 1;
-  min-height: 0;
-}
+.shell-body { flex: 1; min-height: 0; }
 
 .sidebar {
   width: 280px;
   border-right: 1px solid var(--app-line);
-  background: #fff;
+  background: white;
 }
 
 .tree {
@@ -91,16 +83,16 @@
     --mdc-list-list-item-leading-space: 16px;
 
     &.active {
-      background: #f0faf8 !important;
+      background: rgba(0, 102, 53, 0.08) !important;
       border-left: 3px solid var(--app-accent);
-      .mdc-list-item__primary-text { color: #2a8e82 !important; }
-      .mat-icon { color: #2a8e82 !important; }
+      .mdc-list-item__primary-text { color: var(--app-accent) !important; }
+      .mat-icon { color: var(--app-accent) !important; }
     }
   }
 
   .obj.active {
-    background: #f0faf8;
-    color: #2a8e82;
+    background: rgba(0, 102, 53, 0.08);
+    color: var(--app-accent);
     border-left: 3px solid var(--app-accent);
     font-weight: 500;
   }
@@ -113,11 +105,42 @@
     color: var(--app-muted);
   }
 
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 12px 6px;
+    padding: 6px 10px;
+    background: var(--app-surface);
+    border: 1px solid var(--app-line);
+    border-radius: 8px;
+
+    .search-icon {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+      color: var(--app-faint);
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 12.5px;
+      font-family: Roboto, sans-serif;
+      color: var(--app-fg);
+
+      &::placeholder { color: var(--app-faint); }
+    }
+  }
+
   .obj {
     display: block;
-    padding: 8px 16px 8px 30px;
+    padding: 7px 16px 7px 28px;
     font-size: 12.5px;
-    color: var(--app-faint);
+    color: var(--app-muted);
     text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
@@ -133,7 +156,6 @@
     font-size: 12px;
   }
 
-  // Tighten Material expansion panels into a flat tree look.
   ::ng-deep .group {
     box-shadow: none !important;
     border-radius: 0 !important;
@@ -142,10 +164,7 @@
   }
 }
 
-.content {
-  background: var(--app-bg);
-  overflow: hidden;
-}
+.content { background: var(--app-bg); overflow: hidden; }
 
 .hide-handset { margin-left: 6px; }
 

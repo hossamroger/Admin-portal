@@ -1,6 +1,6 @@
 :host { display: block; }
 
-.grid-error { padding: 16px; color: #e05561; white-space: pre-wrap; }
+.grid-error { padding: 16px; color: var(--app-error); white-space: pre-wrap; }
 
 .data-toolbar {
   display: flex;
@@ -37,7 +37,7 @@ table.grid {
     top: 0;
     text-align: left;
     padding: 10px 14px;
-    background: #f9fafb;
+    background: var(--app-surface);
     color: var(--app-muted);
     border-bottom: 1px solid var(--app-line);
     white-space: nowrap;
@@ -45,26 +45,26 @@ table.grid {
 
     &.sortable { cursor: pointer; user-select: none; }
     &.sortable:hover { color: var(--app-accent); }
-    &.pkh { color: #2a8e82; }
+    &.pkh { color: var(--app-accent); }
   }
 
   td {
     padding: 4px 8px;
-    border-bottom: 1px solid #f0f2f4;
+    border-bottom: 1px solid var(--app-surface-soft);
     white-space: nowrap;
-    color: #333;
+    color: var(--app-fg);
   }
 
-  tr.dirty td { background: #effaf7; }
+  tr.dirty td { background: rgba(0, 102, 53, 0.05); }
   tr.todelete td { background: #fff1f2; text-decoration: line-through; opacity: 0.6; }
   tr.newrow td { background: #fffdf0; }
 
-  .pk { color: #2a8e82; }
+  .pk { color: var(--app-accent); font-weight: 500; }
   .null { color: var(--app-faint); font-style: italic; }
 
   .rowact { width: 38px; text-align: center; }
   .del { cursor: pointer; color: var(--app-faint); font-size: 18px; }
-  .del:hover { color: #e05561; }
+  .del:hover { color: var(--app-error); }
 
   input.cell {
     width: 100%;
@@ -75,9 +75,9 @@ table.grid {
     padding: 5px 6px;
     font-family: var(--app-mono);
     font-size: 12.5px;
-    color: #222;
+    color: var(--app-fg);
 
     &:hover { border-color: var(--app-line); }
-    &:focus { outline: none; border-color: var(--app-accent); background: #fff; }
+    &:focus { outline: none; border-color: var(--app-accent); background: white; }
   }
 }

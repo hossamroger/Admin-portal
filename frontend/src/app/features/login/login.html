@@ -6,7 +6,7 @@
 
     <div class="brand">
       <span class="dot"></span>
-      <span class="brand-name">Oracle Schema Explorer</span>
+      <span class="brand-name">DS Admin Portal</span>
     </div>
     <p class="subtitle">Sign in to continue</p>
 
@@ -19,8 +19,11 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" autocomplete="current-password">
+        <input matInput [type]="showPass() ? 'text' : 'password'" formControlName="password" autocomplete="current-password">
         <mat-icon matPrefix>lock</mat-icon>
+        <button mat-icon-button matSuffix type="button" (click)="showPass.set(!showPass())" [attr.aria-label]="showPass() ? 'Hide password' : 'Show password'">
+          <mat-icon>{{ showPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
       </mat-form-field>
 
       @if (error()) {
