@@ -56,6 +56,12 @@ public class SchemaController {
         return objs.stream().filter(o -> auth.canSeeTable(u, o.name)).collect(Collectors.toList());
     }
 
+    /** Lightweight change-detection fingerprint used by the UI's background sync poll. */
+    @GetMapping("/fingerprint")
+    public Map<String, Object> fingerprint() {
+        return schema.fingerprint();
+    }
+
     /** List object names for a type, filtered to what the user may see. */
     @GetMapping("/objects")
     public List<DbObject> objects(@RequestParam String type, HttpServletRequest http) {

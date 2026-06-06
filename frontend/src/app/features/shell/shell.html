@@ -1,0 +1,94 @@
+<mat-toolbar class="topbar">
+  @if (isHandset()) {
+    <button mat-icon-button (click)="drawer.toggle()" aria-label="Menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <span class="brand">
+    <span class="dot"></span>
+    <span class="brand-name">Oracle Schema Explorer</span>
+  </span>
+
+  @if (overview(); as ov) {
+    <span class="schema-pill mono">{{ ov.schema }}</span>
+    @if (ov.readOnly) {
+      <span class="ro-pill mono">READ-ONLY</span>
+    }
+  }
+
+  <span class="spacer"></span>
+
+  <button mat-stroked-button class="sync-btn" [class.changed]="changed()"
+          (click)="sync()" [disabled]="syncing()"
+          matTooltip="Sync with the latest DB changes">
+    <mat-icon [class.spin]="syncing()">sync</mat-icon>
+    <span class="hide-handset">{{ changed() ? 'Changes — Sync' : 'Sync' }}</span>
+  </button>
+
+  @if (me(); as user) {
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+      <mat-icon>account_circle</mat-icon>
+      <span class="hide-handset">{{ user.username }}</span>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <div class="menu-head">
+        <strong>{{ user.username }}</strong>
+        <small>{{ user.role }}</small>
+      </div>
+      @if (isAdmin()) {
+        <button mat-menu-item routerLink="/admin/users">
+          <mat-icon>manage_accounts</mat-icon> User Management
+        </button>
+      }
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon> Sign out
+      </button>
+    </mat-menu>
+  }
+</mat-toolbar>
+
+<mat-sidenav-container class="shell-body">
+  <mat-sidenav #drawer class="sidebar"
+               [mode]="isHandset() ? 'over' : 'side'"
+               [opened]="!isHandset()">
+    <nav class="tree">
+      @if (canRunSql()) {
+        <a mat-list-item routerLink="/sql" routerLinkActive="active" class="pinned-link"
+           (click)="onObjectClick(drawer.close.bind(drawer))">
+          <mat-icon matListItemIcon>terminal</mat-icon>
+          <span matListItemTitle>SQL Editor</span>
+        </a>
+      }
+
+      <mat-accordion multi displayMode="flat">
+        @for (g of groups; track g.type) {
+          <mat-expansion-panel class="group" (opened)="loadGroup(g.type)">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="group-icon">{{ g.icon }}</mat-icon>
+                {{ g.label }}
+              </mat-panel-title>
+              <mat-panel-description>{{ count(g.type) }}</mat-panel-description>
+            </mat-expansion-panel-header>
+
+            @if (isLoading(g.type)) {
+              <div class="loading"><mat-spinner diameter="20" /></div>
+            } @else if (objects(g.type).length === 0) {
+              <div class="empty-group">(none)</div>
+            } @else {
+              @for (obj of objects(g.type); track obj.name) {
+                <a class="obj mono" [routerLink]="linkFor(obj)" routerLinkActive="active"
+                   (click)="onObjectClick(drawer.close.bind(drawer))">{{ obj.name }}</a>
+              }
+            }
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

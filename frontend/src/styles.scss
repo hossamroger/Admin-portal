@@ -1,0 +1,41 @@
+@use '@angular/material' as mat;
+
+// ---- Material 3 theme (Sharjah-green inspired accent) ----
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$green-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+  // App-level design tokens reused across feature styles.
+  --app-accent: #3fb6a8;
+  --app-line: #e0e5e8;
+  --app-muted: #656e76;
+  --app-faint: #9ba5af;
+  --app-bg: #f4f7f6;
+  --app-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+// Thin, unobtrusive scrollbars.
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #cdd5da; border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #b4bfc7; }
+
+// Utility used by several views for monospaced data cells / code.
+.mono { font-family: var(--app-mono); }

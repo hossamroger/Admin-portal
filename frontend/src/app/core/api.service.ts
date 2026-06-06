@@ -1,0 +1,78 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import {
+  AdminUserDetail, AdminUserSummary, DataPage, DbObject, Fingerprint, Insights, Me,
+  ObjectType, QueryResult, SaveUserRequest, SchemaOverview, SourceCode, TableDetail,
+} from './models';
+
+/** Single gateway for every backend call. Keeps URLs and shapes in one place. */
+@Injectable({ providedIn: 'root' })
+export class ApiService {
+  private readonly http = inject(HttpClient);
+
+  // ---- auth ----
+  login(username: string, password: string): Observable<Me> {
+    return this.http.post<Me>('/api/login', { username, password });
+  }
+  logout(): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>('/api/logout', {});
+  }
+  me(): Observable<Me> {
+    return this.http.get<Me>('/api/me');
+  }
+
+  // ---- schema ----
+  overview(): Observable<SchemaOverview> {
+    return this.http.get<SchemaOverview>('/api/schema');
+  }
+  fingerprint(): Observable<Fingerprint> {
+    return this.http.get<Fingerprint>('/api/schema/fingerprint');
+  }
+  objects(type: ObjectType): Observable<DbObject[]> {
+    return this.http.get<DbObject[]>('/api/schema/objects', { params: { type } });
+  }
+  table(name: string): Observable<TableDetail> {
+    return this.http.get<TableDetail>(`/api/schema/table/${encodeURIComponent(name)}`);
+  }
+  source(name: string, type: string): Observable<SourceCode> {
+    return this.http.get<SourceCode>(`/api/schema/source/${encodeURIComponent(name)}`, { params: { type } });
+  }
+
+  // ---- query / data ----
+  runSql(sql: string, maxRows?: number): Observable<QueryResult[]> {
+    return this.http.post<QueryResult[]>('/api/query/run', { sql, maxRows });
+  }
+  browse(table: string, page: number, pageSize: number, sort?: string | null, dir?: string | null): Observable<DataPage> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (sort) params = params.set('sort', sort).set('dir', dir || 'ASC');
+    return this.http.get<DataPage>(`/api/query/data/${encodeURIComponent(table)}`, { params });
+  }
+  insights(table: string): Observable<Insights> {
+    return this.http.get<Insights>(`/api/query/insights/${encodeURIComponent(table)}`);
+  }
+
+  insertRow(table: string, values: Record<string, any>): Observable<unknown> {
+    return this.http.post(`/api/data/${encodeURIComponent(table)}`, { values });
+  }
+  updateRow(table: string, key: Record<string, any>, values: Record<string, any>): Observable<unknown> {
+    return this.http.put(`/api/data/${encodeURIComponent(table)}`, { key, values });
+  }
+  deleteRow(table: string, key: Record<string, any>): Observable<unknown> {
+    return this.http.request('delete', `/api/data/${encodeURIComponent(table)}`, { body: { key } });
+  }
+
+  // ---- admin ----
+  listUsers(): Observable<AdminUserSummary[]> {
+    return this.http.get<AdminUserSummary[]>('/api/admin/users');
+  }
+  getUser(username: string): Observable<AdminUserDetail> {
+    return this.http.get<AdminUserDetail>(`/api/admin/user/${encodeURIComponent(username)}`);
+  }
+  saveUser(body: SaveUserRequest): Observable<void> {
+    return this.http.post<void>('/api/admin/user', body);
+  }
+  deleteUser(username: string): Observable<void> {
+    return this.http.delete<void>(`/api/admin/user/${encodeURIComponent(username)}`);
+  }
+}

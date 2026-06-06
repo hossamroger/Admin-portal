@@ -1,0 +1,145 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  position: relative;
+  z-index: 3;
+  gap: 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--app-line);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+    font-size: 16px;
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 4px;
+      background: var(--app-accent);
+      box-shadow: 0 2px 6px rgba(63, 182, 168, 0.35);
+    }
+  }
+
+  .schema-pill {
+    font-size: 12px;
+    color: #2a8e82;
+    background: #eef9f7;
+    border: 1px solid #d0ece8;
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+
+  .ro-pill {
+    font-size: 11px;
+    color: #e05561;
+    background: #fff5f5;
+    border: 1px solid #ffe3e3;
+    padding: 3px 9px;
+    border-radius: 6px;
+  }
+
+  .spacer { flex: 1; }
+
+  .sync-btn {
+    &.changed {
+      border-color: var(--app-accent);
+      color: #2a8e82;
+      animation: pulse 1.6s ease-out infinite;
+    }
+    .spin { animation: spin 0.8s linear infinite; }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(63, 182, 168, 0.45); }
+  70%  { box-shadow: 0 0 0 7px rgba(63, 182, 168, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(63, 182, 168, 0); }
+}
+
+.menu-head {
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--app-line);
+  small { color: var(--app-muted); }
+}
+
+.shell-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 280px;
+  border-right: 1px solid var(--app-line);
+  background: #fff;
+}
+
+.tree {
+  padding: 8px 0;
+
+  .pinned-link.active,
+  .obj.active {
+    background: linear-gradient(90deg, var(--app-accent), #50c9ba);
+    color: #fff;
+    border-radius: 0 22px 22px 0;
+    margin-right: 12px;
+  }
+
+  .group-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    margin-right: 8px;
+    color: var(--app-muted);
+  }
+
+  .obj {
+    display: block;
+    padding: 8px 16px 8px 30px;
+    font-size: 12.5px;
+    color: var(--app-faint);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+
+    &:hover { background: var(--app-bg); color: var(--app-accent); }
+  }
+
+  .loading, .empty-group {
+    padding: 10px 16px;
+    color: var(--app-faint);
+    font-size: 12px;
+  }
+
+  // Tighten Material expansion panels into a flat tree look.
+  ::ng-deep .group {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    .mat-expansion-panel-body { padding: 0 0 8px; }
+    .mat-expansion-panel-header { padding: 0 16px; height: 44px; }
+  }
+}
+
+.content {
+  background: var(--app-bg);
+  overflow: hidden;
+}
+
+.hide-handset { margin-left: 6px; }
+
+@media (max-width: 960px) {
+  .topbar .brand-name { display: none; }
+  .hide-handset { display: none; }
+}

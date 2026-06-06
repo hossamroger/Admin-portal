@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.login-wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--app-bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 17px;
+
+  .dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--app-accent);
+    box-shadow: 0 0 12px var(--app-accent);
+  }
+}
+
+.subtitle {
+  color: var(--app-muted);
+  margin: 6px 0 22px;
+  font-size: 13px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.error {
+  color: var(--mat-sys-error, #b3261e);
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+
+button {
+  margin-top: 4px;
+  height: 44px;
+}

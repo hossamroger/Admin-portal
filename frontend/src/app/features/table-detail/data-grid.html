@@ -1,0 +1,89 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error()) {
+  <div class="grid-error mono">{{ error() }}</div>
+} @else {
+  <div class="data-toolbar">
+    @if (canInsert()) {
+      <button mat-stroked-button (click)="addRow()">
+        <mat-icon>add</mat-icon> Add Row
+      </button>
+    }
+    @if (canInsert() || canUpdate() || canDelete()) {
+      <button mat-flat-button color="primary" (click)="save()">
+        <mat-icon>save</mat-icon> Save changes
+      </button>
+    }
+
+    <span class="pager">
+      <button mat-icon-button (click)="prev()" [disabled]="!hasPrev()"><mat-icon>chevron_left</mat-icon></button>
+      <span class="mono">rows {{ fromRow() }}–{{ toRow() }} of {{ total() }}</span>
+      <button mat-icon-button (click)="next()" [disabled]="!hasNext()"><mat-icon>chevron_right</mat-icon></button>
+    </span>
+
+    @if (pk().length === 0) {
+      <span class="note">no primary key — edit/delete disabled</span>
+    }
+  </div>
+
+  <div class="grid-scroll">
+    <table class="grid mono">
+      <thead>
+        <tr>
+          @if (showActions()) { <th class="rowact"></th> }
+          @for (c of columns(); track c) {
+            <th class="sortable" [class.pkh]="isPk(c)" (click)="toggleSort(c)">
+              @if (isPk(c)) { 🔑 }{{ c }}
+              @if (sort()?.toUpperCase() === c.toUpperCase()) {
+                {{ dir() === 'DESC' ? ' ▼' : ' ▲' }}
+              }
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        <!-- new (blank) rows on top -->
+        @for (nr of newRows(); track $index; let k = $index) {
+          <tr class="newrow">
+            @if (showActions()) {
+              <td class="rowact">
+                <mat-icon class="del" matTooltip="Discard" (click)="discardNew(k)">close</mat-icon>
+              </td>
+            }
+            @for (c of columns(); track c) {
+              <td><input class="cell" [placeholder]="c" [(ngModel)]="nr[c]"></td>
+            }
+          </tr>
+        }
+
+        <!-- existing rows -->
+        @for (row of working(); track $index; let ri = $index) {
+          <tr [class.dirty]="dirty().has(ri)" [class.todelete]="deleted().has(ri)">
+            @if (showActions()) {
+              <td class="rowact">
+                @if (canDelete()) {
+                  <mat-icon class="del" matTooltip="Delete row" (click)="toggleDelete(ri)">delete</mat-icon>
+                }
+              </td>
+            }
+            @for (c of columns(); track c; let ci = $index) {
+              @if (canUpdate() && !isPk(c)) {
+                <td>
+                  <input class="cell" [(ngModel)]="row[ci]" (ngModelChange)="onCellChange(ri)">
+                </td>
+              } @else {
+                <td [class.pk]="isPk(c)">
+                  @if (row[ci] === null || row[ci] === undefined) {
+                    <span class="null">(null)</span>
+                  } @else { {{ row[ci] }} }
+                </td>
+              }
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit user: ' + data.username : 'Add new user' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="user-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Username</mat-label>
+      <input matInput formControlName="username">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Password {{ isEdit ? '(blank = keep current)' : '' }}</mat-label>
+      <input matInput type="password" formControlName="password">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Role</mat-label>
+      <mat-select formControlName="role">
+        @for (r of roles; track r) { <mat-option [value]="r">{{ r }}</mat-option> }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="field-block">
+      <label class="block-label">Privileges</label>
+      <mat-select formControlName="privileges" multiple class="priv-select">
+        @for (p of allPrivileges; track p) { <mat-option [value]="p">{{ p }}</mat-option> }
+      </mat-select>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Allowed tables (comma separated, empty = all)</mat-label>
+      <input matInput formControlName="allowedTables" placeholder="EMPLOYEES, DEPARTMENTS">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Row filters (one per line: TABLE:condition)</mat-label>
+      <textarea matInput formControlName="filters" rows="3"
+                placeholder="EMPLOYEES:DEPT_ID = 10"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="saving()">Save</button>
+</mat-dialog-actions>
