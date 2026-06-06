@@ -87,12 +87,16 @@
 .tree {
   padding: 8px 0;
 
+  .pinned-link {
+    padding-left: 16px;
+  }
+
   .pinned-link.active,
   .obj.active {
-    background: linear-gradient(90deg, var(--app-accent), #50c9ba);
-    color: #fff;
-    border-radius: 0 22px 22px 0;
-    margin-right: 12px;
+    background: #eef9f7;
+    color: #2a8e82;
+    border-left: 3px solid var(--app-accent);
+    font-weight: 500;
   }
 
   .group-icon {
