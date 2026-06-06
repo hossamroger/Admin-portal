@@ -7,14 +7,11 @@
 
   <span class="brand">
     <span class="dot"></span>
-    <span class="brand-name">Oracle Schema Explorer</span>
+    <span class="brand-name">DS Admin Portal</span>
   </span>
 
-  @if (overview(); as ov) {
-    <span class="schema-pill mono">{{ ov.schema }}</span>
-    @if (ov.readOnly) {
-      <span class="ro-pill mono">READ-ONLY</span>
-    }
+  @if (overview()?.readOnly) {
+    <span class="ro-pill mono">READ-ONLY</span>
   }
 
   <span class="spacer"></span>
@@ -57,7 +54,7 @@
         <a mat-list-item routerLink="/sql" routerLinkActive="active" class="pinned-link"
            (click)="onObjectClick(drawer.close.bind(drawer))">
           <mat-icon matListItemIcon>terminal</mat-icon>
-          <span matListItemTitle>SQL Editor</span>
+          <span matListItemTitle>Configurations</span>
         </a>
       }
 
