@@ -29,6 +29,12 @@
           <div class="result-meta mono">
             <span class="ms">{{ r.elapsedMs }} ms</span>
             <span class="stmt">{{ r.statement }}</span>
+            @if (r.resultSet && r.rows?.length) {
+              <span class="row-count">{{ r.rows!.length }} row{{ r.rows!.length === 1 ? '' : 's' }}</span>
+              <button mat-icon-button class="export-btn" (click)="exportCsv(r)" matTooltip="Export CSV">
+                <mat-icon>download</mat-icon>
+              </button>
+            }
           </div>
 
           @if (r.error) {

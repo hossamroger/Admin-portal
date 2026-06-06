@@ -26,6 +26,7 @@ export class LoginComponent {
 
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly showPass = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     username: ['', Validators.required],

@@ -7,6 +7,6 @@
   <mat-progress-bar mode="indeterminate" />
 }
 
-<div class="body">
-  <pre class="code mono">{{ code() }}</pre>
+<div class="editor-wrap">
+  <app-monaco-editor [value]="code()" [language]="monacoLang()" [readOnly]="true" />
 </div>

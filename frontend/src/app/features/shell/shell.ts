@@ -51,6 +51,7 @@ export class ShellComponent {
   readonly overview = this.schemaState.overview;
   readonly changed = this.schemaState.changed;
   readonly syncing = signal(false);
+  readonly filterText = signal('');
 
   /** True on tablet/phone widths — sidenav becomes an overlay drawer. */
   readonly isHandset = toSignal(
@@ -71,6 +72,12 @@ export class ShellComponent {
 
   count(type: ObjectType): number {
     return this.overview()?.counts?.[type] ?? 0;
+  }
+
+  filteredObjects(type: ObjectType): DbObject[] {
+    const objs = this.objectsByType()[type] ?? [];
+    const q = this.filterText().toLowerCase().trim();
+    return q ? objs.filter(o => o.name.toLowerCase().includes(q)) : objs;
   }
 
   objects(type: ObjectType): DbObject[] {
