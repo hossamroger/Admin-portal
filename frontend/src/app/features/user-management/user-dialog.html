@@ -21,9 +21,11 @@
 
     <div class="field-block">
       <label class="block-label">Privileges</label>
-      <mat-select formControlName="privileges" multiple class="priv-select">
-        @for (p of allPrivileges; track p) { <mat-option [value]="p">{{ p }}</mat-option> }
-      </mat-select>
+      <div class="priv-list">
+        @for (p of allPrivileges; track p) {
+          <mat-checkbox [checked]="hasPrivilege(p)" (change)="togglePrivilege(p, $event.checked)">{{ p }}</mat-checkbox>
+        }
+      </div>
     </div>
 
     <mat-form-field appearance="outline">

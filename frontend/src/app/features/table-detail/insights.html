@@ -4,6 +4,11 @@
 
 @if (error()) {
   <div class="insights-error mono">{{ error() }}</div>
+} @else if (!loading() && stats().length === 0) {
+  <div class="insights-empty">
+    <mat-icon>bar_chart</mat-icon>
+    <span>No numeric or date columns to analyse</span>
+  </div>
 } @else {
   <div class="insights-grid">
     @for (s of stats(); track s.column) {

@@ -52,6 +52,7 @@ export class DataGridComponent {
   readonly toRow = computed(() => this.page() * PAGE_SIZE + this.working().length);
   readonly hasPrev = computed(() => this.page() > 0);
   readonly hasNext = computed(() => (this.page() + 1) * PAGE_SIZE < this.total());
+  readonly hasChanges = computed(() => this.newRows().length > 0 || this.dirty().size > 0 || this.deleted().size > 0);
 
   constructor() {
     // Reload from page 0 whenever the bound table changes.

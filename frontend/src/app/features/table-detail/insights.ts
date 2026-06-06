@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiService } from '../../core/api.service';
@@ -9,7 +10,7 @@ import { ColumnStat } from '../../core/models';
 @Component({
   selector: 'app-insights',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatCardModule, MatProgressBarModule],
+  imports: [MatCardModule, MatProgressBarModule, MatIconModule],
   templateUrl: './insights.html',
   styleUrl: './insights.scss',
 })

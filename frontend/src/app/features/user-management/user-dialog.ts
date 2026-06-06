@@ -65,6 +65,16 @@ export class UserDialogComponent {
     });
   }
 
+  hasPrivilege(p: string): boolean {
+    return (this.form.getRawValue().privileges ?? []).includes(p);
+  }
+
+  togglePrivilege(p: string, checked: boolean): void {
+    const current = [...(this.form.getRawValue().privileges ?? [])];
+    const next = checked ? [...current, p] : current.filter(x => x !== p);
+    this.form.patchValue({ privileges: next });
+  }
+
   save(): void {
     if (this.form.invalid || this.saving()) return;
     this.saving.set(true);

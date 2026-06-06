@@ -14,6 +14,12 @@
 
   .spacer { flex: 1; }
 
+  .readonly-pill {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--app-faint);
+    mat-icon { font-size: 13px; width: 13px; height: 13px; }
+  }
+
   .copy-btn mat-icon { font-size: 16px; height: 16px; width: 16px; margin-right: 4px; }
 }
 
