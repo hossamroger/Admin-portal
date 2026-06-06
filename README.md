@@ -52,6 +52,39 @@ mvn clean package
 java -jar target/oracle-schema-explorer-1.0.0.jar
 ```
 
+> الـ `mvn package` بيبني الواجهة (Angular) تلقائياً عن طريق `frontend-maven-plugin`
+> (بينزّل Node معزول، بيعمل `npm ci` و `ng build`)، وبيحط الناتج جوه الـ jar تحت
+> `static/`. لو عايز تبني الـ backend بس من غير الواجهة: `mvn package -Dskip.frontend=true`.
+
+---
+
+## الواجهة (Angular)
+الواجهة اتعمل لها rebuild كامل بـ **Angular 22 (standalone + signals + zoneless)** و **Angular Material**،
+بنية نضيفة ومنظّمة و**responsive** بالكامل (موبايل/تابلت/ديسكتوب).
+
+**التطوير المحلي** (مع reload لحظي و proxy للـ API على :8080):
+```bash
+cd frontend
+npm install
+npm start            # ng serve على http://localhost:4200 (بيوجّه /api لـ :8080)
+```
+شغّل الـ backend في terminal تاني بـ `mvn spring-boot:run`.
+
+**بنية الواجهة:**
+```
+frontend/src/app/
+├── core/                 # services (api, auth)، guards، interceptor، models، schema-state
+├── shared/               # مكوّنات قابلة لإعادة الاستخدام (Monaco editor, result-table)
+└── features/
+    ├── login/            # شاشة الدخول
+    ├── shell/            # الـ layout: toolbar + sidenav (شجرة الـ schema) responsive
+    ├── sql-editor/       # محرر SQL + عرض النتائج
+    ├── table-detail/     # تبويبات Structure / Data (grid قابل للتعديل) / Insights
+    ├── source-view/      # عرض الـ source code
+    └── user-management/  # إدارة المستخدمين (admin) + dialog
+```
+الـ routing: `/sql`، `/table/:name`، `/source/:type/:name`، `/admin/users` (محمية بـ guards).
+
 ---
 
 ## 4) الـ API (REST)

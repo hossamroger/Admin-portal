@@ -1,0 +1,38 @@
+:host { display: block; height: 100%; overflow: auto; }
+
+.detail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--app-line);
+
+  h2 { margin: 0; font-size: 18px; font-weight: 600; }
+
+  .kind {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #2a8e82;
+    background: #eef9f7;
+    border: 1px solid #d0ece8;
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+}
+
+.body { padding: 16px 20px; }
+
+pre.code {
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  overflow: auto;
+  white-space: pre;
+  color: #244;
+}

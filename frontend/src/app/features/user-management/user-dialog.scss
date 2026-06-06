@@ -1,0 +1,30 @@
+.user-form {
+  display: flex;
+  flex-direction: column;
+  min-width: 420px;
+  padding-top: 6px;
+}
+
+mat-form-field { width: 100%; }
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+
+  .block-label {
+    font-size: 12px;
+    color: var(--app-muted);
+    margin-bottom: 6px;
+  }
+
+  .priv-select {
+    border: 1px solid var(--app-line);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .user-form { min-width: unset; width: 80vw; }
+}

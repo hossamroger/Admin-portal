@@ -1,0 +1,39 @@
+.grid-scroll {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+}
+
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+
+  th {
+    position: sticky;
+    top: 0;
+    text-align: left;
+    padding: 10px 14px;
+    background: #f9fafb;
+    color: var(--app-muted);
+    border-bottom: 1px solid var(--app-line);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #f0f2f4;
+    white-space: nowrap;
+    max-width: 360px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
+  }
+
+  tr:hover td { background: var(--app-bg); }
+
+  .null { color: var(--app-faint); font-style: italic; }
+  .no-rows { text-align: center; color: var(--app-faint); }
+}

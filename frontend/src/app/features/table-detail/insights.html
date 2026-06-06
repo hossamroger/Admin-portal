@@ -1,0 +1,44 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error()) {
+  <div class="insights-error mono">{{ error() }}</div>
+} @else {
+  <div class="insights-grid">
+    @for (s of stats(); track s.column) {
+      <mat-card appearance="outlined" class="stat-card">
+        <div class="stat-head">
+          <span class="col-name mono">{{ s.column }}</span>
+          <span class="col-type">{{ s.type }}</span>
+        </div>
+
+        <div class="stat-rows">
+          <span class="label">Unique values</span>
+          <span class="value mono">{{ s.uniqueCount }}</span>
+          <span class="label">Nulls</span>
+          <span class="value mono" [class.bad]="(s.nullCount ?? 0) > 0">{{ s.nullCount }}</span>
+        </div>
+
+        @if (s.timeAnalysis) {
+          <div class="section">Time analysis</div>
+          <div class="stat-rows">
+            <span class="label">Last month</span><span class="value mono">{{ s.timeAnalysis['last_1_months'] }}</span>
+            <span class="label">Last 6 months</span><span class="value mono">{{ s.timeAnalysis['last_6_months'] }}</span>
+            <span class="label">Last year</span><span class="value mono">{{ s.timeAnalysis['last_12_months'] }}</span>
+            <span class="label">Last 2 years</span><span class="value mono">{{ s.timeAnalysis['last_24_months'] }}</span>
+          </div>
+        }
+
+        @if (s.min !== undefined) {
+          <div class="section">Numeric range</div>
+          <div class="stat-rows">
+            <span class="label">Min</span><span class="value mono">{{ s.min }}</span>
+            <span class="label">Max</span><span class="value mono">{{ s.max }}</span>
+            <span class="label">Avg</span><span class="value mono">{{ round(s.avg) }}</span>
+          </div>
+        }
+      </mat-card>
+    }
+  </div>
+}

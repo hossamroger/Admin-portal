@@ -1,0 +1,35 @@
+<div class="login-wrap">
+  <mat-card class="login-card" appearance="outlined">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <div class="brand">
+      <span class="dot"></span>
+      <span class="brand-name">Oracle Schema Explorer</span>
+    </div>
+    <p class="subtitle">Sign in to continue</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" autocomplete="username" autofocus>
+        <mat-icon matPrefix>person</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password">
+        <mat-icon matPrefix>lock</mat-icon>
+      </mat-form-field>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+        Sign in
+      </button>
+    </form>
+  </mat-card>
+</div>

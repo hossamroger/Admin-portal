@@ -1,0 +1,44 @@
+:host { display: block; }
+
+.insights-error { padding: 16px; color: #e05561; white-space: pre-wrap; }
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.stat-card {
+  padding: 16px;
+  border-radius: 12px;
+
+  .stat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .col-name { font-weight: 700; color: #2a8e82; }
+    .col-type { font-size: 10px; opacity: 0.6; text-transform: uppercase; }
+  }
+
+  .section {
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--app-faint);
+  }
+
+  .stat-rows {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 10px;
+    font-size: 12.5px;
+
+    .label { color: var(--app-muted); }
+    .value { text-align: right; }
+    .value.bad { color: #e05561; }
+  }
+}

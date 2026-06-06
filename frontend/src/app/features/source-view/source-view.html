@@ -1,0 +1,12 @@
+<div class="detail-head">
+  <h2 class="mono">{{ name() }}</h2>
+  <span class="kind">{{ type() }}</span>
+</div>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<div class="body">
+  <pre class="code mono">{{ code() }}</pre>
+</div>
