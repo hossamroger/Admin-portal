@@ -55,15 +55,7 @@
                [mode]="isHandset() ? 'over' : 'side'"
                [opened]="!isHandset()">
     <nav class="tree">
-      @if (canRunSql()) {
-        <a mat-list-item routerLink="/sql" routerLinkActive="active" class="pinned-link"
-           (click)="onObjectClick(drawer.close.bind(drawer))">
-          <mat-icon matListItemIcon>tune</mat-icon>
-          <span matListItemTitle>Configurations</span>
-        </a>
-      }
-
-      <mat-accordion multi displayMode="flat">
+<mat-accordion multi displayMode="flat">
         @for (g of groups; track g.type) {
           <mat-expansion-panel class="group" (opened)="loadGroup(g.type)">
             <mat-expansion-panel-header>
