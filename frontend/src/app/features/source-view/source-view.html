@@ -2,6 +2,7 @@
   <h2 class="mono">{{ name() }}</h2>
   <span class="kind">{{ type() }}</span>
   <span class="spacer"></span>
+  <span class="readonly-pill"><mat-icon>lock</mat-icon> Read only</span>
   <button mat-stroked-button class="copy-btn" (click)="copySource()" [disabled]="!code() || loading()" matTooltip="Copy source to clipboard">
     <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
     {{ copied() ? 'Copied' : 'Copy' }}

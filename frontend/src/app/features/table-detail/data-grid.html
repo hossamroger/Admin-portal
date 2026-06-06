@@ -12,7 +12,7 @@
       </button>
     }
     @if (canInsert() || canUpdate() || canDelete()) {
-      <button mat-flat-button color="primary" (click)="save()">
+      <button mat-flat-button color="primary" (click)="save()" [disabled]="!hasChanges()">
         <mat-icon>save</mat-icon> Save changes
       </button>
     }
@@ -28,6 +28,13 @@
     }
   </div>
 
+  @if (!loading() && total() === 0 && newRows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>table_rows</mat-icon>
+      <span>This table has no rows</span>
+    </div>
+  }
+
   <div class="grid-scroll">
     <table class="grid mono">
       <thead>
@@ -35,7 +42,7 @@
           @if (showActions()) { <th class="rowact"></th> }
           @for (c of columns(); track c) {
             <th class="sortable" [class.pkh]="isPk(c)" (click)="toggleSort(c)">
-              @if (isPk(c)) { 🔑 }{{ c }}
+              @if (isPk(c)) { <mat-icon class="pk-icon">vpn_key</mat-icon> }{{ c }}
               @if (sort()?.toUpperCase() === c.toUpperCase()) {
                 {{ dir() === 'DESC' ? ' ▼' : ' ▲' }}
               }

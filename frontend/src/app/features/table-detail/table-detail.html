@@ -17,7 +17,8 @@
           <mat-icon class="col-search-icon">search</mat-icon>
           <input class="col-search-input" placeholder="Search columns…"
             [value]="columnFilter()"
-            (input)="columnFilter.set($any($event.target).value)">
+            (input)="columnFilter.set($any($event.target).value)"
+            (keydown.escape)="columnFilter.set('')">
           @if (columnFilter()) {
             <mat-icon class="col-clear" (click)="columnFilter.set('')">close</mat-icon>
           }
@@ -27,20 +28,21 @@
         <div class="grid-scroll">
           <table class="grid mono">
             <thead>
-              <tr><th>#</th><th>Name</th><th>Type</th><th>Null</th><th>Default</th><th>PK</th><th>Comment</th></tr>
+              <tr><th>#</th><th>Name</th><th>Type</th><th>Null</th><th>Default</th><th>Comment</th></tr>
             </thead>
             <tbody>
               @for (c of filteredColumns(d.columns); track c.name; let i = $index) {
                 <tr>
                   <td class="faint">{{ i + 1 }}</td>
-                  <td [class.pk]="c.primaryKey">@if (c.primaryKey) { 🔑 }{{ c.name }}</td>
+                  <td [class.pk]="c.primaryKey">
+                    @if (c.primaryKey) { <mat-icon class="pk-icon">vpn_key</mat-icon> }{{ c.name }}
+                  </td>
                   <td>{{ typeWithSize(c) }}</td>
                   <td>
                     @if (c.nullable) { <span class="badge y">YES</span> }
                     @else { <span class="badge n">NO</span> }
                   </td>
                   <td>@if (c.defaultValue) { {{ c.defaultValue }} } @else { <span class="null">—</span> }</td>
-                  <td>@if (c.primaryKey) { ✓ }</td>
                   <td class="muted">{{ c.comments }}</td>
                 </tr>
               }

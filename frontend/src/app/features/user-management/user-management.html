@@ -1,6 +1,5 @@
 <div class="detail-head">
   <h2>User Management</h2>
-  <span class="kind">Admin</span>
   <span class="spacer"></span>
   <button mat-flat-button color="primary" (click)="add()">
     <mat-icon>person_add</mat-icon> Add user
@@ -8,43 +7,50 @@
 </div>
 
 <div class="panel">
-  <table mat-table [dataSource]="users()" class="users-table">
-    <ng-container matColumnDef="username">
-      <th mat-header-cell *matHeaderCellDef>Username</th>
-      <td mat-cell *matCellDef="let u" class="mono">{{ u.USERNAME }}</td>
-    </ng-container>
+  @if (users().length === 0) {
+    <div class="empty-state">
+      <mat-icon>group</mat-icon>
+      <span>No users found</span>
+    </div>
+  } @else {
+    <table mat-table [dataSource]="users()" class="users-table">
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef>Username</th>
+        <td mat-cell *matCellDef="let u" class="mono">{{ u.USERNAME }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="role">
-      <th mat-header-cell *matHeaderCellDef>Role</th>
-      <td mat-cell *matCellDef="let u">
-        <span class="role-badge" [class]="'role-' + u.ROLE.toLowerCase()">{{ u.ROLE }}</span>
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Role</th>
+        <td mat-cell *matCellDef="let u">
+          <span class="role-badge" [class]="'role-' + u.ROLE.toLowerCase()">{{ u.ROLE }}</span>
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>Status</th>
-      <td mat-cell *matCellDef="let u">
-        <span class="badge" [class.y]="u.ENABLED === 'Y'" [class.n]="u.ENABLED !== 'Y'">
-          {{ u.ENABLED === 'Y' ? 'Enabled' : 'Disabled' }}
-        </span>
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let u">
+          <span class="badge" [class.y]="u.ENABLED === 'Y'" [class.n]="u.ENABLED !== 'Y'">
+            {{ u.ENABLED === 'Y' ? 'Enabled' : 'Disabled' }}
+          </span>
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let u" class="actions">
-        <button mat-icon-button (click)="edit(u.USERNAME)" matTooltip="Edit">
-          <mat-icon>edit</mat-icon>
-        </button>
-        @if (!isPrimaryAdmin(u.USERNAME)) {
-          <button mat-icon-button color="warn" (click)="remove(u.USERNAME)" matTooltip="Delete">
-            <mat-icon>delete</mat-icon>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let u" class="actions">
+          <button mat-icon-button (click)="edit(u.USERNAME)" matTooltip="Edit">
+            <mat-icon>edit</mat-icon>
           </button>
-        }
-      </td>
-    </ng-container>
+          @if (!isPrimaryAdmin(u.USERNAME)) {
+            <button mat-icon-button color="warn" (click)="remove(u.USERNAME)" matTooltip="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr mat-row *matRowDef="let row; columns: columns"></tr>
-  </table>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+  }
 </div>

@@ -13,15 +13,19 @@ mat-form-field { width: 100%; }
   margin-bottom: 18px;
 
   .block-label {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--app-muted);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
-  .priv-select {
+  .priv-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 10px 12px;
     border: 1px solid var(--app-line);
     border-radius: 6px;
-    padding: 10px 12px;
+    background: var(--app-surface);
   }
 }
 
