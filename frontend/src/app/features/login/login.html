@@ -1,9 +1,5 @@
 <div class="login-wrap">
   <mat-card class="login-card" appearance="outlined">
-    @if (loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-
     <div class="brand">
       <span class="dot"></span>
       <span class="brand-name">DS Admin Portal</span>
@@ -30,9 +26,16 @@
         <p class="error">{{ error() }}</p>
       }
 
+      @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
       <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
-        Sign in
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
       </button>
+
+      <p class="session-hint">
+        <mat-icon>schedule</mat-icon>
+        Session expires after 30 minutes of inactivity
+      </p>
     </form>
   </mat-card>
 </div>
