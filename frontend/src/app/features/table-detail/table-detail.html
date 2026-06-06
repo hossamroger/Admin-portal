@@ -6,23 +6,31 @@
   </div>
 }
 
-@if (loading()) {
-  <mat-progress-bar mode="indeterminate" />
-}
+@if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
 <mat-tab-group class="detail-tabs" (selectedIndexChange)="onTabChange($event)" animationDuration="150ms">
   <!-- Structure -->
   <mat-tab label="Structure">
     @if (detail(); as d) {
       <div class="panel">
-        <div class="section-title">Columns</div>
+        <div class="col-search-bar">
+          <mat-icon class="col-search-icon">search</mat-icon>
+          <input class="col-search-input" placeholder="Search columns…"
+            [value]="columnFilter()"
+            (input)="columnFilter.set($any($event.target).value)">
+          @if (columnFilter()) {
+            <mat-icon class="col-clear" (click)="columnFilter.set('')">close</mat-icon>
+          }
+          <span class="col-count">{{ filteredColumns(d.columns).length }} / {{ d.columns.length }}</span>
+        </div>
+
         <div class="grid-scroll">
           <table class="grid mono">
             <thead>
               <tr><th>#</th><th>Name</th><th>Type</th><th>Null</th><th>Default</th><th>PK</th><th>Comment</th></tr>
             </thead>
             <tbody>
-              @for (c of d.columns; track c.name; let i = $index) {
+              @for (c of filteredColumns(d.columns); track c.name; let i = $index) {
                 <tr>
                   <td class="faint">{{ i + 1 }}</td>
                   <td [class.pk]="c.primaryKey">@if (c.primaryKey) { 🔑 }{{ c.name }}</td>
@@ -44,15 +52,11 @@
           <div class="section-title">Constraints</div>
           <div class="grid-scroll">
             <table class="grid mono">
-              <thead>
-                <tr><th>Name</th><th>Type</th><th>Columns</th><th>References</th><th>Condition</th></tr>
-              </thead>
+              <thead><tr><th>Name</th><th>Type</th><th>Columns</th><th>References</th><th>Condition</th></tr></thead>
               <tbody>
                 @for (c of d.constraints; track c.name) {
                   <tr>
-                    <td>{{ c.name }}</td>
-                    <td>{{ constraintType(c.type) }}</td>
-                    <td>{{ c.columns }}</td>
+                    <td>{{ c.name }}</td><td>{{ constraintType(c.type) }}</td><td>{{ c.columns }}</td>
                     <td>@if (c.refTable) { {{ c.refTable }} ({{ c.refColumns }}) }</td>
                     <td class="muted">{{ c.searchCondition }}</td>
                   </tr>
@@ -71,10 +75,7 @@
                 @for (x of d.indexes; track x.name) {
                   <tr>
                     <td>{{ x.name }}</td>
-                    <td>
-                      @if (x.unique) { <span class="badge y">UNIQUE</span> }
-                      @else { <span class="badge">NON-UNIQUE</span> }
-                    </td>
+                    <td>@if (x.unique) { <span class="badge y">UNIQUE</span> } @else { <span class="badge">NON-UNIQUE</span> }</td>
                     <td>{{ x.columns }}</td>
                   </tr>
                 }
@@ -88,19 +89,15 @@
 
   <!-- Data -->
   <mat-tab label="Data">
-    <div class="panel">
-      @if (visited().has(1)) {
-        <app-data-grid [table]="name()" />
-      }
+    <div class="panel data-panel">
+      @if (visited().has(1)) { <app-data-grid [table]="name()" /> }
     </div>
   </mat-tab>
 
   <!-- Insights -->
   <mat-tab label="Insights">
     <div class="panel">
-      @if (visited().has(2)) {
-        <app-insights [table]="name()" />
-      }
+      @if (visited().has(2)) { <app-insights [table]="name()" /> }
     </div>
   </mat-tab>
 </mat-tab-group>

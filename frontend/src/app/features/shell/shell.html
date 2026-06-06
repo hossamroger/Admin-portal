@@ -10,6 +10,11 @@
     <span class="brand-name">DS Admin Portal</span>
   </span>
 
+  @if (pageTitle()) {
+    <span class="page-sep"></span>
+    <span class="page-title hide-handset">{{ pageTitle() }}</span>
+  }
+
   @if (overview()?.readOnly) {
     <span class="ro-pill mono">READ-ONLY</span>
   }
@@ -25,7 +30,7 @@
 
   @if (me(); as user) {
     <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
-      <mat-icon>account_circle</mat-icon>
+      <span class="user-avatar">{{ userInitials(user.username) }}</span>
       <span class="hide-handset">{{ user.username }}</span>
     </button>
     <mat-menu #userMenu="matMenu">
@@ -69,16 +74,16 @@
               <mat-panel-description>{{ count(g.type) }}</mat-panel-description>
             </mat-expansion-panel-header>
 
-            <!-- Search box shown once objects are loaded -->
             @if (!isLoading(g.type) && objects(g.type).length > 0) {
               <div class="search-box">
                 <mat-icon class="search-icon">search</mat-icon>
-                <input
-                  class="search-input"
-                  placeholder="Filter tables…"
+                <input class="search-input" placeholder="Filter tables…"
                   [value]="filterText()"
                   (input)="filterText.set($any($event.target).value)"
                   (click)="$event.stopPropagation()">
+                @if (filterText()) {
+                  <mat-icon class="clear-icon" (click)="filterText.set(''); $event.stopPropagation()">close</mat-icon>
+                }
               </div>
             }
 
@@ -87,10 +92,13 @@
             } @else if (filteredObjects(g.type).length === 0) {
               <div class="empty-group">{{ filterText() ? 'No matches' : '(none)' }}</div>
             } @else {
-              @for (obj of filteredObjects(g.type); track obj.name) {
-                <a class="obj mono" [routerLink]="linkFor(obj)" routerLinkActive="active"
+              <cdk-virtual-scroll-viewport itemSize="33"
+                [style.height.px]="viewportHeight(g.type)"
+                class="obj-viewport">
+                <a *cdkVirtualFor="let obj of filteredObjects(g.type); trackBy: trackByName"
+                   class="obj mono" [routerLink]="linkFor(obj)" routerLinkActive="active"
                    (click)="onObjectClick(drawer.close.bind(drawer))">{{ obj.name }}</a>
-              }
+              </cdk-virtual-scroll-viewport>
             }
           </mat-expansion-panel>
         }

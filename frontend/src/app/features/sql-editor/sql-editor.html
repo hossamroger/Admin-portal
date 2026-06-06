@@ -7,12 +7,14 @@
     <span class="hint">Ctrl/Cmd + Enter to run · separate statements with ;</span>
   </div>
 
-  @if (running()) {
-    <mat-progress-bar mode="indeterminate" />
-  }
+  @if (running()) { <mat-progress-bar mode="indeterminate" /> }
 
-  <div class="editor-box">
+  <div class="editor-box" [style.height.px]="editorHeight()">
     <app-monaco-editor [value]="sql()" (valueChange)="sql.set($event)" (runRequested)="run()" />
+  </div>
+
+  <div class="resize-handle" (mousedown)="startResize($event)" title="Drag to resize">
+    <span class="handle-grip"></span>
   </div>
 
   <div class="results">
@@ -36,14 +38,11 @@
               </button>
             }
           </div>
-
           @if (r.error) {
             <div class="result-err mono">{{ r.error }}</div>
           } @else if (r.resultSet) {
             <app-result-table [columns]="r.columns ?? []" [rows]="r.rows ?? []" />
-            @if (r.truncated) {
-              <div class="trunc mono">⚠ Output truncated at row limit.</div>
-            }
+            @if (r.truncated) { <div class="trunc mono">⚠ Output truncated at row limit.</div> }
           } @else {
             <div class="result-ok mono">✓ {{ r.updateCount ?? 0 }} row(s) affected.</div>
           }

@@ -1,48 +1,39 @@
 :host { display: block; height: 100%; overflow: auto; }
 
 .detail-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  background: white;
-  border-bottom: 1px solid var(--app-line);
-
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; background: white; border-bottom: 1px solid var(--app-line);
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--app-fg); }
-
   .kind {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--app-accent-teal);
-    background: rgba(2, 124, 113, 0.08);
-    border: 1px solid rgba(2, 124, 113, 0.25);
-    padding: 2px 8px;
-    border-radius: 5px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--app-accent-teal); background: rgba(2,124,113,0.08);
+    border: 1px solid rgba(2,124,113,0.25); padding: 2px 8px; border-radius: 5px;
   }
-
   .spacer { flex: 1; }
 }
 
 .panel { padding: 20px; }
 
 .users-table {
-  width: 100%;
-  background: white;
-  border: 1px solid var(--app-line);
-  border-radius: 10px;
-  overflow: hidden;
-
+  width: 100%; background: white; border: 1px solid var(--app-line);
+  border-radius: 10px; overflow: hidden;
   .actions { text-align: right; white-space: nowrap; }
 }
 
-.badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--app-line);
-  color: var(--app-muted);
+.role-badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 4px; border: 1px solid;
+  text-transform: uppercase; letter-spacing: 0.4px;
 
-  &.y { color: var(--app-accent); border-color: rgba(0, 102, 53, 0.3); }
+  &.role-admin    { color: var(--app-accent); background: rgba(0,102,53,0.08); border-color: rgba(0,102,53,0.3); }
+  &.role-analyst  { color: var(--app-accent-teal); background: rgba(2,124,113,0.08); border-color: rgba(2,124,113,0.25); }
+  &.role-editor   { color: #1565c0; background: rgba(21,101,192,0.08); border-color: rgba(21,101,192,0.25); }
+  &.role-user     { color: var(--app-muted); background: var(--app-surface); border-color: var(--app-line); }
+}
+
+.badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 4px;
+  border: 1px solid var(--app-line); color: var(--app-muted);
+  &.y { color: var(--app-accent); border-color: rgba(0,102,53,0.3); }
   &.n { color: var(--app-error); border-color: #f3c4c8; }
 }

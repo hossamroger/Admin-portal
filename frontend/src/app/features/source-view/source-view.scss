@@ -1,29 +1,20 @@
 :host { display: flex; flex-direction: column; height: 100%; }
 
 .detail-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 16px 20px;
-  background: white;
-  border-bottom: 1px solid var(--app-line);
-  flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; background: white; border-bottom: 1px solid var(--app-line); flex-shrink: 0;
 
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--app-fg); }
 
   .kind {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--app-accent-teal);
-    background: rgba(2, 124, 113, 0.08);
-    border: 1px solid rgba(2, 124, 113, 0.25);
-    padding: 2px 8px;
-    border-radius: 5px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--app-accent-teal); background: rgba(2,124,113,0.08);
+    border: 1px solid rgba(2,124,113,0.25); padding: 2px 8px; border-radius: 5px;
   }
+
+  .spacer { flex: 1; }
+
+  .copy-btn mat-icon { font-size: 16px; height: 16px; width: 16px; margin-right: 4px; }
 }
 
-.editor-wrap {
-  flex: 1;
-  min-height: 0;
-}
+.editor-wrap { flex: 1; min-height: 0; }
