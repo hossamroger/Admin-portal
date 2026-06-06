@@ -41,7 +41,7 @@ public class QueryController {
     public Map<String, Object> insights(@PathVariable String table, HttpServletRequest http) {
         User u = auth.effectiveUser(http);
         auth.requireTableAccess(u, table);
-        return query.getTableInsights(table, http);
+        return query.getTableInsights(table, auth.getTableFilters(u));
     }
 
     @GetMapping("/data/{table}")
@@ -55,8 +55,9 @@ public class QueryController {
         auth.requirePrivilege(u, "SELECT");
         auth.requireTableAccess(u, table);
 
-        QueryResult result = query.browseTable(table, page, pageSize, sort, dir, http);
-        long total = query.countTable(table, http);
+        Map<String,String> tableFilters = auth.getTableFilters(u);
+        QueryResult result = query.browseTable(table, page, pageSize, sort, dir, tableFilters);
+        long total = query.countTable(table, tableFilters);
 
         Map<String, Object> m = new HashMap<>();
         m.put("result", result);

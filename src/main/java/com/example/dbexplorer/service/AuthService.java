@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class AuthService {
 
     public static final String SESSION_USER = "DBX_USER";
+    private static final String SESSION_USER_OBJ = "DBX_USER_OBJ";
 
     private final AppProperties props;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
@@ -36,6 +37,11 @@ public class AuthService {
         return passwordMatches(password, u.getPassword()) ? Optional.of(u) : Optional.empty();
     }
 
+    /** Cache the full User object in the HTTP session. */
+    public void cacheUser(HttpServletRequest req, User u) {
+        req.getSession(false).setAttribute(SESSION_USER_OBJ, u);
+    }
+
     private User loadUserFromDb(String username) {
         try {
             return jdbc.queryForObject("SELECT * FROM DBX_USERS WHERE LOWER(USERNAME) = ?", (rs, rowNum) -> {
@@ -43,20 +49,20 @@ public class AuthService {
                 u.setUsername(rs.getString("USERNAME"));
                 u.setPassword(rs.getString("PASSWORD"));
                 u.setRole(rs.getString("ROLE"));
-                
+
                 // Load Privileges
                 u.setPrivileges(jdbc.queryForList("SELECT PRIVILEGE FROM DBX_USER_PRIVILEGES WHERE LOWER(USERNAME) = ?", String.class, username));
-                
+
                 // Load Allowed Tables
                 u.setAllowedTables(jdbc.queryForList("SELECT TABLE_NAME FROM DBX_USER_ALLOWED_TABLES WHERE LOWER(USERNAME) = ?", String.class, username));
-                
+
                 // Load Table Filters
                 Map<String, String> filters = new HashMap<>();
                 jdbc.query("SELECT TABLE_NAME, FILTER_CONDITION FROM DBX_USER_TABLE_FILTERS WHERE LOWER(USERNAME) = ?", rs2 -> {
                     filters.put(rs2.getString("TABLE_NAME").toUpperCase(), rs2.getString("FILTER_CONDITION"));
                 }, username);
                 u.setTableFilters(filters);
-                
+
                 return u;
             }, username);
         } catch (Exception e) {
@@ -73,8 +79,7 @@ public class AuthService {
         if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
             try { return bcrypt.matches(raw, hash); } catch (Exception e) { return false; }
         }
-        // fallback: treat stored as plain text (not recommended)
-        return raw.equals(stored);
+        throw new IllegalArgumentException("Unrecognized password format for stored credential.");
     }
 
     /**
@@ -85,9 +90,17 @@ public class AuthService {
         if (!isEnabled()) return superUser();
         HttpSession session = req.getSession(false);
         if (session == null) return null;
+        // Check for cached full User object first
+        User cached = (User) session.getAttribute(SESSION_USER_OBJ);
+        if (cached != null) return cached;
+        // Fall back to username lookup
         String name = (String) session.getAttribute(SESSION_USER);
         if (name == null) return null;
-        return loadUserFromDb(name.toLowerCase());
+        User u = loadUserFromDb(name.toLowerCase());
+        if (u != null) {
+            session.setAttribute(SESSION_USER_OBJ, u);
+        }
+        return u;
     }
 
     private User superUser() {
