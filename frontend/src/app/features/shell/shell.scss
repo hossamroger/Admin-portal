@@ -87,13 +87,19 @@
 .tree {
   padding: 8px 0;
 
-  .pinned-link {
-    padding-left: 16px;
+  ::ng-deep .pinned-link {
+    --mdc-list-list-item-leading-space: 16px;
+
+    &.active {
+      background: #f0faf8 !important;
+      border-left: 3px solid var(--app-accent);
+      .mdc-list-item__primary-text { color: #2a8e82 !important; }
+      .mat-icon { color: #2a8e82 !important; }
+    }
   }
 
-  .pinned-link.active,
   .obj.active {
-    background: #eef9f7;
+    background: #f0faf8;
     color: #2a8e82;
     border-left: 3px solid var(--app-accent);
     font-weight: 500;
