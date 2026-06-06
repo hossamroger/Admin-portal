@@ -11,11 +11,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/shell/shell').then(m => m.ShellComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'sql' },
-      {
-        path: 'sql',
-        loadComponent: () => import('./features/sql-editor/sql-editor').then(m => m.SqlEditorComponent),
-      },
+      { path: '', pathMatch: 'full', redirectTo: 'table' },
       {
         path: 'table/:name',
         loadComponent: () => import('./features/table-detail/table-detail').then(m => m.TableDetailComponent),

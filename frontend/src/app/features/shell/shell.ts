@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -44,7 +44,6 @@ export class ShellComponent {
 
   readonly me = this.auth.me;
   readonly isAdmin = this.auth.isAdmin;
-  readonly canRunSql = computed(() => !!this.auth.can()?.runSql);
   readonly overview = this.schemaState.overview;
   readonly changed = this.schemaState.changed;
   readonly syncing = signal(false);
@@ -77,7 +76,6 @@ export class ShellComponent {
     if (url.startsWith('/table/')) return decodeURIComponent(url.split('/table/')[1].split('?')[0]);
     if (url.startsWith('/source/')) { const p = url.split('/'); return decodeURIComponent(p[p.length - 1]); }
     if (url.startsWith('/admin/users')) return 'User Management';
-    if (url.startsWith('/sql')) return 'SQL Editor';
     return '';
   }
 
