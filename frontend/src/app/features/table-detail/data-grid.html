@@ -17,11 +17,13 @@
       </button>
     }
 
-    <span class="pager">
-      <button mat-icon-button (click)="prev()" [disabled]="!hasPrev()"><mat-icon>chevron_left</mat-icon></button>
-      <span class="mono">rows {{ fromRow() }}–{{ toRow() }} of {{ total() }}</span>
-      <button mat-icon-button (click)="next()" [disabled]="!hasNext()"><mat-icon>chevron_right</mat-icon></button>
-    </span>
+    @if (total() > 0 || newRows().length > 0) {
+      <span class="pager">
+        <button mat-icon-button (click)="prev()" [disabled]="!hasPrev()"><mat-icon>chevron_left</mat-icon></button>
+        <span class="mono">rows {{ fromRow() }}–{{ toRow() }} of {{ total() }}</span>
+        <button mat-icon-button (click)="next()" [disabled]="!hasNext()"><mat-icon>chevron_right</mat-icon></button>
+      </span>
+    }
 
     @if (pk().length === 0) {
       <span class="note">no primary key — edit/delete disabled</span>

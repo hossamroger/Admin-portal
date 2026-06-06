@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -70,6 +70,18 @@ export class ShellComponent {
   private readonly objectsByType = signal<Record<string, DbObject[]>>({});
   private readonly loadingType = signal<string | null>(null);
 
+  /** Stable memoized filtered list — same array reference when filter+data unchanged,
+   *  so CDK virtual scroll doesn't reset its scroll position on every navigation. */
+  private readonly filteredCache = computed(() => {
+    const all = this.objectsByType();
+    const q = this.filterText().toLowerCase().trim();
+    const result: Record<string, DbObject[]> = {};
+    for (const type of Object.keys(all)) {
+      result[type] = q ? all[type].filter(o => o.name.toLowerCase().includes(q)) : all[type];
+    }
+    return result;
+  });
+
   constructor() { this.schemaState.refresh(); }
 
   private titleFromUrl(url: string): string {
@@ -86,11 +98,7 @@ export class ShellComponent {
 
   count(type: ObjectType): number { return this.overview()?.counts?.[type] ?? 0; }
 
-  filteredObjects(type: ObjectType): DbObject[] {
-    const objs = this.objectsByType()[type] ?? [];
-    const q = this.filterText().toLowerCase().trim();
-    return q ? objs.filter(o => o.name.toLowerCase().includes(q)) : objs;
-  }
+  filteredObjects(type: ObjectType): DbObject[] { return this.filteredCache()[type] ?? []; }
 
   objects(type: ObjectType): DbObject[] { return this.objectsByType()[type] ?? []; }
 
