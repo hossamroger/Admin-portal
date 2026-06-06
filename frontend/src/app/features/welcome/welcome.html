@@ -1,0 +1,30 @@
+<div class="welcome-wrap">
+  <div class="welcome-card">
+    <div class="brand-mark">
+      <span class="dot"></span>
+    </div>
+    <h1>DS Admin Portal</h1>
+    <p class="tagline">Select a table from the sidebar to browse, edit, and analyse your data.</p>
+
+    <div class="stat-row">
+      @if (overview(); as ov) {
+        <div class="stat">
+          <span class="stat-value">{{ ov.counts?.['TABLE'] ?? 0 }}</span>
+          <span class="stat-label">Tables</span>
+        </div>
+        @if (ov.readOnly) {
+          <div class="stat">
+            <span class="stat-value ro">READ-ONLY</span>
+            <span class="stat-label">Mode</span>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="tips">
+      <div class="tip"><mat-icon>table_chart</mat-icon><span>Expand <strong>Tables</strong> in the sidebar and click any table to view its data</span></div>
+      <div class="tip"><mat-icon>search</mat-icon><span>Use the filter box to quickly find a table by name</span></div>
+      <div class="tip"><mat-icon>sync</mat-icon><span>Click <strong>Sync</strong> in the top bar to pick up the latest database changes</span></div>
+    </div>
+  </div>
+</div>
