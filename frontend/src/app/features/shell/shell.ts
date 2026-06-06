@@ -60,12 +60,6 @@ export class ShellComponent {
 
   readonly groups: Group[] = [
     { type: 'TABLE', label: 'Tables', icon: 'table_chart' },
-    { type: 'VIEW', label: 'Views', icon: 'grid_view' },
-    { type: 'PROCEDURE', label: 'Procedures', icon: 'settings_ethernet' },
-    { type: 'FUNCTION', label: 'Functions', icon: 'functions' },
-    { type: 'PACKAGE', label: 'Packages', icon: 'inventory_2' },
-    { type: 'TRIGGER', label: 'Triggers', icon: 'bolt' },
-    { type: 'SEQUENCE', label: 'Sequences', icon: 'tag' },
   ];
 
   private readonly objectsByType = signal<Record<string, DbObject[]>>({});
