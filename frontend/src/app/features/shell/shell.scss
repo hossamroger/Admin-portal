@@ -129,6 +129,7 @@
 
     .search-icon { font-size: 16px; height: 16px; width: 16px; color: var(--app-faint); flex-shrink: 0; }
     .clear-icon { font-size: 15px; height: 15px; width: 15px; color: var(--app-faint); cursor: pointer; flex-shrink: 0; &:hover { color: var(--app-fg); } }
+    .filter-count { font-size: 11px; color: var(--app-faint); font-family: var(--app-mono); flex-shrink: 0; }
 
     .search-input {
       flex: 1; border: none; outline: none; background: transparent;

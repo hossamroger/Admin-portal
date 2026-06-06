@@ -75,6 +75,7 @@
                   (click)="$event.stopPropagation()">
                 @if (filterText()) {
                   <mat-icon class="clear-icon" (click)="filterText.set(''); $event.stopPropagation()">close</mat-icon>
+                  <span class="filter-count">{{ filteredObjects(g.type).length }} / {{ objects(g.type).length }}</span>
                 }
               </div>
             }
@@ -89,6 +90,7 @@
                 class="obj-viewport">
                 <a *cdkVirtualFor="let obj of filteredObjects(g.type); trackBy: trackByName"
                    class="obj mono" [routerLink]="linkFor(obj)" routerLinkActive="active"
+                   [matTooltip]="obj.name" matTooltipShowDelay="600"
                    (click)="onObjectClick(drawer.close.bind(drawer))">{{ obj.name }}</a>
               </cdk-virtual-scroll-viewport>
             }
