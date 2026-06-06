@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -58,10 +58,12 @@ export class DataGridComponent {
     // Reload from page 0 whenever the bound table changes.
     effect(() => {
       this.table();
-      this.sort.set(null);
-      this.dir.set('ASC');
-      this.page.set(0);
-      this.fetch();
+      untracked(() => {
+        this.sort.set(null);
+        this.dir.set('ASC');
+        this.page.set(0);
+        this.fetch();
+      });
     });
   }
 
