@@ -16,7 +16,9 @@
 
     <ng-container matColumnDef="role">
       <th mat-header-cell *matHeaderCellDef>Role</th>
-      <td mat-cell *matCellDef="let u">{{ u.ROLE }}</td>
+      <td mat-cell *matCellDef="let u">
+        <span class="role-badge" [class]="'role-' + u.ROLE.toLowerCase()">{{ u.ROLE }}</span>
+      </td>
     </ng-container>
 
     <ng-container matColumnDef="status">

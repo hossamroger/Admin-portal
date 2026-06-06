@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { map } from 'rxjs';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { filter, map } from 'rxjs';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -20,17 +21,13 @@ import { SchemaStateService } from '../../core/schema-state.service';
 import { NotifyService } from '../../core/notify.service';
 import { DbObject, ObjectType } from '../../core/models';
 
-interface Group {
-  type: ObjectType;
-  label: string;
-  icon: string;
-}
+interface Group { type: ObjectType; label: string; icon: string; }
 
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive,
+    RouterOutlet, RouterLink, RouterLinkActive, ScrollingModule,
     MatToolbarModule, MatSidenavModule, MatButtonModule, MatIconModule,
     MatExpansionModule, MatListModule, MatMenuModule, MatTooltipModule, MatProgressSpinnerModule,
   ],
@@ -53,10 +50,18 @@ export class ShellComponent {
   readonly syncing = signal(false);
   readonly filterText = signal('');
 
-  /** True on tablet/phone widths — sidenav becomes an overlay drawer. */
   readonly isHandset = toSignal(
     this.breakpoints.observe('(max-width: 960px)').pipe(map(r => r.matches)),
     { initialValue: false },
+  );
+
+  /** Current page context shown in the toolbar. */
+  readonly pageTitle = toSignal(
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      map(() => this.titleFromUrl(this.router.url)),
+    ),
+    { initialValue: this.titleFromUrl(this.router.url) },
   );
 
   readonly groups: Group[] = [
@@ -66,13 +71,22 @@ export class ShellComponent {
   private readonly objectsByType = signal<Record<string, DbObject[]>>({});
   private readonly loadingType = signal<string | null>(null);
 
-  constructor() {
-    this.schemaState.refresh();
+  constructor() { this.schemaState.refresh(); }
+
+  private titleFromUrl(url: string): string {
+    if (url.startsWith('/table/')) return decodeURIComponent(url.split('/table/')[1].split('?')[0]);
+    if (url.startsWith('/source/')) { const p = url.split('/'); return decodeURIComponent(p[p.length - 1]); }
+    if (url.startsWith('/admin/users')) return 'User Management';
+    if (url.startsWith('/sql')) return 'SQL Editor';
+    return '';
   }
 
-  count(type: ObjectType): number {
-    return this.overview()?.counts?.[type] ?? 0;
+  userInitials(username: string | null): string {
+    if (!username) return '?';
+    return (username as string).slice(0, 2).toUpperCase();
   }
+
+  count(type: ObjectType): number { return this.overview()?.counts?.[type] ?? 0; }
 
   filteredObjects(type: ObjectType): DbObject[] {
     const objs = this.objectsByType()[type] ?? [];
@@ -80,51 +94,36 @@ export class ShellComponent {
     return q ? objs.filter(o => o.name.toLowerCase().includes(q)) : objs;
   }
 
-  objects(type: ObjectType): DbObject[] {
-    return this.objectsByType()[type] ?? [];
+  objects(type: ObjectType): DbObject[] { return this.objectsByType()[type] ?? []; }
+
+  isLoading(type: ObjectType): boolean { return this.loadingType() === type; }
+
+  trackByName(_: number, obj: DbObject): string { return obj.name; }
+
+  viewportHeight(type: ObjectType): number {
+    return Math.min(this.filteredObjects(type).length * 33, 380);
   }
 
-  isLoading(type: ObjectType): boolean {
-    return this.loadingType() === type;
-  }
-
-  /** Lazy-load a group's objects the first time its panel is expanded. */
   loadGroup(type: ObjectType): void {
     if (this.objectsByType()[type]) return;
     this.loadingType.set(type);
     this.api.objects(type).subscribe({
-      next: objs => {
-        this.objectsByType.update(m => ({ ...m, [type]: objs }));
-        this.loadingType.set(null);
-      },
-      error: err => {
-        this.objectsByType.update(m => ({ ...m, [type]: [] }));
-        this.loadingType.set(null);
-        this.notify.error(err, 'Failed to load objects');
-      },
+      next: objs => { this.objectsByType.update(m => ({ ...m, [type]: objs })); this.loadingType.set(null); },
+      error: err => { this.objectsByType.update(m => ({ ...m, [type]: [] })); this.loadingType.set(null); this.notify.error(err, 'Failed to load objects'); },
     });
   }
 
-  /** Build the router link for an object (data view vs. source view). */
   linkFor(obj: DbObject): any[] {
-    return obj.type === 'TABLE' || obj.type === 'VIEW'
-      ? ['/table', obj.name]
-      : ['/source', obj.type, obj.name];
+    return obj.type === 'TABLE' || obj.type === 'VIEW' ? ['/table', obj.name] : ['/source', obj.type, obj.name];
   }
 
-  onObjectClick(drawerClosed: () => void): void {
-    if (this.isHandset()) drawerClosed();
-  }
+  onObjectClick(drawerClosed: () => void): void { if (this.isHandset()) drawerClosed(); }
 
   sync(): void {
     this.syncing.set(true);
-    this.objectsByType.set({}); // force groups to reload fresh
+    this.objectsByType.set({});
     this.schemaState.sync();
-    // synced$ fires synchronously after overview reloads; give a short visual beat
-    setTimeout(() => {
-      this.syncing.set(false);
-      this.notify.success('Synced with the latest DB changes');
-    }, 400);
+    setTimeout(() => { this.syncing.set(false); this.notify.success('Synced with the latest DB changes'); }, 400);
   }
 
   logout(): void {

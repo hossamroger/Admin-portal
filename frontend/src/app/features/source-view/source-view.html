@@ -1,11 +1,14 @@
 <div class="detail-head">
   <h2 class="mono">{{ name() }}</h2>
   <span class="kind">{{ type() }}</span>
+  <span class="spacer"></span>
+  <button mat-stroked-button class="copy-btn" (click)="copySource()" [disabled]="!code() || loading()" matTooltip="Copy source to clipboard">
+    <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+    {{ copied() ? 'Copied' : 'Copy' }}
+  </button>
 </div>
 
-@if (loading()) {
-  <mat-progress-bar mode="indeterminate" />
-}
+@if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
 <div class="editor-wrap">
   <app-monaco-editor [value]="code()" [language]="monacoLang()" [readOnly]="true" />

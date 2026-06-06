@@ -7,11 +7,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { SchemaStateService } from '../../core/schema-state.service';
-import { TableDetail } from '../../core/models';
+import { TableDetail, ColumnInfo } from '../../core/models';
 import { DataGridComponent } from './data-grid';
 import { InsightsComponent } from './insights';
 
-/** Container for a table/view: Structure, Data and Insights tabs. */
 @Component({
   selector: 'app-table-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,43 +24,33 @@ export class TableDetailComponent {
   private readonly schemaState = inject(SchemaStateService);
 
   readonly name = input.required<string>();
-
   readonly loading = signal(false);
   readonly detail = signal<TableDetail | null>(null);
-
-  /** Tabs visited at least once — used to lazy-instantiate Data / Insights. */
   readonly visited = signal<Set<number>>(new Set([0]));
+  readonly columnFilter = signal('');
 
   private readonly grid = viewChild(DataGridComponent);
 
   constructor() {
-    effect(() => {
-      this.name();
-      this.visited.set(new Set([0]));
-      this.loadStructure();
-    });
-
-    // Refresh structure + data when the user syncs.
-    this.schemaState.synced$.subscribe(() => {
-      this.loadStructure();
-      this.grid()?.reload();
-    });
+    effect(() => { this.name(); this.visited.set(new Set([0])); this.columnFilter.set(''); this.loadStructure(); });
+    this.schemaState.synced$.subscribe(() => { this.loadStructure(); this.grid()?.reload(); });
   }
 
-  onTabChange(index: number): void {
-    this.visited.update(set => new Set(set).add(index));
+  onTabChange(index: number): void { this.visited.update(set => new Set(set).add(index)); }
+
+  filteredColumns(cols: ColumnInfo[]): ColumnInfo[] {
+    const q = this.columnFilter().toLowerCase().trim();
+    return q ? cols.filter(c => c.name.toLowerCase().includes(q)) : cols;
   }
 
   constraintType(t: string): string {
-    return { P: 'PRIMARY KEY', R: 'FOREIGN KEY', U: 'UNIQUE', C: 'CHECK' }[t] ?? t;
+    return ({ P: 'PRIMARY KEY', R: 'FOREIGN KEY', U: 'UNIQUE', C: 'CHECK' } as any)[t] ?? t;
   }
 
   typeWithSize(c: { dataType: string; dataLength?: number; dataPrecision?: number; dataScale?: number }): string {
     const t = c.dataType || '';
     if (/CHAR/.test(t) && c.dataLength) return `${t}(${c.dataLength})`;
-    if (/NUMBER/.test(t) && c.dataPrecision) {
-      return `${t}(${c.dataPrecision}${c.dataScale ? ',' + c.dataScale : ''})`;
-    }
+    if (/NUMBER/.test(t) && c.dataPrecision) return `${t}(${c.dataPrecision}${c.dataScale ? ',' + c.dataScale : ''})`;
     return t;
   }
 

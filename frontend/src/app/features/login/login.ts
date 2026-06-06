@@ -33,11 +33,15 @@ export class LoginComponent {
     password: ['', Validators.required],
   });
 
+  constructor() {
+    // Auto-clear error when user starts typing again.
+    this.form.valueChanges.subscribe(() => { if (this.error()) this.error.set(''); });
+  }
+
   submit(): void {
     if (this.form.invalid || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
-
     const { username, password } = this.form.getRawValue();
     this.auth.login(username.trim(), password).subscribe({
       next: () => this.router.navigateByUrl('/'),
