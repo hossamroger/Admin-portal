@@ -6,6 +6,11 @@
   <div class="grid-error mono">{{ error() }}</div>
 } @else {
   <div class="data-toolbar">
+    <button mat-stroked-button (click)="toggleFilters()"
+            [class.has-filters]="activeFilterCount() > 0">
+      <mat-icon>filter_list</mat-icon>
+      Filter@if (activeFilterCount() > 0) { <span class="filter-badge">{{ activeFilterCount() }}</span> }
+    </button>
     @if (canInsert()) {
       <button mat-stroked-button (click)="addRow()">
         <mat-icon>add</mat-icon> Add Row
@@ -30,10 +35,47 @@
     }
   </div>
 
+  @if (showFilters()) {
+    <div class="filter-panel">
+      @for (f of filterDraft(); track $index; let i = $index) {
+        <div class="filter-row">
+          <select class="filter-col" [(ngModel)]="f.column">
+            @for (c of columns(); track c) { <option [value]="c">{{ c }}</option> }
+          </select>
+          <select class="filter-op" [(ngModel)]="f.operator">
+            @for (op of operators; track op.value) { <option [value]="op.value">{{ op.label }}</option> }
+          </select>
+          @if (operatorNeedsValue(f.operator)) {
+            <input class="filter-val mono" placeholder="value"
+                   [(ngModel)]="f.value" (keydown.enter)="applyFilters()">
+          } @else {
+            <span class="filter-val-spacer"></span>
+          }
+          <mat-icon class="filter-remove" matTooltip="Remove" (click)="removeFilter(i)">close</mat-icon>
+        </div>
+      }
+      <div class="filter-actions">
+        <button mat-stroked-button (click)="addFilter()">
+          <mat-icon>add</mat-icon> Add condition
+        </button>
+        <span class="spacer"></span>
+        @if (activeFilterCount() > 0 || filterDraft().length > 0) {
+          <button mat-button (click)="clearFilters()">Clear</button>
+        }
+        <button mat-flat-button color="primary" (click)="applyFilters()">
+          <mat-icon>search</mat-icon> Apply
+        </button>
+      </div>
+      @if (filterDraft().length > 1) {
+        <p class="filter-hint">All conditions must match (AND).</p>
+      }
+    </div>
+  }
+
   @if (!loading() && total() === 0 && newRows().length === 0) {
     <div class="empty-state" role="status">
       <mat-icon aria-hidden="true">table_rows</mat-icon>
-      <span>This table has no rows</span>
+      <span>{{ activeFilterCount() > 0 ? 'No rows match your filters' : 'This table has no rows' }}</span>
     </div>
   }
 

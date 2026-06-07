@@ -8,8 +8,30 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
+import { ColumnFilter, FilterOperator } from '../../core/models';
 
 const PAGE_SIZE = 50;
+
+interface FilterRow {
+  column: string;
+  operator: FilterOperator;
+  value: string;
+}
+
+/** Operators offered in the filter bar, in display order. */
+export const FILTER_OPERATORS: { value: FilterOperator; label: string; needsValue: boolean }[] = [
+  { value: 'EQ',       label: '=',            needsValue: true },
+  { value: 'NEQ',      label: '≠',            needsValue: true },
+  { value: 'CONTAINS', label: 'contains',     needsValue: true },
+  { value: 'STARTS',   label: 'starts with',  needsValue: true },
+  { value: 'ENDS',     label: 'ends with',    needsValue: true },
+  { value: 'GT',       label: '>',            needsValue: true },
+  { value: 'GTE',      label: '≥',            needsValue: true },
+  { value: 'LT',       label: '<',            needsValue: true },
+  { value: 'LTE',      label: '≤',            needsValue: true },
+  { value: 'NULL',     label: 'is null',      needsValue: false },
+  { value: 'NOTNULL',  label: 'is not null',  needsValue: false },
+];
 
 /** Paginated, sortable, inline-editable grid for a single table's data. */
 @Component({
@@ -35,6 +57,14 @@ export class DataGridComponent {
   readonly sort = signal<string | null>(null);
   readonly dir = signal<'ASC' | 'DESC'>('ASC');
 
+  // ---- column filtering ----
+  readonly operators = FILTER_OPERATORS;
+  readonly showFilters = signal(false);
+  /** Draft filter rows being edited in the filter bar. */
+  readonly filterDraft = signal<FilterRow[]>([]);
+  /** Filters currently applied to the fetched data. */
+  readonly appliedFilters = signal<ColumnFilter[]>([]);
+
   /** Pristine rows from the server (used for diffing on save). */
   private original: any[][] = [];
   /** Editable working copy bound to the inputs. */
@@ -54,6 +84,7 @@ export class DataGridComponent {
   readonly hasPrev = computed(() => this.page() > 0);
   readonly hasNext = computed(() => (this.page() + 1) * PAGE_SIZE < this.total());
   readonly hasChanges = computed(() => this.newRows().length > 0 || this.dirty().size > 0 || this.deleted().size > 0);
+  readonly activeFilterCount = computed(() => this.appliedFilters().length);
 
   constructor() {
     // Reload from page 0 whenever the bound table changes.
@@ -63,9 +94,52 @@ export class DataGridComponent {
         this.sort.set(null);
         this.dir.set('ASC');
         this.page.set(0);
+        this.appliedFilters.set([]);
+        this.filterDraft.set([]);
+        this.showFilters.set(false);
         this.fetch();
       });
     });
+  }
+
+  operatorNeedsValue(op: FilterOperator): boolean {
+    return this.operators.find(o => o.value === op)?.needsValue ?? true;
+  }
+
+  toggleFilters(): void {
+    this.showFilters.update(v => !v);
+    if (this.showFilters() && this.filterDraft().length === 0) this.addFilter();
+  }
+
+  addFilter(): void {
+    const firstCol = this.columns()[0] ?? '';
+    this.filterDraft.update(rows => [...rows, { column: firstCol, operator: 'CONTAINS', value: '' }]);
+  }
+
+  removeFilter(index: number): void {
+    this.filterDraft.update(rows => rows.filter((_, i) => i !== index));
+  }
+
+  /** Validate, normalize and apply the draft filters, then reload from page 0. */
+  applyFilters(): void {
+    const valid = this.filterDraft()
+      .filter(r => r.column && (this.operatorNeedsValue(r.operator) ? r.value !== '' : true))
+      .map<ColumnFilter>(r => ({
+        column: r.column,
+        operator: r.operator,
+        value: this.operatorNeedsValue(r.operator) ? r.value : '',
+      }));
+    this.appliedFilters.set(valid);
+    this.page.set(0);
+    this.fetch();
+  }
+
+  clearFilters(): void {
+    this.filterDraft.set([]);
+    this.appliedFilters.set([]);
+    this.showFilters.set(false);
+    this.page.set(0);
+    this.fetch();
   }
 
   /** Public hook so the parent can refresh after a Sync. */
@@ -81,7 +155,7 @@ export class DataGridComponent {
     const table = this.table();
     this.loading.set(true);
     this.error.set('');
-    this.api.browse(table, this.page(), PAGE_SIZE, this.sort(), this.dir()).subscribe({
+    this.api.browse(table, this.page(), PAGE_SIZE, this.sort(), this.dir(), this.appliedFilters()).subscribe({
       next: res => {
         if (res.error) { this.error.set(res.error); this.loading.set(false); return; }
         this.columns.set(res.result.columns ?? []);

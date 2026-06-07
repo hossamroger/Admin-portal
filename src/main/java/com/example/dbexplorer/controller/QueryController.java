@@ -1,14 +1,18 @@
 package com.example.dbexplorer.controller;
 
 import com.example.dbexplorer.config.AppProperties.User;
+import com.example.dbexplorer.dto.QueryDtos.ColumnFilter;
 import com.example.dbexplorer.dto.QueryDtos.QueryRequest;
 import com.example.dbexplorer.dto.QueryDtos.QueryResult;
 import com.example.dbexplorer.service.AuthService;
 import com.example.dbexplorer.service.QueryService;
 import com.example.dbexplorer.service.SchemaService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +24,7 @@ public class QueryController {
     private final QueryService query;
     private final SchemaService schema;
     private final AuthService auth;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public QueryController(QueryService query, SchemaService schema, AuthService auth) {
         this.query = query;
@@ -59,14 +64,16 @@ public class QueryController {
                                     @RequestParam(defaultValue = "50") int pageSize,
                                     @RequestParam(required = false) String sort,
                                     @RequestParam(required = false) String dir,
+                                    @RequestParam(required = false) String filters,
                                     HttpServletRequest http) {
         User u = auth.effectiveUser(http);
         auth.requirePrivilege(u, "SELECT");
         auth.requireTableAccess(u, table);
 
         Map<String,String> tableFilters = auth.getTableFilters(u);
-        QueryResult result = query.browseTable(table, page, pageSize, sort, dir, tableFilters);
-        long total = query.countTable(table, tableFilters);
+        List<ColumnFilter> columnFilters = parseColumnFilters(filters);
+        QueryResult result = query.browseTable(table, page, pageSize, sort, dir, tableFilters, columnFilters);
+        long total = query.countTable(table, tableFilters, columnFilters);
 
         Map<String, Object> m = new HashMap<>();
         m.put("result", result);
@@ -82,5 +89,15 @@ public class QueryController {
         can.put("delete", auth.hasPrivilege(u, "DELETE"));
         m.put("can", can);
         return m;
+    }
+
+    /** Parse the JSON-encoded {@code filters} query param into column filters (empty on blank/invalid). */
+    private List<ColumnFilter> parseColumnFilters(String filters) {
+        if (filters == null || filters.trim().isEmpty()) return Collections.emptyList();
+        try {
+            return objectMapper.readValue(filters, new TypeReference<List<ColumnFilter>>() {});
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid filters parameter");
+        }
     }
 }

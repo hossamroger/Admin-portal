@@ -14,6 +14,55 @@
     color: var(--app-muted); font-size: 13px;
   }
   .note { color: var(--app-faint); font-family: var(--app-mono); font-size: 11px; }
+
+  .has-filters {
+    border-color: var(--app-accent);
+    color: var(--app-accent);
+  }
+  .filter-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 16px; padding: 0 4px; margin-left: 4px;
+    border-radius: 8px; background: var(--app-accent); color: white;
+    font-size: 11px; font-weight: 700; line-height: 1;
+  }
+}
+
+.filter-panel {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; margin-bottom: 10px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+
+  .filter-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .filter-col, .filter-op, .filter-val {
+    height: 32px; border: 1px solid var(--app-line); border-radius: 6px;
+    background: white; color: var(--app-fg); font-size: 13px; padding: 0 8px;
+    outline: none;
+    &:focus { border-color: var(--app-accent); }
+  }
+  .filter-col { flex: 2; min-width: 0; }
+  .filter-op  { flex: 0 0 130px; cursor: pointer; }
+  .filter-val { flex: 3; min-width: 0; }
+  .filter-val-spacer { flex: 3; }
+
+  .filter-remove {
+    flex-shrink: 0; cursor: pointer; color: var(--app-faint);
+    font-size: 18px; width: 18px; height: 18px;
+    &:hover { color: var(--app-error); }
+  }
+
+  .filter-actions {
+    display: flex; align-items: center; gap: 8px;
+    .spacer { flex: 1; }
+  }
+
+  .filter-hint {
+    margin: 0; font-size: 11px; color: var(--app-faint);
+  }
 }
 
 .pk-icon { font-size: 13px; width: 13px; height: 13px; color: var(--app-accent); margin-right: 3px; vertical-align: middle; }

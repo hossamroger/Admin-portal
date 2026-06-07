@@ -9,6 +9,16 @@ public class QueryDtos {
         public Integer maxRows; // optional override
     }
 
+    /**
+     * A single column-level filter applied when browsing a table.
+     * Several filters are combined with AND (single or multi-column filtering).
+     */
+    public static class ColumnFilter {
+        public String column;    // column name (validated against the table's schema)
+        public String operator;  // EQ, NEQ, GT, GTE, LT, LTE, CONTAINS, STARTS, ENDS, NULL, NOTNULL
+        public String value;     // bound as a parameter; ignored for NULL/NOTNULL
+    }
+
     /** Result of a single statement execution. */
     public static class QueryResult {
         public boolean resultSet;       // true if it returned rows (SELECT)
