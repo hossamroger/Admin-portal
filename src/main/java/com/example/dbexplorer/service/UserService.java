@@ -22,8 +22,13 @@ public class UserService {
     }
 
     public Map<String,Object> getUserDetails(String username) {
-        Map<String,Object> user = jdbc.queryForMap(
-            "SELECT USERNAME, ROLE, ENABLED FROM DBX_USERS WHERE USERNAME = ?", username);
+        Map<String,Object> user;
+        try {
+            user = jdbc.queryForMap(
+                "SELECT USERNAME, ROLE, ENABLED FROM DBX_USERS WHERE USERNAME = ?", username);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            throw new IllegalArgumentException("User not found: " + username);
+        }
         List<String> privs = jdbc.queryForList(
             "SELECT PRIVILEGE FROM DBX_USER_PRIVILEGES WHERE USERNAME = ?", String.class, username);
         List<String> tables = jdbc.queryForList(
@@ -42,6 +47,18 @@ public class UserService {
                          List<Map<String,String>> filters) {
         if (username == null || username.trim().isEmpty())
             throw new IllegalArgumentException("Username is required.");
+
+        if ("admin".equalsIgnoreCase(username) && !"ADMIN".equalsIgnoreCase(role))
+            throw new IllegalArgumentException("Cannot demote the primary admin account.");
+
+        java.util.Set<String> validPrivileges = new java.util.HashSet<>(java.util.Arrays.asList(
+            "SELECT", "INSERT", "UPDATE", "DELETE", "EXECUTE_SQL"));
+        if (privileges != null) {
+            for (String p : privileges) {
+                if (!validPrivileges.contains(p))
+                    throw new IllegalArgumentException("Invalid privilege: " + p);
+            }
+        }
 
         int count = jdbc.queryForObject(
             "SELECT COUNT(*) FROM DBX_USERS WHERE USERNAME = ?", Integer.class, username);

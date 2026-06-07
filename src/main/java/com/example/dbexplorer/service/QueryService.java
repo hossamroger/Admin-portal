@@ -11,6 +11,8 @@ import java.util.*;
 @Service
 public class QueryService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(QueryService.class);
+
     private final DataSource dataSource;
     private final AppProperties props;
     private final SchemaService schema;
@@ -71,7 +73,8 @@ public class QueryService {
                 r.updateCount = st.getUpdateCount();
             }
         } catch (SQLException e) {
-            r.error = "ORA error: " + e.getMessage();
+            log.warn("SQL error for stmt [{}]: {}", r.statement, e.getMessage());
+            r.error = "Query execution failed.";
         }
         r.elapsedMs = System.currentTimeMillis() - start;
         return r;

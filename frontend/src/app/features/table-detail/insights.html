@@ -4,7 +4,12 @@
 
 @if (error()) {
   <div class="insights-error mono">{{ error() }}</div>
-} @else if (!loading() && stats().length === 0) {
+} @else if (partialError()) {
+  <div class="insights-warning" style="background:var(--app-warn,#fff3cd);color:#856404;padding:8px 12px;border-radius:4px;margin-bottom:8px;">
+    ⚠ {{ partialError() }}
+  </div>
+}
+@if (!error() && !loading() && stats().length === 0) {
   <div class="insights-empty">
     <mat-icon>bar_chart</mat-icon>
     <span>No numeric or date columns to analyse</span>

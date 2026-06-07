@@ -69,6 +69,7 @@ export class ShellComponent {
 
   private readonly objectsByType = signal<Record<string, DbObject[]>>({});
   private readonly loadingType = signal<string | null>(null);
+  readonly groupErrors = signal<Record<string, string>>({});
 
   /** Stable memoized filtered list — same array reference when filter+data unchanged,
    *  so CDK virtual scroll doesn't reset its scroll position on every navigation. */
@@ -113,9 +114,15 @@ export class ShellComponent {
   loadGroup(type: ObjectType): void {
     if (this.objectsByType()[type]) return;
     this.loadingType.set(type);
+    this.groupErrors.update(m => { const n = { ...m }; delete n[type]; return n; });
     this.api.objects(type).subscribe({
       next: objs => { this.objectsByType.update(m => ({ ...m, [type]: objs })); this.loadingType.set(null); },
-      error: err => { this.objectsByType.update(m => ({ ...m, [type]: [] })); this.loadingType.set(null); this.notify.error(err, 'Failed to load objects'); },
+      error: err => {
+        this.objectsByType.update(m => ({ ...m, [type]: [] }));
+        this.loadingType.set(null);
+        this.groupErrors.update(m => ({ ...m, [type]: 'Failed to load' }));
+        this.notify.error(err, 'Failed to load objects');
+      },
     });
   }
 

@@ -20,6 +20,7 @@ export class InsightsComponent {
   readonly table = input.required<string>();
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly partialError = signal('');
   readonly stats = signal<ColumnStat[]>([]);
 
   constructor() {
@@ -30,6 +31,7 @@ export class InsightsComponent {
       this.api.insights(table).subscribe({
         next: res => {
           if (res.error) this.error.set(res.error);
+          this.partialError.set(res.partialError ?? '');
           this.stats.set(res.columnStats ?? []);
           this.loading.set(false);
         },

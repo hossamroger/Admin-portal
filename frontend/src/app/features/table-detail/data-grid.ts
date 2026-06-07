@@ -144,13 +144,23 @@ export class DataGridComponent {
     const table = this.table();
     const cols = this.columns();
     const colIndex = new Map(cols.map((c, i) => [c.toUpperCase(), i]));
-    const ops: Promise<unknown>[] = [];
+    // Bulk delete confirmation
+    if (this.deleted().size > 0) {
+      if (!window.confirm(`Delete ${this.deleted().size} row(s)? This cannot be undone.`)) return;
+    }
+
+    interface OpMeta { label: string; promise: Promise<unknown>; }
+    const opsMeta: OpMeta[] = [];
 
     // INSERTs — only include non-empty values.
+    let insertIdx = 1;
     for (const nr of this.newRows()) {
       const values: Record<string, string> = {};
       for (const c of cols) if (nr[c] !== '') values[c] = nr[c];
-      if (Object.keys(values).length) ops.push(firstValueFrom(this.api.insertRow(table, values)));
+      if (Object.keys(values).length) {
+        opsMeta.push({ label: `INSERT #${insertIdx}`, promise: firstValueFrom(this.api.insertRow(table, values)) });
+      }
+      insertIdx++;
     }
 
     // UPDATEs — diff working vs. original for dirty, non-deleted rows.
@@ -165,22 +175,29 @@ export class DataGridComponent {
         const curStr = cur === null || cur === undefined ? '' : String(cur);
         if (curStr !== origStr) values[c] = cur;
       });
-      if (Object.keys(values).length) ops.push(firstValueFrom(this.api.updateRow(table, this.keyFor(ri, colIndex), values)));
+      if (Object.keys(values).length) {
+        opsMeta.push({ label: `UPDATE row ${ri + 1}`, promise: firstValueFrom(this.api.updateRow(table, this.keyFor(ri, colIndex), values)) });
+      }
     }
 
     // DELETEs
     for (const ri of this.deleted()) {
-      ops.push(firstValueFrom(this.api.deleteRow(table, this.keyFor(ri, colIndex))));
+      opsMeta.push({ label: `DELETE row ${ri + 1}`, promise: firstValueFrom(this.api.deleteRow(table, this.keyFor(ri, colIndex))) });
     }
 
+    const ops = opsMeta.map(m => m.promise);
     if (ops.length === 0) { this.notify.warn('Nothing to save'); return; }
 
     const settled = await Promise.allSettled(ops);
-    const failed = settled.filter(s => s.status === 'rejected');
-    if (failed.length) {
-      const first = failed[0] as PromiseRejectedResult;
-      const msg = first.reason?.error?.error || 'see console';
-      this.notify.warn(`Saved ${ops.length - failed.length}, failed ${failed.length}: ${msg}`);
+    const failedDetails: string[] = [];
+    settled.forEach((s, i) => {
+      if (s.status === 'rejected') {
+        const reason = (s as PromiseRejectedResult).reason?.error?.error || 'unknown error';
+        failedDetails.push(`${opsMeta[i].label}: ${reason}`);
+      }
+    });
+    if (failedDetails.length) {
+      this.notify.warn(`Saved ${ops.length - failedDetails.length}, failed ${failedDetails.length}: ${failedDetails.join(' | ')}`);
     } else {
       this.notify.success(`Saved ${ops.length} change(s)`);
     }
@@ -189,7 +206,18 @@ export class DataGridComponent {
 
   private keyFor(ri: number, colIndex: Map<string, number>): Record<string, any> {
     const key: Record<string, any> = {};
-    for (const p of this.pk()) key[p] = this.original[ri][colIndex.get(p)!];
+    for (const p of this.pk()) {
+      const idx = colIndex.get(p);
+      if (idx === undefined) {
+        throw new Error(`Primary key column "${p}" not found in column list for row ${ri}`);
+      }
+      key[p] = this.original[ri][idx];
+    }
     return key;
   }
+
+  // NOTE (issue #5): inputTypeFor() is not implemented because data-grid only has
+  // column names (strings), not column type metadata. Type info lives in the parent
+  // table-detail's `detail` signal. Adding a date/time input type would require
+  // passing column type info as an input — skipped to avoid significant refactoring.
 }

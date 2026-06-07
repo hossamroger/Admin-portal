@@ -23,7 +23,7 @@
 
   <button mat-stroked-button class="sync-btn" [class.changed]="changed()"
           (click)="sync()" [disabled]="syncing()"
-          matTooltip="Sync with latest DB changes">
+          [matTooltip]="changed() ? 'Schema has changed — click to sync' : 'Sync schema'">
     <mat-icon [class.spin]="syncing()">sync</mat-icon>
     <span class="hide-handset">{{ changed() ? 'Changes — Sync' : 'Sync' }}</span>
   </button>
@@ -80,11 +80,14 @@
               </div>
             }
 
+            @if (groupErrors()[g.type]) {
+              <div class="empty-group" style="color:var(--app-error)">&#9888; {{ groupErrors()[g.type] }}</div>
+            }
             @if (isLoading(g.type)) {
               <div class="loading"><mat-spinner diameter="20" /></div>
-            } @else if (filteredObjects(g.type).length === 0) {
+            } @else if (filteredObjects(g.type).length === 0 && !groupErrors()[g.type]) {
               <div class="empty-group">{{ filterText() ? 'No matches' : '(none)' }}</div>
-            } @else {
+            } @else if (!groupErrors()[g.type]) {
               <cdk-virtual-scroll-viewport itemSize="33"
                 [style.height.px]="viewportHeight(g.type)"
                 class="obj-viewport">

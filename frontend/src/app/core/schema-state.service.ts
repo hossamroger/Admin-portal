@@ -21,6 +21,7 @@ export class SchemaStateService implements OnDestroy {
 
   private lastFingerprint: string | null = null;
   private poll?: Subscription;
+  private keepAliveSub?: Subscription;
 
   /** Load the overview and (re)start the background change poll. */
   refresh(): void {
@@ -56,9 +57,16 @@ export class SchemaStateService implements OnDestroy {
         },
         error: () => { /* transient poll errors are ignored */ },
       });
+
+    // Keep the servlet session alive by pinging /api/me every 5 minutes.
+    this.keepAliveSub?.unsubscribe();
+    this.keepAliveSub = interval(5 * 60_000)
+      .pipe(switchMap(() => this.api.me()))
+      .subscribe({ error: () => { /* keep-alive errors are ignored */ } });
   }
 
   ngOnDestroy(): void {
     this.poll?.unsubscribe();
+    this.keepAliveSub?.unsubscribe();
   }
 }
