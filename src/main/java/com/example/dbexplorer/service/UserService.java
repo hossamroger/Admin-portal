@@ -3,6 +3,7 @@ package com.example.dbexplorer.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,8 @@ import java.util.Map;
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
+    private static final BCryptPasswordEncoder BCRYPT = new BCryptPasswordEncoder();
+
     private final JdbcTemplate jdbc;
 
     public UserService(JdbcTemplate jdbc) { this.jdbc = jdbc; }
@@ -92,10 +95,13 @@ public class UserService {
 
         jdbc.update("DELETE FROM DBX_USER_TABLE_FILTERS WHERE USERNAME = ?", username);
         if (filters != null) {
-            for (Map<String,String> f : filters)
+            for (Map<String,String> f : filters) {
+                String tableName = f.get("TABLE_NAME");
+                if (tableName == null || tableName.trim().isEmpty()) continue;
                 jdbc.update(
                     "INSERT INTO DBX_USER_TABLE_FILTERS (USERNAME, TABLE_NAME, FILTER_CONDITION) VALUES (?, ?, ?)",
-                    username, f.get("TABLE_NAME").toUpperCase(), f.get("FILTER_CONDITION"));
+                    username, tableName.toUpperCase(), f.get("FILTER_CONDITION"));
+            }
         }
         log.info("User '{}' saved by admin", username);
     }
@@ -109,8 +115,8 @@ public class UserService {
     }
 
     private static String encodePassword(String raw) {
-        if (raw.startsWith("{noop}") || raw.startsWith("{bcrypt}") || raw.startsWith("$2a$"))
-            return raw;
-        return "{noop}" + raw;
+        if (raw.startsWith("{bcrypt}") || raw.startsWith("$2a$") || raw.startsWith("{noop}"))
+            return raw; // already encoded — preserve as-is
+        return "{bcrypt}" + BCRYPT.encode(raw);
     }
 }
