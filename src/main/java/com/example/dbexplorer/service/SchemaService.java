@@ -262,6 +262,15 @@ public class SchemaService {
         return pk;
     }
 
+    /** Oracle data_type for a single column (uppercase). Returns null if not found. */
+    public String getColumnDataType(String table, String column) {
+        String owner = resolveSchema();
+        List<String> r = jdbc.query(
+            "SELECT data_type FROM all_tab_columns WHERE owner = ? AND table_name = ? AND column_name = ?",
+            (rs, i) -> rs.getString(1), owner, table.toUpperCase(), column.toUpperCase());
+        return r.isEmpty() ? null : r.get(0).toUpperCase();
+    }
+
     /** Count of objects per category — used for the sidebar badges. */
     public Map<String, Integer> objectCounts() {
         String owner = resolveSchema();
