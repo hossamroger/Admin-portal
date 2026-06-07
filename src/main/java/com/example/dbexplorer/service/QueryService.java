@@ -117,8 +117,8 @@ public class QueryService {
             }
             String dir = "DESC".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
             String dataType = schema.getColumnDataType(safe, col);
-            String orderExpr = smartOrderExpr("\"" + col + "\"", dataType);
-            orderBy = " ORDER BY " + orderExpr + " " + dir;
+            String orderExpr = smartOrderExpr("\"" + col + "\"", dataType, dir);
+            orderBy = " ORDER BY " + orderExpr;
         }
 
         String inner = "SELECT * FROM \"" + safe + "\"" + filterClause + orderBy;
@@ -365,23 +365,24 @@ public class QueryService {
      * - CHAR/VARCHAR2 that looks purely numeric → TO_NUMBER(col) with NULLS LAST fallback
      * - Everything else      → plain column reference (lexicographic)
      */
-    private static String smartOrderExpr(String quotedCol, String dataType) {
-        if (dataType == null) return quotedCol;
+    private static String smartOrderExpr(String quotedCol, String dataType, String dir) {
+        if (dataType == null) return quotedCol + " " + dir;
         if (dataType.contains("NUMBER") || dataType.contains("FLOAT")
                 || dataType.contains("INTEGER") || dataType.contains("DECIMAL")
                 || dataType.contains("INT")) {
-            return quotedCol;
+            return quotedCol + " " + dir;
         }
         if (dataType.contains("DATE") || dataType.contains("TIMESTAMP")) {
-            return quotedCol;
+            return quotedCol + " " + dir;
         }
-        // For text columns, attempt numeric sort with a safe fallback so non-numeric
-        // values still sort without crashing (they fall to the end).
+        // For text columns, attempt numeric sort with dir applied to each part.
+        // Non-numeric values fall after numeric ones then sort as text.
         if (dataType.contains("CHAR") || dataType.contains("VARCHAR")) {
             return "CASE WHEN REGEXP_LIKE(" + quotedCol + ", '^[0-9]+(\\.[0-9]+)?$') " +
-                   "THEN TO_NUMBER(" + quotedCol + ") END, " + quotedCol;
+                   "THEN TO_NUMBER(" + quotedCol + ") END " + dir + " NULLS LAST, " +
+                   quotedCol + " " + dir;
         }
-        return quotedCol;
+        return quotedCol + " " + dir;
     }
 
     /** Allow only safe identifier characters to avoid breaking the quoted name. */
