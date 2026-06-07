@@ -56,9 +56,9 @@
                [opened]="!isHandset()">
     <nav class="tree">
       <a class="pinned-link" routerLink="/attachments" routerLinkActive="active"
-         mat-list-item (click)="onObjectClick(drawer.close.bind(drawer))">
+         (click)="onObjectClick(drawer.close.bind(drawer))">
         <mat-icon>cloud_upload</mat-icon>
-        Attachments
+        <span>Attachments</span>
       </a>
 
 <mat-accordion multi displayMode="flat">
