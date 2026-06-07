@@ -42,7 +42,11 @@ export class WelcomeComponent {
   });
 
   readonly tableCount = computed(() => this.overview()?.counts?.['TABLE'] ?? 0);
-  readonly isReadOnly = computed(() => this.overview()?.readOnly ?? false);
+  readonly isReadOnly = computed(() => {
+    if (this.overview()?.readOnly) return true;
+    const can = this.me()?.can;
+    return !!can && !can.insert && !can.update && !can.delete;
+  });
   readonly schemaName = computed(() => this.overview()?.schema || '—');
 
   readonly features: FeatureCard[] = [
