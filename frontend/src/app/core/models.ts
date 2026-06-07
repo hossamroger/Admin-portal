@@ -117,6 +117,7 @@ export interface ColumnStat {
 export interface Insights {
   columnStats?: ColumnStat[];
   error?: string;
+  partialError?: string;
 }
 
 export interface SourceCode {

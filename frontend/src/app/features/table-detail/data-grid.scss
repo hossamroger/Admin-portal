@@ -65,5 +65,7 @@ table.grid {
     font-family: var(--app-mono); font-size: 13px; color: var(--app-fg);
     &:hover { border-color: var(--app-line); }
     &:focus { outline: none; border-color: var(--app-accent); background: white; }
+    &[readonly] { color: var(--app-accent); background: rgba(0,102,53,0.04); border-color: var(--app-line); cursor: default; font-weight: 500; }
+    &.pk-auto { color: var(--app-faint); font-style: italic; cursor: default; }
   }
 }

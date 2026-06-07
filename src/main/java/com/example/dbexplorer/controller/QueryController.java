@@ -36,6 +36,15 @@ public class QueryController {
         return query.runScript(req.sql == null ? "" : req.sql, req.maxRows);
     }
 
+    /** PK generation info: auto-generated vs user-assigned (with next suggested value). */
+    @GetMapping("/pk-next/{table}")
+    public Map<String, Object> pkNext(@PathVariable String table, HttpServletRequest http) {
+        User u = auth.effectiveUser(http);
+        auth.requirePrivilege(u, "SELECT");
+        auth.requireTableAccess(u, table);
+        return query.pkNextInfo(table);
+    }
+
     /** Paginated, optionally-sorted browse of a table/view's data. */
     @GetMapping("/insights/{table}")
     public Map<String, Object> insights(@PathVariable String table, HttpServletRequest http) {
