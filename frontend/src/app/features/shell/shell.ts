@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { filter, map } from 'rxjs';
+import { Subscription, filter, map, take } from 'rxjs';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -36,7 +36,7 @@ interface Group { type: ObjectType; label: string; icon: string; }
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
-export class ShellComponent {
+export class ShellComponent implements OnDestroy {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly schemaState = inject(SchemaStateService);
@@ -85,7 +85,11 @@ export class ShellComponent {
     return result;
   });
 
+  private syncSub?: Subscription;
+
   constructor() { this.schemaState.refresh(); }
+
+  ngOnDestroy(): void { this.syncSub?.unsubscribe(); }
 
   private titleFromUrl(url: string): string {
     if (url.startsWith('/table/')) return decodeURIComponent(url.split('/table/')[1].split('?')[0]);
@@ -138,10 +142,14 @@ export class ShellComponent {
     this.syncing.set(true);
     const alreadyLoaded = Object.keys(this.objectsByType());
     this.objectsByType.set({});
+    this.syncSub?.unsubscribe();
+    this.syncSub = this.schemaState.synced$.pipe(take(1)).subscribe(() => {
+      this.syncing.set(false);
+      this.notify.success('Synced with the latest DB changes');
+    });
     this.schemaState.sync();
     // Re-fetch any groups that were already expanded so they don't go blank.
     for (const type of alreadyLoaded) this.loadGroup(type as ObjectType);
-    setTimeout(() => { this.syncing.set(false); this.notify.success('Synced with the latest DB changes'); }, 400);
   }
 
   logout(): void {

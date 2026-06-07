@@ -62,6 +62,8 @@ export class UserDialogComponent {
         allowedTables: (u.allowedTables ?? []).join(', '),
         filters: (u.filters ?? []).map(f => `${f.TABLE_NAME}:${f.FILTER_CONDITION}`).join('\n'),
       });
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
     });
   }
 

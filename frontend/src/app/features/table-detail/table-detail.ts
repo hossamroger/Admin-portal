@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, effect, inject, signal, viewChild } from '@angular/core';
 import { input } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -19,7 +19,7 @@ import { InsightsComponent } from './insights';
   templateUrl: './table-detail.html',
   styleUrl: './table-detail.scss',
 })
-export class TableDetailComponent {
+export class TableDetailComponent implements OnDestroy {
   private readonly api = inject(ApiService);
   private readonly notify = inject(NotifyService);
   private readonly schemaState = inject(SchemaStateService);
@@ -33,10 +33,16 @@ export class TableDetailComponent {
 
   private readonly grid = viewChild(DataGridComponent);
   private structureSub?: Subscription;
+  private syncedSub?: Subscription;
 
   constructor() {
     effect(() => { this.name(); this.visited.set(new Set([0, this.selectedTab()])); this.columnFilter.set(''); this.loadStructure(); });
-    this.schemaState.synced$.subscribe(() => { this.loadStructure(); this.grid()?.reload(); });
+    this.syncedSub = this.schemaState.synced$.subscribe(() => { this.loadStructure(); this.grid()?.reload(); });
+  }
+
+  ngOnDestroy(): void {
+    this.structureSub?.unsubscribe();
+    this.syncedSub?.unsubscribe();
   }
 
   onTabChange(index: number): void { this.selectedTab.set(index); this.visited.update(set => new Set(set).add(index)); }

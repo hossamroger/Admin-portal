@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, effect, inject, input, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -14,7 +15,7 @@ import { ColumnStat } from '../../core/models';
   templateUrl: './insights.html',
   styleUrl: './insights.scss',
 })
-export class InsightsComponent {
+export class InsightsComponent implements OnDestroy {
   private readonly api = inject(ApiService);
 
   readonly table = input.required<string>();
@@ -23,12 +24,15 @@ export class InsightsComponent {
   readonly partialError = signal('');
   readonly stats = signal<ColumnStat[]>([]);
 
+  private insightsSub?: Subscription;
+
   constructor() {
     effect(() => {
       const table = this.table();
+      this.insightsSub?.unsubscribe();
       this.loading.set(true);
       this.error.set('');
-      this.api.insights(table).subscribe({
+      this.insightsSub = this.api.insights(table).subscribe({
         next: res => {
           if (res.error) this.error.set(res.error);
           this.partialError.set(res.partialError ?? '');
@@ -42,6 +46,8 @@ export class InsightsComponent {
       });
     });
   }
+
+  ngOnDestroy(): void { this.insightsSub?.unsubscribe(); }
 
   round(v: number | undefined): number | undefined {
     return v === undefined || v === null ? v : Math.round(v * 100) / 100;
