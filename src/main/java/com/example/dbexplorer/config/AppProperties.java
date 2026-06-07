@@ -16,6 +16,7 @@ public class AppProperties {
     private int queryTimeoutSeconds = 60;
     private Auth auth = new Auth();
     private Audit audit = new Audit();
+    private Firebase firebase = new Firebase();
 
     public String getDefaultSchema() { return defaultSchema; }
     public void setDefaultSchema(String defaultSchema) { this.defaultSchema = defaultSchema; }
@@ -34,6 +35,27 @@ public class AppProperties {
 
     public Audit getAudit() { return audit; }
     public void setAudit(Audit audit) { this.audit = audit; }
+
+    public Firebase getFirebase() { return firebase; }
+    public void setFirebase(Firebase firebase) { this.firebase = firebase; }
+
+    /**
+     * Firebase / Google Cloud Storage configuration.
+     * Both values are injected at runtime via environment variables — never hardcoded:
+     *   GOOGLE_APPLICATION_CREDENTIALS  → path to the service-account JSON file on the host machine
+     *   FIREBASE_STORAGE_BUCKET         → bucket name, e.g. my-project.appspot.com
+     */
+    public static class Firebase {
+        /** Resolved from env var GOOGLE_APPLICATION_CREDENTIALS at startup. */
+        private String credentialsPath = "";
+        /** Resolved from env var FIREBASE_STORAGE_BUCKET at startup. */
+        private String storageBucket = "";
+
+        public String getCredentialsPath() { return credentialsPath; }
+        public void setCredentialsPath(String v) { this.credentialsPath = v; }
+        public String getStorageBucket() { return storageBucket; }
+        public void setStorageBucket(String v) { this.storageBucket = v; }
+    }
 
     /** Asynchronous audit-logging settings. */
     public static class Audit {

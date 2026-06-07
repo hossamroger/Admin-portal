@@ -55,6 +55,12 @@
                [mode]="isHandset() ? 'over' : 'side'"
                [opened]="!isHandset()">
     <nav class="tree">
+      <a class="pinned-link" routerLink="/attachments" routerLinkActive="active"
+         mat-list-item (click)="onObjectClick(drawer.close.bind(drawer))">
+        <mat-icon>cloud_upload</mat-icon>
+        Attachments
+      </a>
+
 <mat-accordion multi displayMode="flat">
         @for (g of groups; track g.type) {
           <mat-expansion-panel class="group" (opened)="loadGroup(g.type)">

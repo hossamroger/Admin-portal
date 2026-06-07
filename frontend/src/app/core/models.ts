@@ -143,6 +143,15 @@ export interface AdminUserDetail extends AdminUserSummary {
   filters: RowFilter[];
 }
 
+export interface UploadResult {
+  url: string;
+  folder: string;
+  documentName: string;
+  folderCreated: boolean;
+  originalName: string;
+  sizeBytes: number;
+}
+
 export interface SaveUserRequest {
   username: string;
   password?: string;

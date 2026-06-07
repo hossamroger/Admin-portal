@@ -21,6 +21,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/source-view/source-view').then(m => m.SourceViewComponent),
       },
       {
+        path: 'attachments',
+        loadComponent: () => import('./features/attachments/attachments').then(m => m.AttachmentsComponent),
+      },
+      {
         path: 'admin/users',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/user-management/user-management').then(m => m.UserManagementComponent),
