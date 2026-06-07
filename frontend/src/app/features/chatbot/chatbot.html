@@ -1,0 +1,75 @@
+<!-- Floating trigger button -->
+<button class="fab" mat-fab (click)="toggle()" [matTooltip]="open() ? '' : 'Help & Guide'" aria-label="Open help chatbot">
+  <mat-icon>{{ open() ? 'close' : 'chat' }}</mat-icon>
+</button>
+
+<!-- Chat panel -->
+@if (open()) {
+  <div class="panel" role="dialog" aria-label="Help chatbot">
+    <!-- Header -->
+    <div class="panel-head">
+      <div class="head-info">
+        <div class="bot-avatar"><mat-icon>smart_toy</mat-icon></div>
+        <div>
+          <div class="head-title">Admin Portal Guide</div>
+          <div class="head-sub">Offline • Always available</div>
+        </div>
+      </div>
+      <div class="head-actions">
+        @if (hasMessages()) {
+          <button mat-icon-button (click)="clearChat()" matTooltip="Clear chat" class="head-btn">
+            <mat-icon>delete_sweep</mat-icon>
+          </button>
+        }
+        <button mat-icon-button (click)="close()" matTooltip="Close" class="head-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="msg-list" #msgList>
+      @for (msg of messages(); track $index) {
+        <div class="msg" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'bot'">
+          @if (msg.role === 'bot') {
+            <div class="msg-avatar"><mat-icon>smart_toy</mat-icon></div>
+          }
+          <div class="msg-body">
+            <div class="bubble" [innerHTML]="formatAnswer(msg.text)"></div>
+
+            @if (msg.entries?.length) {
+              <div class="also-label">Related topics:</div>
+              @for (e of msg.entries!; track e.id) {
+                <button class="chip related-chip" (click)="sendSuggestion(e.title)">{{ e.title }}</button>
+              }
+            }
+
+            @if (msg.suggestions?.length) {
+              <div class="chips">
+                @for (s of msg.suggestions!; track s) {
+                  <button class="chip" (click)="sendSuggestion(s)">{{ s }}</button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Input -->
+    <div class="input-bar">
+      <input
+        class="chat-input"
+        [value]="input()"
+        (input)="input.set($any($event.target).value)"
+        (keydown.enter)="send()"
+        placeholder="Ask a question…"
+        autocomplete="off"
+        aria-label="Chat input"
+      >
+      <button mat-icon-button class="send-btn" (click)="send()" [disabled]="!input().trim()" aria-label="Send">
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+}
