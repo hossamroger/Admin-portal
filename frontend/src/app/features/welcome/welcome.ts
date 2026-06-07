@@ -78,10 +78,10 @@ export class WelcomeComponent {
     this.features.filter(f => f.link !== '/admin/users' || this.isAdmin()));
 
   readonly tips: QuickTip[] = [
-    { icon: 'sidebar',       text: 'Expand <strong>Tables</strong> in the sidebar to browse your schema objects.' },
-    { icon: 'filter_alt',   text: 'Type in the sidebar search box to instantly filter hundreds of tables.' },
-    { icon: 'sync',         text: 'Hit <strong>Sync</strong> in the toolbar whenever the DB schema changes.' },
-    { icon: 'smart_button', text: 'Click a column header to sort across all records — not just the current page.' },
+    { icon: 'view_sidebar',  text: 'Expand <strong>Tables</strong> in the sidebar to browse your schema objects.' },
+    { icon: 'filter_alt',    text: 'Type in the sidebar search box to instantly filter hundreds of tables.' },
+    { icon: 'sync',          text: 'Hit <strong>Sync</strong> in the toolbar whenever the DB schema changes.' },
+    { icon: 'sort',          text: 'Click a column header to sort across all records — not just the current page.' },
     { icon: 'chat',         text: 'Use the <strong>help chatbot</strong> (bottom-right) for guidance at any time.' },
   ];
 
