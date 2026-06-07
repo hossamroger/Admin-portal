@@ -15,6 +15,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { ChatbotComponent } from '../chatbot/chatbot';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { SchemaStateService } from '../../core/schema-state.service';
@@ -30,6 +31,7 @@ interface Group { type: ObjectType; label: string; icon: string; }
     RouterOutlet, RouterLink, RouterLinkActive, ScrollingModule,
     MatToolbarModule, MatSidenavModule, MatButtonModule, MatIconModule,
     MatExpansionModule, MatListModule, MatMenuModule, MatTooltipModule, MatProgressSpinnerModule,
+    ChatbotComponent,
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
