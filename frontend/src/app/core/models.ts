@@ -18,6 +18,16 @@ export interface Me {
   can?: Capabilities;
 }
 
+export type FilterOperator =
+  | 'EQ' | 'NEQ' | 'GT' | 'GTE' | 'LT' | 'LTE'
+  | 'CONTAINS' | 'STARTS' | 'ENDS' | 'NULL' | 'NOTNULL';
+
+export interface ColumnFilter {
+  column: string;
+  operator: FilterOperator;
+  value: string;
+}
+
 export type ObjectType =
   | 'TABLE' | 'VIEW' | 'PROCEDURE' | 'FUNCTION' | 'PACKAGE' | 'TRIGGER' | 'SEQUENCE';
 

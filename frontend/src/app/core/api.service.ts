@@ -2,7 +2,7 @@ import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  AdminUserDetail, AdminUserSummary, DataPage, DbObject, Fingerprint, Insights, Me,
+  AdminUserDetail, AdminUserSummary, ColumnFilter, DataPage, DbObject, Fingerprint, Insights, Me,
   ObjectType, QueryResult, SaveUserRequest, SchemaOverview, SourceCode, TableDetail, UploadResult,
 } from './models';
 
@@ -43,9 +43,11 @@ export class ApiService {
   runSql(sql: string, maxRows?: number): Observable<QueryResult[]> {
     return this.http.post<QueryResult[]>('/api/query/run', { sql, maxRows });
   }
-  browse(table: string, page: number, pageSize: number, sort?: string | null, dir?: string | null): Observable<DataPage> {
+  browse(table: string, page: number, pageSize: number, sort?: string | null, dir?: string | null,
+         filters?: ColumnFilter[]): Observable<DataPage> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (sort) params = params.set('sort', sort).set('dir', dir || 'ASC');
+    if (filters && filters.length) params = params.set('filters', JSON.stringify(filters));
     return this.http.get<DataPage>(`/api/query/data/${encodeURIComponent(table)}`, { params });
   }
   insights(table: string): Observable<Insights> {

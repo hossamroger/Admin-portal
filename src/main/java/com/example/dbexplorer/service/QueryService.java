@@ -1,6 +1,7 @@
 package com.example.dbexplorer.service;
 
 import com.example.dbexplorer.config.AppProperties;
+import com.example.dbexplorer.dto.QueryDtos.ColumnFilter;
 import com.example.dbexplorer.dto.QueryDtos.QueryResult;
 import org.springframework.stereotype.Service;
 
@@ -101,11 +102,12 @@ public class QueryService {
         r.rows = rows;
     }
 
-    /** Browse a single table/view with pagination + optional sorting (works on 11g+). */
-    public QueryResult browseTable(String tableName, int page, int pageSize, String sortCol, String sortDir, Map<String, String> tableFilters) {
+    /** Browse a single table/view with pagination, optional sorting and column filters (works on 11g+). */
+    public QueryResult browseTable(String tableName, int page, int pageSize, String sortCol, String sortDir,
+                                   Map<String, String> tableFilters, List<ColumnFilter> columnFilters) {
         String safe = sanitizeIdentifier(tableName);
         String tableFilter = tableFilters != null ? tableFilters.get(safe) : null;
-        String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
+        WhereClause where = buildWhere(safe, tableFilter, columnFilters);
         int start = page * pageSize;
         int end = start + pageSize;
 
@@ -121,7 +123,7 @@ public class QueryService {
             orderBy = " ORDER BY " + orderExpr;
         }
 
-        String inner = "SELECT * FROM \"" + safe + "\"" + filterClause + orderBy;
+        String inner = "SELECT * FROM \"" + safe + "\"" + where.sql + orderBy;
         String paged =
             "SELECT * FROM ( " +
             "  SELECT a.*, ROWNUM rnum_ FROM ( " + inner + " ) a WHERE ROWNUM <= " + end +
@@ -129,7 +131,7 @@ public class QueryService {
 
         QueryResult res = new QueryResult();
         try (Connection conn = dataSource.getConnection()) {
-            res = execOne(conn, paged, pageSize);
+            res = execPrepared(conn, paged, where.binds, pageSize);
         } catch (SQLException e) {
             res.error = "Connection error: " + e.getMessage();
         }
@@ -141,17 +143,97 @@ public class QueryService {
         return res;
     }
 
-    public long countTable(String tableName, Map<String, String> tableFilters) {
+    public long countTable(String tableName, Map<String, String> tableFilters, List<ColumnFilter> columnFilters) {
         String safe = sanitizeIdentifier(tableName);
         String tableFilter = tableFilters != null ? tableFilters.get(safe) : null;
-        String filterClause = (tableFilter != null && !tableFilter.trim().isEmpty()) ? " WHERE (" + tableFilter + ")" : "";
+        WhereClause where = buildWhere(safe, tableFilter, columnFilters);
         try (Connection conn = dataSource.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM \"" + safe + "\"" + filterClause)) {
-            return rs.next() ? rs.getLong(1) : 0L;
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM \"" + safe + "\"" + where.sql)) {
+            bind(ps, where.binds);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getLong(1) : 0L;
+            }
         } catch (SQLException e) {
             return -1L;
         }
+    }
+
+    /** A WHERE fragment plus the ordered bind values it references. */
+    static final class WhereClause {
+        final String sql;
+        final List<Object> binds;
+        WhereClause(String sql, List<Object> binds) { this.sql = sql; this.binds = binds; }
+    }
+
+    /**
+     * Builds a parameterized WHERE clause combining the user's row-level table filter
+     * (trusted, admin-configured) with the supplied column filters (AND-ed together).
+     * Column names are validated against the schema and values are always bound, never
+     * concatenated, so user-supplied filters cannot inject SQL.
+     */
+    WhereClause buildWhere(String safe, String tableFilter, List<ColumnFilter> columnFilters) {
+        List<String> conditions = new ArrayList<>();
+        List<Object> binds = new ArrayList<>();
+
+        if (tableFilter != null && !tableFilter.trim().isEmpty()) {
+            conditions.add("(" + tableFilter + ")");
+        }
+
+        if (columnFilters != null && !columnFilters.isEmpty()) {
+            Set<String> validCols = schema.getColumnNames(safe);
+            for (ColumnFilter f : columnFilters) {
+                if (f == null || f.column == null || f.column.trim().isEmpty()) continue;
+                String col = f.column.trim().toUpperCase();
+                if (!validCols.contains(col)) {
+                    throw new IllegalArgumentException("Unknown filter column: " + f.column);
+                }
+                String q = "\"" + col + "\"";
+                String op = f.operator == null ? "EQ" : f.operator.trim().toUpperCase();
+                String v = f.value == null ? "" : f.value;
+                switch (op) {
+                    case "EQ":       conditions.add(q + " = ?");           binds.add(v); break;
+                    case "NEQ":      conditions.add(q + " <> ?");          binds.add(v); break;
+                    case "GT":       conditions.add(q + " > ?");           binds.add(v); break;
+                    case "GTE":      conditions.add(q + " >= ?");          binds.add(v); break;
+                    case "LT":       conditions.add(q + " < ?");           binds.add(v); break;
+                    case "LTE":      conditions.add(q + " <= ?");          binds.add(v); break;
+                    case "CONTAINS": conditions.add("UPPER(" + q + ") LIKE ?"); binds.add("%" + v.toUpperCase() + "%"); break;
+                    case "STARTS":   conditions.add("UPPER(" + q + ") LIKE ?"); binds.add(v.toUpperCase() + "%"); break;
+                    case "ENDS":     conditions.add("UPPER(" + q + ") LIKE ?"); binds.add("%" + v.toUpperCase()); break;
+                    case "NULL":     conditions.add(q + " IS NULL"); break;
+                    case "NOTNULL":  conditions.add(q + " IS NOT NULL"); break;
+                    default: throw new IllegalArgumentException("Unknown filter operator: " + op);
+                }
+            }
+        }
+
+        String sql = conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
+        return new WhereClause(sql, binds);
+    }
+
+    private static void bind(PreparedStatement ps, List<Object> binds) throws SQLException {
+        for (int i = 0; i < binds.size(); i++) ps.setObject(i + 1, binds.get(i));
+    }
+
+    /** Run a parameterized read query and fill a QueryResult (mirrors execOne for binds). */
+    private QueryResult execPrepared(Connection conn, String sql, List<Object> binds, int maxRows) {
+        QueryResult r = new QueryResult();
+        r.statement = sql.length() > 500 ? sql.substring(0, 500) + " ..." : sql;
+        long start = System.currentTimeMillis();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (props.getQueryTimeoutSeconds() > 0) ps.setQueryTimeout(props.getQueryTimeoutSeconds());
+            ps.setMaxRows(maxRows + 1);
+            bind(ps, binds);
+            try (ResultSet rs = ps.executeQuery()) {
+                fillResultSet(r, rs, maxRows);
+                r.resultSet = true;
+            }
+        } catch (SQLException e) {
+            log.warn("SQL error for stmt [{}]: {}", r.statement, e.getMessage());
+            r.error = "Query execution failed.";
+        }
+        r.elapsedMs = System.currentTimeMillis() - start;
+        return r;
     }
 
     public Map<String, Object> getTableInsights(String tableName, Map<String, String> tableFilters) {
