@@ -37,9 +37,11 @@ table.grid {
     position: sticky; top: 0; text-align: left; padding: 10px 14px;
     background: var(--app-surface); color: var(--app-muted);
     border-bottom: 1px solid var(--app-line); white-space: nowrap; font-weight: 600;
-    &.sortable { cursor: pointer; user-select: none; }
+    &.sortable { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
     &.sortable:hover { color: var(--app-accent); }
     &.pkh { color: var(--app-accent); }
+
+    .sort-icon { font-size: 14px; width: 14px; height: 14px; line-height: 14px; flex-shrink: 0; }
   }
 
   td {
