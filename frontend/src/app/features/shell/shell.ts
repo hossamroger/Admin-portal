@@ -127,8 +127,11 @@ export class ShellComponent {
 
   sync(): void {
     this.syncing.set(true);
+    const alreadyLoaded = Object.keys(this.objectsByType());
     this.objectsByType.set({});
     this.schemaState.sync();
+    // Re-fetch any groups that were already expanded so they don't go blank.
+    for (const type of alreadyLoaded) this.loadGroup(type as ObjectType);
     setTimeout(() => { this.syncing.set(false); this.notify.success('Synced with the latest DB changes'); }, 400);
   }
 
