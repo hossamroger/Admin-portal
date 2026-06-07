@@ -28,15 +28,16 @@ export class TableDetailComponent {
   readonly detail = signal<TableDetail | null>(null);
   readonly visited = signal<Set<number>>(new Set([0]));
   readonly columnFilter = signal('');
+  readonly selectedTab = signal(0);
 
   private readonly grid = viewChild(DataGridComponent);
 
   constructor() {
-    effect(() => { this.name(); this.visited.set(new Set([0])); this.columnFilter.set(''); this.loadStructure(); });
+    effect(() => { this.name(); this.visited.set(new Set([0, this.selectedTab()])); this.columnFilter.set(''); this.loadStructure(); });
     this.schemaState.synced$.subscribe(() => { this.loadStructure(); this.grid()?.reload(); });
   }
 
-  onTabChange(index: number): void { this.visited.update(set => new Set(set).add(index)); }
+  onTabChange(index: number): void { this.selectedTab.set(index); this.visited.update(set => new Set(set).add(index)); }
 
   filteredColumns(cols: ColumnInfo[]): ColumnInfo[] {
     const q = this.columnFilter().toLowerCase().trim();

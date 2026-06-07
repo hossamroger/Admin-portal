@@ -8,7 +8,7 @@
 
 @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
-<mat-tab-group class="detail-tabs" (selectedIndexChange)="onTabChange($event)" animationDuration="150ms">
+<mat-tab-group class="detail-tabs" [selectedIndex]="selectedTab()" (selectedIndexChange)="onTabChange($event)" animationDuration="150ms">
   <!-- Structure -->
   <mat-tab label="Structure">
     @if (detail(); as d) {
