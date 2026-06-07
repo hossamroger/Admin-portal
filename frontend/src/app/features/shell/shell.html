@@ -74,8 +74,10 @@
                   (input)="filterText.set($any($event.target).value)"
                   (click)="$event.stopPropagation()">
                 @if (filterText()) {
-                  <mat-icon class="clear-icon" (click)="filterText.set(''); $event.stopPropagation()">close</mat-icon>
-                  <span class="filter-count">{{ filteredObjects(g.type).length }} / {{ objects(g.type).length }}</span>
+                  <span class="search-right">
+                    <span class="filter-count">{{ filteredObjects(g.type).length }} / {{ objects(g.type).length }}</span>
+                    <mat-icon class="clear-icon" matTooltip="Clear" (click)="filterText.set(''); $event.stopPropagation()">close</mat-icon>
+                  </span>
                 }
               </div>
             }
