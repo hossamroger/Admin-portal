@@ -270,7 +270,6 @@ export const SUGGESTIONS = [
   'How do I open a table?',
   'How do I add a new row?',
   'How do I edit a row?',
-  'How do I run SQL?',
   'What does Sync do?',
   'How do I manage users?',
   'What are user privileges?',
