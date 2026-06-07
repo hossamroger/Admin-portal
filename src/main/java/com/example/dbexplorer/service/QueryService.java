@@ -116,7 +116,9 @@ public class QueryService {
                 throw new IllegalArgumentException("Unknown sort column: " + sortCol);
             }
             String dir = "DESC".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
-            orderBy = " ORDER BY \"" + col + "\" " + dir;
+            String dataType = schema.getColumnDataType(safe, col);
+            String orderExpr = smartOrderExpr("\"" + col + "\"", dataType);
+            orderBy = " ORDER BY " + orderExpr + " " + dir;
         }
 
         String inner = "SELECT * FROM \"" + safe + "\"" + filterClause + orderBy;
@@ -354,6 +356,32 @@ public class QueryService {
         String head = sql.trim().toUpperCase();
         return head.startsWith("SELECT") || head.startsWith("WITH")
                 || head.startsWith("EXPLAIN") || head.startsWith("DESC");
+    }
+
+    /**
+     * Returns an ORDER BY expression that sorts correctly for the column's data type.
+     * - NUMBER/FLOAT/INTEGER → sort as-is (already numeric in Oracle)
+     * - DATE/TIMESTAMP       → sort as-is (native temporal comparison)
+     * - CHAR/VARCHAR2 that looks purely numeric → TO_NUMBER(col) with NULLS LAST fallback
+     * - Everything else      → plain column reference (lexicographic)
+     */
+    private static String smartOrderExpr(String quotedCol, String dataType) {
+        if (dataType == null) return quotedCol;
+        if (dataType.contains("NUMBER") || dataType.contains("FLOAT")
+                || dataType.contains("INTEGER") || dataType.contains("DECIMAL")
+                || dataType.contains("INT")) {
+            return quotedCol;
+        }
+        if (dataType.contains("DATE") || dataType.contains("TIMESTAMP")) {
+            return quotedCol;
+        }
+        // For text columns, attempt numeric sort with a safe fallback so non-numeric
+        // values still sort without crashing (they fall to the end).
+        if (dataType.contains("CHAR") || dataType.contains("VARCHAR")) {
+            return "CASE WHEN REGEXP_LIKE(" + quotedCol + ", '^[0-9]+(\\.[0-9]+)?$') " +
+                   "THEN TO_NUMBER(" + quotedCol + ") END, " + quotedCol;
+        }
+        return quotedCol;
     }
 
     /** Allow only safe identifier characters to avoid breaking the quoted name. */
