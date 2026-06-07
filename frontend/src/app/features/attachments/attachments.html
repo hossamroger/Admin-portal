@@ -13,7 +13,7 @@
   <div class="card">
 
     <!-- File drop zone -->
-    <div class="drop-zone" [class.has-file]="selectedFile()" (click)="fileInput.nativeElement.click()">
+    <div class="drop-zone" [class.has-file]="selectedFile()" (click)="fileInput.click()">
       <input #fileInput type="file" class="hidden-input" (change)="onFileSelected($event)">
 
       @if (!selectedFile()) {
