@@ -104,21 +104,36 @@
 .tree {
   padding: 8px 0;
 
-  ::ng-deep .pinned-link {
-    --mdc-list-list-item-leading-space: 16px;
+  .pinned-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 44px;
     text-decoration: none;
-    .mdc-list-item__primary-text { color: var(--app-muted); font-size: 13px; }
-    .mat-icon { color: var(--app-muted); }
-    &:hover {
-      background: var(--app-bg) !important;
-      .mdc-list-item__primary-text { color: var(--app-accent) !important; }
-      .mat-icon { color: var(--app-accent) !important; }
+    color: var(--app-muted);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    mat-icon {
+      font-size: 18px; height: 18px; width: 18px;
+      color: var(--app-muted);
+      flex-shrink: 0;
     }
+
+    &:hover {
+      background: var(--app-bg);
+      color: var(--app-accent);
+      mat-icon { color: var(--app-accent); }
+    }
+
     &.active {
-      background: rgba(0,102,53,0.08) !important;
+      background: rgba(0,102,53,0.08);
       border-left: 3px solid var(--app-accent);
-      .mdc-list-item__primary-text { color: var(--app-accent) !important; font-weight: 500; }
-      .mat-icon { color: var(--app-accent) !important; }
+      color: var(--app-accent);
+      mat-icon { color: var(--app-accent); }
     }
   }
 
