@@ -63,6 +63,8 @@
     display: flex; align-items: center; gap: 8px;
     padding: 0 8px !important;
     min-width: unset !important;
+
+    .hide-handset { margin-left: 6px; }
   }
 
   .user-avatar {
