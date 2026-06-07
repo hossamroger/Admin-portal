@@ -1,102 +1,251 @@
-:host { display: flex; height: 100%; align-items: center; justify-content: center; }
+:host { display: block; height: 100%; overflow-y: auto; }
 
-.welcome-wrap {
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 32px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+// ── Hero ─────────────────────────────────────────────────────────────
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  padding: 24px;
-}
+  gap: 9px;
+  margin-bottom: 4px;
 
-.welcome-card {
-  background: white;
-  border: 1px solid var(--app-line);
-  border-radius: 20px;
-  padding: 48px 56px;
-  max-width: 520px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
-}
-
-.brand-mark {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-
-  .dot {
-    width: 18px; height: 18px;
-    border-radius: 5px;
+  .hero-dot {
+    width: 12px; height: 12px;
+    border-radius: 4px;
     background: var(--app-accent);
-    box-shadow: 0 4px 14px rgba(0,102,53,0.4);
+    box-shadow: 0 2px 8px rgba(0, 102, 53, 0.4);
+  }
+  .hero-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--app-muted);
   }
 }
 
-h1 {
-  margin: 0 0 10px;
-  font-size: 22px;
+.hero-greeting {
+  margin: 0;
+  font-size: 28px;
   font-weight: 700;
   color: var(--app-fg);
+  line-height: 1.2;
 }
 
-.tagline {
-  margin: 0 0 28px;
-  font-size: 13px;
+.hero-sub {
+  margin: 0;
+  font-size: 14px;
   color: var(--app-muted);
   line-height: 1.6;
+  max-width: 560px;
 }
 
-.stat-row {
+// Stat pills
+.stat-pills {
   display: flex;
-  justify-content: center;
-  gap: 32px;
-  margin-bottom: 32px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--app-line);
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-.stat {
+.stat-pill {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  padding: 10px 16px;
 
-  .stat-value {
-    font-size: 28px;
-    font-weight: 700;
+  mat-icon {
+    font-size: 20px; width: 20px; height: 20px;
     color: var(--app-accent);
-    font-family: var(--app-mono);
-    &.ro { font-size: 13px; color: var(--app-error); padding-top: 8px; }
+    flex-shrink: 0;
   }
 
-  .stat-label {
-    font-size: 11px;
-    color: var(--app-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
+  .pill-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--app-fg);
   }
+  .pill-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--app-faint);
+  }
+
+  &.pill-ro {
+    border-color: #f3c4c8;
+    background: #fff5f5;
+    mat-icon { color: var(--app-error); }
+    .pill-value { color: var(--app-error); }
+  }
+  &.pill-rw mat-icon { color: var(--app-accent-mint); }
 }
 
-.tips {
+// ── Sections ─────────────────────────────────────────────────────────
+.section { display: flex; flex-direction: column; gap: 16px; }
+
+.section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--app-faint);
+}
+
+// ── Feature cards ────────────────────────────────────────────────────
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.feature-card {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 14px;
-  text-align: left;
+  background: white;
+  border: 1px solid var(--app-line);
+  border-radius: 14px;
+  padding: 20px;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  position: relative;
+
+  .card-icon-wrap {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 24px; width: 24px; height: 24px;
+      color: white;
+    }
+  }
+
+  .card-body { flex: 1; min-width: 0; }
+  .card-title {
+    margin: 0 0 5px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--app-fg);
+  }
+  .card-desc {
+    margin: 0;
+    font-size: 13px;
+    color: var(--app-muted);
+    line-height: 1.55;
+  }
+
+  .card-arrow {
+    position: absolute;
+    top: 18px; right: 16px;
+    font-size: 18px; width: 18px; height: 18px;
+    color: var(--app-faint);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.18s, transform 0.18s;
+  }
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover, &:focus-visible {
+      border-color: var(--app-accent);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+      outline: none;
+
+      .card-arrow { opacity: 1; transform: translateX(0); }
+    }
+  }
+
+  // Accent variants for the icon tiles
+  &.accent-green .card-icon-wrap { background: var(--app-accent); }
+  &.accent-teal  .card-icon-wrap { background: var(--app-accent-teal); }
+  &.accent-mint  .card-icon-wrap { background: var(--app-accent-mint); }
+}
+
+// ── Quick tips ───────────────────────────────────────────────────────
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
 }
 
 .tip {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-size: 13px;
-  color: var(--app-muted);
-  line-height: 1.5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  padding: 14px 16px;
 
-  mat-icon {
-    font-size: 18px; width: 18px; height: 18px;
-    color: var(--app-accent);
+  .tip-icon {
     flex-shrink: 0;
-    margin-top: 1px;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: rgba(0, 102, 53, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 17px; width: 17px; height: 17px;
+      color: var(--app-accent);
+    }
   }
+
+  .tip-text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--app-muted);
+    line-height: 1.5;
+
+    ::ng-deep strong { color: var(--app-fg); font-weight: 600; }
+  }
+}
+
+// ── Footer ───────────────────────────────────────────────────────────
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--app-faint);
+  padding-top: 8px;
+  border-top: 1px solid var(--app-line);
+
+  .footer-dot {
+    width: 8px; height: 8px;
+    border-radius: 3px;
+    background: var(--app-accent);
+  }
+  .footer-sep { opacity: 0.5; }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────
+@media (max-width: 600px) {
+  .page { padding: 24px 16px 40px; gap: 32px; }
+  .hero-greeting { font-size: 22px; }
+  .cards, .tips-grid { grid-template-columns: 1fr; }
 }

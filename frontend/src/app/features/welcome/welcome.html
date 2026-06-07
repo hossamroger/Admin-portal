@@ -1,30 +1,89 @@
-<div class="welcome-wrap">
-  <div class="welcome-card">
-    <div class="brand-mark">
-      <span class="dot"></span>
-    </div>
-    <h1>DS Admin Portal</h1>
-    <p class="tagline">Select a table from the sidebar to browse, edit, and analyse your data.</p>
+<div class="page">
 
-    <div class="stat-row">
-      @if (overview(); as ov) {
-        <div class="stat">
-          <span class="stat-value">{{ ov.counts?.['TABLE'] ?? 0 }}</span>
-          <span class="stat-label">Tables</span>
+  <!-- ── Hero ──────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-brand">
+      <span class="hero-dot"></span>
+      <span class="hero-label">DS Admin Portal</span>
+    </div>
+    <h1 class="hero-greeting">{{ greeting() }}</h1>
+    <p class="hero-sub">
+      Your central workspace for browsing, editing, and managing Oracle database data.
+    </p>
+
+    <!-- Live stat pills -->
+    <div class="stat-pills">
+      <div class="stat-pill">
+        <mat-icon>table_chart</mat-icon>
+        <span class="pill-value">{{ tableCount() }}</span>
+        <span class="pill-label">Tables</span>
+      </div>
+      <div class="stat-pill">
+        <mat-icon>schema</mat-icon>
+        <span class="pill-value mono">{{ schemaName() }}</span>
+        <span class="pill-label">Schema</span>
+      </div>
+      @if (isReadOnly()) {
+        <div class="stat-pill pill-ro">
+          <mat-icon>lock</mat-icon>
+          <span class="pill-value">Read-only</span>
+          <span class="pill-label">Mode</span>
         </div>
-        @if (ov.readOnly) {
-          <div class="stat">
-            <span class="stat-value ro">READ-ONLY</span>
-            <span class="stat-label">Mode</span>
-          </div>
-        }
+      } @else {
+        <div class="stat-pill pill-rw">
+          <mat-icon>lock_open</mat-icon>
+          <span class="pill-value">Read-write</span>
+          <span class="pill-label">Mode</span>
+        </div>
       }
     </div>
+  </section>
 
-    <div class="tips">
-      <div class="tip"><mat-icon>table_chart</mat-icon><span>Expand <strong>Tables</strong> in the sidebar and click any table to view its data</span></div>
-      <div class="tip"><mat-icon>search</mat-icon><span>Use the filter box to quickly find a table by name</span></div>
-      <div class="tip"><mat-icon>sync</mat-icon><span>Click <strong>Sync</strong> in the top bar to pick up the latest database changes</span></div>
+  <!-- ── Feature cards ─────────────────────────────────────────────────── -->
+  <section class="section">
+    <h2 class="section-title">Features</h2>
+    <div class="cards">
+      @for (f of visibleFeatures(); track f.title) {
+        <div class="feature-card accent-{{ f.accent }}"
+             [class.clickable]="!!f.link"
+             (click)="navigate(f.link)"
+             [attr.role]="f.link ? 'button' : null"
+             [attr.tabindex]="f.link ? '0' : null"
+             (keydown.enter)="navigate(f.link)">
+          <div class="card-icon-wrap">
+            <mat-icon>{{ f.icon }}</mat-icon>
+          </div>
+          <div class="card-body">
+            <p class="card-title">{{ f.title }}</p>
+            <p class="card-desc">{{ f.description }}</p>
+          </div>
+          @if (f.link) {
+            <mat-icon class="card-arrow">arrow_forward</mat-icon>
+          }
+        </div>
+      }
     </div>
-  </div>
+  </section>
+
+  <!-- ── Quick tips ────────────────────────────────────────────────────── -->
+  <section class="section">
+    <h2 class="section-title">Quick tips</h2>
+    <div class="tips-grid">
+      @for (tip of tips; track tip.text) {
+        <div class="tip">
+          <div class="tip-icon"><mat-icon>{{ tip.icon }}</mat-icon></div>
+          <p class="tip-text" [innerHTML]="tip.text"></p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ── Footer ────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <span class="footer-dot"></span>
+    <span>DS Admin Portal</span>
+    <span class="footer-sep">·</span>
+    <span>Oracle Database Explorer</span>
+  </footer>
+
 </div>
