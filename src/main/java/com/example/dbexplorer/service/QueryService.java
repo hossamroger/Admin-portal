@@ -376,11 +376,11 @@ public class QueryService {
             return quotedCol + " " + dir;
         }
         // For text columns, attempt numeric sort with dir applied to each part.
-        // Non-numeric values fall after numeric ones then sort as text.
+        // Non-numeric values fall after numeric ones then sort as text (case-insensitive).
         if (dataType.contains("CHAR") || dataType.contains("VARCHAR")) {
             return "CASE WHEN REGEXP_LIKE(" + quotedCol + ", '^[0-9]+(\\.[0-9]+)?$') " +
                    "THEN TO_NUMBER(" + quotedCol + ") END " + dir + " NULLS LAST, " +
-                   quotedCol + " " + dir;
+                   "UPPER(" + quotedCol + ") " + dir;
         }
         return quotedCol + " " + dir;
     }
