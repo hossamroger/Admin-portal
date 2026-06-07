@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal, viewChild } from '@angular/core';
 import { input } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -31,6 +32,7 @@ export class TableDetailComponent {
   readonly selectedTab = signal(0);
 
   private readonly grid = viewChild(DataGridComponent);
+  private structureSub?: Subscription;
 
   constructor() {
     effect(() => { this.name(); this.visited.set(new Set([0, this.selectedTab()])); this.columnFilter.set(''); this.loadStructure(); });
@@ -56,8 +58,9 @@ export class TableDetailComponent {
   }
 
   private loadStructure(): void {
+    this.structureSub?.unsubscribe();
     this.loading.set(true);
-    this.api.table(this.name()).subscribe({
+    this.structureSub = this.api.table(this.name()).subscribe({
       next: d => { this.detail.set(d); this.loading.set(false); },
       error: err => { this.loading.set(false); this.notify.error(err, 'Failed to load table'); },
     });

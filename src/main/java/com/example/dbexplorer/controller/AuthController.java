@@ -21,16 +21,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpServletRequest req) {
-        req.setAttribute("auditUsername", body.get("username"));
         if (!auth.isEnabled()) {
+            req.setAttribute("auditUsername", body.get("username"));
             return ResponseEntity.ok(meBody(auth.effectiveUser(req)));
         }
         Optional<User> u = auth.authenticate(body.get("username"), body.get("password"));
         if (!u.isPresent()) {
+            req.setAttribute("auditUsername", "[failed-login]");
             Map<String, Object> err = new HashMap<>();
             err.put("error", "Invalid username or password");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
         }
+        req.setAttribute("auditUsername", u.get().getUsername());
         // fresh session to avoid fixation
         req.getSession(true).setAttribute(AuthService.SESSION_USER, u.get().getUsername());
         auth.cacheUser(req, u.get());

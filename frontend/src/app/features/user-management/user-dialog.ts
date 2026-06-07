@@ -42,7 +42,7 @@ export class UserDialogComponent {
 
   readonly form = this.fb.nonNullable.group({
     username: [{ value: '', disabled: this.isEdit }, Validators.required],
-    password: [''],
+    password: ['', this.isEdit ? [] : [Validators.required]],
     role: ['USER', Validators.required],
     privileges: [['SELECT'] as string[]],
     allowedTables: [''], // comma separated

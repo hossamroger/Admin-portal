@@ -39,7 +39,7 @@ public class AuthService {
 
     /** Cache the full User object in the HTTP session. */
     public void cacheUser(HttpServletRequest req, User u) {
-        req.getSession(false).setAttribute(SESSION_USER_OBJ, u);
+        req.getSession(true).setAttribute(SESSION_USER_OBJ, u);
     }
 
     private User loadUserFromDb(String username) {

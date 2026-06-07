@@ -70,7 +70,7 @@ public class AuditService {
         e.durationMs = durationMs;
         e.eventTime = Instant.now();
         if (!queue.offer(e)) {                 // full → drop, never block the request
-            dropped.incrementAndGet();
+            LOG.warn("Audit queue full — event dropped (total dropped: {})", dropped.incrementAndGet());
         }
     }
 

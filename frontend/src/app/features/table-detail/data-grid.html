@@ -31,8 +31,8 @@
   </div>
 
   @if (!loading() && total() === 0 && newRows().length === 0) {
-    <div class="empty-state">
-      <mat-icon>table_rows</mat-icon>
+    <div class="empty-state" role="status">
+      <mat-icon aria-hidden="true">table_rows</mat-icon>
       <span>This table has no rows</span>
     </div>
   }
@@ -46,7 +46,7 @@
             <th class="sortable" [class.pkh]="isPk(c)" (click)="toggleSort(c)">
               @if (isPk(c)) { <mat-icon class="pk-icon">vpn_key</mat-icon> }{{ c }}
               @if (sort()?.toUpperCase() === c.toUpperCase()) {
-                {{ dir() === 'DESC' ? ' ▼' : ' ▲' }}
+                <mat-icon class="sort-icon">{{ dir() === 'DESC' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
               }
             </th>
           }
