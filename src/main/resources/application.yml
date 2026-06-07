@@ -52,3 +52,5 @@ dbexplorer:
 logging:
   level:
     com.example.dbexplorer: INFO
+    org.apache.catalina.connector.ClientAbortException: OFF
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: OFF
