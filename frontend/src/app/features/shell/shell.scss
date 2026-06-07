@@ -135,8 +135,13 @@
     border-radius: 8px;
 
     .search-icon { font-size: 16px; height: 16px; width: 16px; color: var(--app-faint); flex-shrink: 0; }
-    .clear-icon { font-size: 15px; height: 15px; width: 15px; color: var(--app-faint); cursor: pointer; flex-shrink: 0; &:hover { color: var(--app-fg); } }
-    .filter-count { font-size: 11px; color: var(--app-faint); font-family: var(--app-mono); flex-shrink: 0; }
+
+    .search-right {
+      display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+      border-left: 1px solid var(--app-line); padding-left: 6px; margin-left: 2px;
+    }
+    .filter-count { font-size: 11px; color: var(--app-accent); font-family: var(--app-mono); font-weight: 500; white-space: nowrap; }
+    .clear-icon { font-size: 14px; height: 14px; width: 14px; color: var(--app-faint); cursor: pointer; flex-shrink: 0; &:hover { color: var(--app-error); } }
 
     .search-input {
       flex: 1; border: none; outline: none; background: transparent;
