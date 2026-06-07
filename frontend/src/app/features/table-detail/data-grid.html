@@ -44,10 +44,12 @@
           @if (showActions()) { <th class="rowact"></th> }
           @for (c of columns(); track c) {
             <th class="sortable" [class.pkh]="isPk(c)" (click)="toggleSort(c)">
-              @if (isPk(c)) { <mat-icon class="pk-icon">vpn_key</mat-icon> }{{ c }}
-              @if (sort()?.toUpperCase() === c.toUpperCase()) {
-                <mat-icon class="sort-icon">{{ dir() === 'DESC' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
-              }
+              <span class="th-inner">
+                @if (isPk(c)) { <mat-icon class="pk-icon">vpn_key</mat-icon> }{{ c }}
+                @if (sort()?.toUpperCase() === c.toUpperCase()) {
+                  <mat-icon class="sort-icon">{{ dir() === 'DESC' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                }
+              </span>
             </th>
           }
         </tr>
