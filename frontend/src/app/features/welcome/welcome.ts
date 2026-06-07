@@ -56,7 +56,7 @@ export class WelcomeComponent {
     {
       icon: 'cloud_upload',
       title: 'Attachments',
-      description: 'Upload any file to Firebase Cloud Storage and instantly get a permanent shareable public URL.',
+      description: 'Upload any file and instantly get a permanent shareable public URL.',
       link: '/attachments',
       accent: 'teal',
     },
