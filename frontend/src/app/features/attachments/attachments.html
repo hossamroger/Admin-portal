@@ -1,0 +1,113 @@
+<div class="page">
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <mat-icon class="header-icon">cloud_upload</mat-icon>
+    <div>
+      <h1 class="page-title">Attachments</h1>
+      <p class="page-sub">Upload files to Firebase Cloud Storage and get a shareable public URL.</p>
+    </div>
+  </div>
+
+  <!-- ── Upload card ────────────────────────────────────────────── -->
+  <div class="card">
+
+    <!-- File drop zone -->
+    <div class="drop-zone" [class.has-file]="selectedFile()" (click)="fileInput.nativeElement.click()">
+      <input #fileInput type="file" class="hidden-input" (change)="onFileSelected($event)">
+
+      @if (!selectedFile()) {
+        <mat-icon class="dz-icon">upload_file</mat-icon>
+        <span class="dz-label">Click to choose a file</span>
+        <span class="dz-hint">Any file type · max 50 MB</span>
+      } @else {
+        <div class="file-pill" (click)="$event.stopPropagation()">
+          <mat-icon class="file-icon">insert_drive_file</mat-icon>
+          <span class="file-name">{{ selectedFile()!.name }}</span>
+          <span class="file-size">{{ formatBytes(selectedFile()!.size) }}</span>
+          <button mat-icon-button class="remove-btn" matTooltip="Remove file" (click)="clearFile()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Destination inputs -->
+    <div class="fields">
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Folder name</mat-label>
+        <mat-icon matPrefix>folder</mat-icon>
+        <input matInput placeholder="e.g. invoices" [ngModel]="folder()" (ngModelChange)="folder.set($event)">
+        <mat-hint>Existing folder is reused; new folder is created automatically.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Document name</mat-label>
+        <mat-icon matPrefix>description</mat-icon>
+        <input matInput placeholder="e.g. report-2024.pdf" [ngModel]="documentName()" (ngModelChange)="documentName.set($event)">
+        <mat-hint>Leave blank to use the original filename. Extension auto-appended if omitted.</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Progress bar -->
+    @if (uploading()) {
+      <mat-progress-bar mode="determinate" [value]="progress()" class="progress-bar" />
+      <p class="progress-label">Uploading… {{ progress() }}%</p>
+    }
+
+    <!-- Error -->
+    @if (uploadError()) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ uploadError() }}</span>
+      </div>
+    }
+
+    <!-- Upload button -->
+    <button mat-flat-button color="primary" class="upload-btn"
+            [disabled]="!canUpload"
+            (click)="upload()">
+      <mat-icon>cloud_upload</mat-icon>
+      Upload to Firebase
+    </button>
+
+  </div>
+
+  <!-- ── Result card ────────────────────────────────────────────── -->
+  @if (result(); as r) {
+    <div class="result-card">
+
+      <div class="result-header">
+        <mat-icon class="result-icon">check_circle</mat-icon>
+        <div>
+          <p class="result-title">Upload successful</p>
+          <p class="result-meta">
+            <strong>{{ r.documentName }}</strong> saved in
+            <strong>{{ r.folder }}/</strong>
+            @if (r.folderCreated) { <span class="badge-new">New folder</span> }
+          </p>
+        </div>
+      </div>
+
+      <div class="url-row">
+        <div class="url-box">
+          <span class="url-label">Public URL</span>
+          <a class="url-text" [href]="r.url" target="_blank" rel="noopener">{{ r.url }}</a>
+        </div>
+        <button mat-stroked-button class="copy-btn" [class.copied]="copied()" (click)="copyUrl()"
+                matTooltip="Copy URL to clipboard">
+          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+          {{ copied() ? 'Copied!' : 'Copy URL' }}
+        </button>
+      </div>
+
+      <div class="result-meta-row">
+        <span class="meta-chip"><mat-icon>folder</mat-icon> {{ r.folder }}/{{ r.documentName }}</span>
+        <span class="meta-chip"><mat-icon>data_usage</mat-icon> {{ formatBytes(r.sizeBytes) }}</span>
+        <span class="meta-chip"><mat-icon>link</mat-icon> Permanent public link</span>
+      </div>
+
+    </div>
+  }
+
+</div>

@@ -1,9 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, DataPage, DbObject, Fingerprint, Insights, Me,
-  ObjectType, QueryResult, SaveUserRequest, SchemaOverview, SourceCode, TableDetail,
+  ObjectType, QueryResult, SaveUserRequest, SchemaOverview, SourceCode, TableDetail, UploadResult,
 } from './models';
 
 /** Single gateway for every backend call. Keeps URLs and shapes in one place. */
@@ -64,6 +64,19 @@ export class ApiService {
   }
   deleteRow(table: string, key: Record<string, any>): Observable<unknown> {
     return this.http.request('delete', `/api/data/${encodeURIComponent(table)}`, { body: { key } });
+  }
+
+  // ---- attachments ----
+  uploadAttachment(file: File, folder: string, documentName: string): Observable<HttpEvent<UploadResult>> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('folder', folder);
+    form.append('documentName', documentName);
+    return this.http.post<UploadResult>('/api/attachments/upload', form, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      reportProgress: true,
+      observe: 'events',
+    });
   }
 
   // ---- admin ----
