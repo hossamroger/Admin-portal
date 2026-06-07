@@ -169,7 +169,7 @@ public class FirebaseStorageService {
      * — if documentName has no extension → append the extension from the original filename
      * — otherwise use documentName as-is
      */
-    private static String resolveName(String documentName, String originalFilename) {
+    static String resolveName(String documentName, String originalFilename) {
         String orig = (originalFilename != null && !originalFilename.isEmpty())
                 ? originalFilename : "upload";
         if (documentName == null || documentName.trim().isEmpty()) return orig;
@@ -187,13 +187,13 @@ public class FirebaseStorageService {
     }
 
     /** Strip leading/trailing slashes and whitespace from a folder path. */
-    private static String sanitizePath(String folder) {
+    static String sanitizePath(String folder) {
         if (folder == null) return "";
         return folder.trim().replaceAll("^/+|/+$", "").trim();
     }
 
     /** Permanent public GCS URL — works after makePublic() / Acl READER grant. */
-    private static String buildPublicUrl(String bucket, String objectPath) {
+    static String buildPublicUrl(String bucket, String objectPath) {
         try {
             // Encode each path segment individually so slashes in folder/name are preserved.
             String[] segments = objectPath.split("/");
