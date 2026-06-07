@@ -196,11 +196,15 @@ public class FirebaseStorageService {
     static String buildPublicUrl(String bucket, String objectPath) {
         try {
             // Encode each path segment individually so slashes in folder/name are preserved.
+            // URLEncoder uses form-encoding (space -> '+'), but GCS object paths require
+            // percent-encoding (space -> '%20'), so we fix '+' afterwards.
             String[] segments = objectPath.split("/");
             StringBuilder encoded = new StringBuilder();
             for (String seg : segments) {
                 if (encoded.length() > 0) encoded.append('/');
-                encoded.append(URLEncoder.encode(seg, StandardCharsets.UTF_8.name()));
+                String s = URLEncoder.encode(seg, StandardCharsets.UTF_8.name())
+                        .replace("+", "%20");
+                encoded.append(s);
             }
             return "https://storage.googleapis.com/" + bucket + "/" + encoded;
         } catch (Exception e) {

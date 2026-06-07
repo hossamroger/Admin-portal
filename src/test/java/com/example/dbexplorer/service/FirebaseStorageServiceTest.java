@@ -61,7 +61,8 @@ class FirebaseStorageServiceTest {
     @Test
     void buildsEncodedPublicUrl() {
         String url = FirebaseStorageService.buildPublicUrl("my-bucket.appspot.com", "invoices/report 2024.pdf");
-        assertEquals("https://storage.googleapis.com/my-bucket.appspot.com/invoices/report+2024.pdf", url);
+        // Spaces must be percent-encoded (%20), NOT form-encoded ('+'), or GCS returns NoSuchKey.
+        assertEquals("https://storage.googleapis.com/my-bucket.appspot.com/invoices/report%202024.pdf", url);
     }
 
     @Test
