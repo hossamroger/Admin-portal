@@ -3,7 +3,7 @@
   <div class="sc-header">
     <div class="sc-header-left">
       <h1 class="sc-title">Service Configurations</h1>
-      <span class="sc-count">{{ total() }} services</span>
+      <span class="sc-count">{{ items().length }} / {{ total() }} services</span>
     </div>
     <button mat-flat-button color="primary" (click)="create()">
       <mat-icon>add</mat-icon> New Service
@@ -33,16 +33,13 @@
     </select>
   </div>
 
-  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-
-  <!-- Table -->
   @if (total() === 0 && !loading()) {
     <div class="sc-empty">
       <mat-icon>manage_search</mat-icon>
       <span>No services found</span>
     </div>
   } @else {
-    <div class="sc-table-wrap">
+    <div class="sc-table-wrap" #tableWrap>
       <table class="sc-table">
         <thead>
           <tr>
@@ -81,17 +78,17 @@
           }
         </tbody>
       </table>
-    </div>
 
-    <!-- Pagination -->
-    <div class="sc-pager">
-      <button mat-icon-button (click)="prev()" [disabled]="!hasPrev()">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      <span class="mono">{{ fromRow() }}–{{ toRow() }} of {{ total() }}</span>
-      <button mat-icon-button (click)="next()" [disabled]="!hasNext()">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
+      <!-- Infinite scroll sentinel -->
+      @if (loading()) {
+        <div class="sc-scroll-loading">
+          <mat-progress-bar mode="indeterminate" />
+        </div>
+      } @else if (hasMore()) {
+        <div class="sc-scroll-hint">Scroll down to load more…</div>
+      } @else if (items().length > 0) {
+        <div class="sc-scroll-end">All {{ total() }} services loaded</div>
+      }
     </div>
   }
 </div>
