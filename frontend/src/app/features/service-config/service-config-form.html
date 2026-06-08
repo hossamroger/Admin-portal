@@ -51,37 +51,12 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label">Status</label>
-            <select class="field-select" [value]="info().processStatus"
-                    (change)="setInfoVal('processStatus', $any($event.target).value)">
-              @for (s of statuses(); track s) { <option [value]="s">{{ s }}</option> }
-              @if (!statuses().length) {
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-              }
-            </select>
-          </div>
-
-          <div class="field-group">
             <label class="field-label">Type</label>
             <select class="field-select" [value]="info().processType || ''"
                     (change)="setInfo('processType', $any($event.target).value)">
               <option value="">— none —</option>
               @for (t of types(); track t) { <option [value]="t">{{ t }}</option> }
             </select>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Process Order</label>
-            <input class="field-input mono" type="number"
-                   [value]="info().processOrder ?? ''"
-                   (input)="setInfoVal('processOrder', +$any($event.target).value || null)">
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Security</label>
-            <input class="field-input" [value]="info().processInitiateSecurity || ''"
-                   (input)="setInfo('processInitiateSecurity', $any($event.target).value)">
           </div>
 
           <div class="field-group">
@@ -100,12 +75,6 @@
             <label class="field-label">Service Icon URL</label>
             <input class="field-input" [value]="info().serviceIcon || ''"
                    (input)="setInfo('serviceIcon', $any($event.target).value)">
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Unicode Icon</label>
-            <input class="field-input" [value]="info().serviceUnicodeIcon || ''"
-                   (input)="setInfo('serviceUnicodeIcon', $any($event.target).value)">
           </div>
 
           <div class="field-group span-2">
@@ -157,12 +126,6 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label">Action URL 2</label>
-            <input class="field-input" [value]="info().actionUrl2 || ''"
-                   (input)="setInfo('actionUrl2', $any($event.target).value)">
-          </div>
-
-          <div class="field-group">
             <label class="field-label">iOS Action Type</label>
             <input class="field-input" [value]="info().iosActionType || ''"
                    (input)="setInfo('iosActionType', $any($event.target).value)">
@@ -190,16 +153,8 @@
           <div class="field-group span-2">
             <label class="field-label">Flags</label>
             <div class="flag-row">
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).sendMail === 'Y'" (change)="setInfoVal('sendMail', $any($event.target).checked ? 'Y' : 'N')"><span>Send Mail</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).sendSms === 'Y'" (change)="setInfoVal('sendSms', $any($event.target).checked ? 'Y' : 'N')"><span>Send SMS</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).showOnInbox === 'Y'" (change)="setInfoVal('showOnInbox', $any($event.target).checked ? 'Y' : 'N')"><span>Show Inbox</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).directAccess === 'Y'" (change)="setInfoVal('directAccess', $any($event.target).checked ? 'Y' : 'N')"><span>Direct Access</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).allowTerms === 'Y'" (change)="setInfoVal('allowTerms', $any($event.target).checked ? 'Y' : 'N')"><span>Allow Terms</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).allowRating === 'Y'" (change)="setInfoVal('allowRating', $any($event.target).checked ? 'Y' : 'N')"><span>Allow Rating</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).cardRedirectionRequired === 'Y'" (change)="setInfoVal('cardRedirectionRequired', $any($event.target).checked ? 'Y' : 'N')"><span>Card Redirect</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).walletRequireOtp === 'Y'" (change)="setInfoVal('walletRequireOtp', $any($event.target).checked ? 'Y' : 'N')"><span>Wallet OTP</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).askBeforePayWallet === 'Y'" (change)="setInfoVal('askBeforePayWallet', $any($event.target).checked ? 'Y' : 'N')"><span>Ask Pay Wallet</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).testFlag === 'Y'" (change)="setInfoVal('testFlag', $any($event.target).checked ? 'Y' : 'N')"><span>Test</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).cardRedirectionRequired === 'Y'" (change)="setInfoVal('cardRedirectionRequired', $any($event.target).checked ? 'Y' : 'N')"><span>Allow FE Credit Card Redirection</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).requireOtp === 'Y'" (change)="setInfoVal('requireOtp', $any($event.target).checked ? 'Y' : 'N')"><span>Require OTP</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).preAuth === 'Y'" (change)="setInfoVal('preAuth', $any($event.target).checked ? 'Y' : 'N')"><span>Pre Auth</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).iosShow === 'Y'" (change)="setInfoVal('iosShow', $any($event.target).checked ? 'Y' : 'N')"><span>iOS Show</span></label>
@@ -210,57 +165,6 @@
             </div>
           </div>
 
-          <!-- Inbox custom columns -->
-          <div class="field-group">
-            <label class="field-label">Inbox Column 1 (EN)</label>
-            <input class="field-input" [value]="info().inboxCustomColumn1 || ''"
-                   (input)="setInfo('inboxCustomColumn1', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 1 (AR)</label>
-            <input class="field-input rtl" [value]="info().inboxCustomColumn1Ar || ''"
-                   (input)="setInfo('inboxCustomColumn1Ar', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 2 (EN)</label>
-            <input class="field-input" [value]="info().inboxCustomColumn2 || ''"
-                   (input)="setInfo('inboxCustomColumn2', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 2 (AR)</label>
-            <input class="field-input rtl" [value]="info().inboxCustomColumn2Ar || ''"
-                   (input)="setInfo('inboxCustomColumn2Ar', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 3 (EN)</label>
-            <input class="field-input" [value]="info().inboxCustomColumn3 || ''"
-                   (input)="setInfo('inboxCustomColumn3', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 3 (AR)</label>
-            <input class="field-input rtl" [value]="info().inboxCustomColumn3Ar || ''"
-                   (input)="setInfo('inboxCustomColumn3Ar', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 4 (EN)</label>
-            <input class="field-input" [value]="info().inboxCustomColumn4 || ''"
-                   (input)="setInfo('inboxCustomColumn4', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 4 (AR)</label>
-            <input class="field-input rtl" [value]="info().inboxCustomColumn4Ar || ''"
-                   (input)="setInfo('inboxCustomColumn4Ar', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 5 (EN)</label>
-            <input class="field-input" [value]="info().inboxCustomColumn5 || ''"
-                   (input)="setInfo('inboxCustomColumn5', $any($event.target).value)">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Inbox Column 5 (AR)</label>
-            <input class="field-input rtl" [value]="info().inboxCustomColumn5Ar || ''"
-                   (input)="setInfo('inboxCustomColumn5Ar', $any($event.target).value)">
-          </div>
 
         </div>
 

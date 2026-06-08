@@ -26,11 +26,11 @@ const FLAG_OPTS = ['Y', 'N'];
 
 function emptyProcess(): ProcessInfoDto {
   return {
-    processCode: '', processStatus: 'ACTIVE',
+    processCode: '', processStatus: 'T',
     processDisplayLabelAr: null, processDisplayLabelEn: null,
     processType: null, processOrder: null,
     bpmnProcessName: null, processInitiateSecurity: null,
-    sendMail: 'N', sendSms: 'N', showOnInbox: 'N',
+    sendMail: 'T', sendSms: 'T', showOnInbox: 'T',
     inboxCustomColumn1: null, inboxCustomColumn1Ar: null,
     inboxCustomColumn2: null, inboxCustomColumn2Ar: null,
     inboxCustomColumn3: null, inboxCustomColumn3Ar: null,
@@ -40,9 +40,9 @@ function emptyProcess(): ProcessInfoDto {
     processTimeAr: null, processTimeEn: null,
     bpmProServiceCatalog: null, serviceIcon: null, serviceId: null,
     serviceUnicodeIcon: null, directAccess: null,
-    allowTerms: null, allowRating: null,
-    cardRedirectionRequired: null, walletRequireOtp: null,
-    askBeforePayWallet: null, testFlag: 'N',
+    allowTerms: 'F', allowRating: 'T',
+    cardRedirectionRequired: null, walletRequireOtp: 'T',
+    askBeforePayWallet: 'F', testFlag: 'F',
     surveyEntityId: null, surveyServiceId: null,
     actionType: null, actionUrl: null, preAuth: null,
     requireOtp: null, iosShow: 'Y', androidShow: 'Y', webShow: 'Y',
@@ -155,6 +155,7 @@ export class ServiceConfigFormComponent implements OnInit {
     this.loadLookups();
     if (this.isNew()) {
       this.prefillPk();
+      this.prefillOrder();
     } else {
       this.loadService(code!);
     }
@@ -169,6 +170,13 @@ export class ServiceConfigFormComponent implements OnInit {
           this.pkAutoFilled.set(true);
         }
       },
+      error: () => {},
+    });
+  }
+
+  private prefillOrder(): void {
+    this.api.nextServiceOrder().subscribe({
+      next: r => { this.info.update(v => ({ ...v, processOrder: r.nextOrder })); },
       error: () => {},
     });
   }

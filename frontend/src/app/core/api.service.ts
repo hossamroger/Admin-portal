@@ -111,6 +111,9 @@ export class ApiService {
   saveServiceConfirmation(code: string, cfgs: ConfirmationScreenConfigDto[]): Observable<unknown> {
     return this.http.put(`/api/service-config/${encodeURIComponent(code)}/confirmation`, cfgs);
   }
+  nextServiceOrder(): Observable<{ nextOrder: number }> {
+    return this.http.get<{ nextOrder: number }>('/api/service-config/next-order');
+  }
   // Lookups
   lookupTargetAudience(): Observable<TargetAudienceLookup[]>  { return this.http.get<TargetAudienceLookup[]>('/api/service-config/lookups/audience'); }
   lookupScreenInfo(): Observable<ScreenInfoLookup[]>          { return this.http.get<ScreenInfoLookup[]>('/api/service-config/lookups/screen-info'); }
