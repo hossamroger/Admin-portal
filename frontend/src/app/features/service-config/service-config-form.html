@@ -22,10 +22,13 @@
         <div class="form-grid">
 
           <div class="field-group">
-            <label class="field-label">Process Code *</label>
+            <label class="field-label">
+              Process Code *
+              @if (pkAutoFilled()) { <span class="pk-auto-badge">auto</span> }
+            </label>
             <input class="field-input mono" [value]="info().processCode"
                    (input)="setInfoVal('processCode', $any($event.target).value)"
-                   [disabled]="!isNew()" placeholder="e.g. SVC_001">
+                   [disabled]="!isNew() || pkAutoFilled()" placeholder="e.g. SVC_001">
           </div>
 
           <div class="field-group">

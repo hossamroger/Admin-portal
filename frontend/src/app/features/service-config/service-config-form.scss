@@ -50,6 +50,13 @@
 .field-label {
   font-size: 12px; font-weight: 500; color: var(--app-muted);
   text-transform: uppercase; letter-spacing: .04em;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.pk-auto-badge {
+  font-size: 10px; font-weight: 600; padding: 1px 6px;
+  border-radius: 10px; background: rgba(0,102,53,.12);
+  color: var(--app-accent); text-transform: uppercase; letter-spacing: .05em;
 }
 
 .field-input, .field-select, .field-textarea {
