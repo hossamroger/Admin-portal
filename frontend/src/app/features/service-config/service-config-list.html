@@ -1,0 +1,97 @@
+<div class="sc-page">
+
+  <div class="sc-header">
+    <div class="sc-header-left">
+      <h1 class="sc-title">Service Configurations</h1>
+      <span class="sc-count">{{ total() }} services</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> New Service
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="sc-filters">
+    <div class="sc-search-wrap">
+      <mat-icon class="sc-search-icon">search</mat-icon>
+      <input class="sc-search-input" placeholder="Search by code or name…"
+             [(ngModel)]="search" (ngModelChange)="load(true)"
+             (keydown.escape)="clearSearch()">
+      @if (search()) {
+        <mat-icon class="sc-search-clear" (click)="clearSearch()">close</mat-icon>
+      }
+    </div>
+
+    <select class="sc-filter-select" [(ngModel)]="status" (ngModelChange)="load(true)">
+      <option value="">All statuses</option>
+      @for (s of statuses(); track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+
+    <select class="sc-filter-select" [(ngModel)]="type" (ngModelChange)="load(true)">
+      <option value="">All types</option>
+      @for (t of types(); track t) { <option [value]="t">{{ t }}</option> }
+    </select>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+  <!-- Table -->
+  @if (total() === 0 && !loading()) {
+    <div class="sc-empty">
+      <mat-icon>manage_search</mat-icon>
+      <span>No services found</span>
+    </div>
+  } @else {
+    <div class="sc-table-wrap">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Display Name (EN)</th>
+            <th>Display Name (AR)</th>
+            <th>Status</th>
+            <th>Type</th>
+            <th>Order</th>
+            <th class="th-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.processCode) {
+            <tr class="sc-row" (click)="edit(item.processCode)">
+              <td class="mono">{{ item.processCode }}</td>
+              <td>{{ item.processDisplayLabelEn || '—' }}</td>
+              <td class="rtl">{{ item.processDisplayLabelAr || '—' }}</td>
+              <td>
+                <span class="sc-badge" [class]="'badge-' + (item.processStatus || 'unknown' | lowercase)">
+                  {{ item.processStatus || '—' }}
+                </span>
+              </td>
+              <td>{{ item.processType || '—' }}</td>
+              <td class="mono">{{ item.processOrder ?? '—' }}</td>
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(item.processCode)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Delete" class="btn-del"
+                        (click)="remove(item.processCode, item.processDisplayLabelEn)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="sc-pager">
+      <button mat-icon-button (click)="prev()" [disabled]="!hasPrev()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="mono">{{ fromRow() }}–{{ toRow() }} of {{ total() }}</span>
+      <button mat-icon-button (click)="next()" [disabled]="!hasNext()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  }
+</div>

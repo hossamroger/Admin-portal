@@ -1,0 +1,660 @@
+<div class="scf-page">
+
+  <div class="scf-header">
+    <button mat-icon-button (click)="back()" matTooltip="Back to list">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="scf-title">{{ title() }}</h1>
+    @if (!isNew()) {
+      <button mat-stroked-button color="warn" class="btn-delete" (click)="deleteService()">
+        <mat-icon>delete_outline</mat-icon> Delete
+      </button>
+    }
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+  <mat-tab-group animationDuration="0" class="scf-tabs">
+
+    <!-- ── Tab 1: Basic Info ───────────────────────────────────────────── -->
+    <mat-tab label="Basic Info">
+      <div class="tab-body">
+        <div class="form-grid">
+
+          <div class="field-group">
+            <label class="field-label">
+              Process Code *
+              @if (pkAutoFilled()) { <span class="pk-auto-badge">auto</span> }
+            </label>
+            <input class="field-input mono" [value]="info().processCode"
+                   (input)="setInfoVal('processCode', $any($event.target).value)"
+                   [disabled]="!isNew() || pkAutoFilled()" placeholder="e.g. SVC_001">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">BPMN Process Name</label>
+            <input class="field-input mono" [value]="info().bpmnProcessName || ''"
+                   (input)="setInfo('bpmnProcessName', $any($event.target).value)"
+                   placeholder="bpmn_name">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Display Name (EN)</label>
+            <input class="field-input" [value]="info().processDisplayLabelEn || ''"
+                   (input)="setInfo('processDisplayLabelEn', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Display Name (AR)</label>
+            <input class="field-input rtl" [value]="info().processDisplayLabelAr || ''"
+                   (input)="setInfo('processDisplayLabelAr', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Status</label>
+            <select class="field-select" [value]="info().processStatus"
+                    (change)="setInfoVal('processStatus', $any($event.target).value)">
+              @for (s of statuses(); track s) { <option [value]="s">{{ s }}</option> }
+              @if (!statuses().length) {
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+              }
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Type</label>
+            <select class="field-select" [value]="info().processType || ''"
+                    (change)="setInfo('processType', $any($event.target).value)">
+              <option value="">— none —</option>
+              @for (t of types(); track t) { <option [value]="t">{{ t }}</option> }
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Process Order</label>
+            <input class="field-input mono" type="number"
+                   [value]="info().processOrder ?? ''"
+                   (input)="setInfoVal('processOrder', +$any($event.target).value || null)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Security</label>
+            <input class="field-input" [value]="info().processInitiateSecurity || ''"
+                   (input)="setInfo('processInitiateSecurity', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Group Code</label>
+            <input class="field-input" [value]="info().groupCode || ''"
+                   (input)="setInfo('groupCode', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Service ID</label>
+            <input class="field-input" [value]="info().serviceId || ''"
+                   (input)="setInfo('serviceId', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Service Icon URL</label>
+            <input class="field-input" [value]="info().serviceIcon || ''"
+                   (input)="setInfo('serviceIcon', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Unicode Icon</label>
+            <input class="field-input" [value]="info().serviceUnicodeIcon || ''"
+                   (input)="setInfo('serviceUnicodeIcon', $any($event.target).value)">
+          </div>
+
+          <div class="field-group span-2">
+            <label class="field-label">Description (EN)</label>
+            <textarea class="field-textarea" rows="2" [value]="info().processDescEn || ''"
+                      (input)="setInfo('processDescEn', $any($event.target).value)"></textarea>
+          </div>
+
+          <div class="field-group span-2">
+            <label class="field-label">Description (AR)</label>
+            <textarea class="field-textarea rtl" rows="2" [value]="info().processDescAr || ''"
+                      (input)="setInfo('processDescAr', $any($event.target).value)"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Processing Time (EN)</label>
+            <input class="field-input" [value]="info().processTimeEn || ''"
+                   (input)="setInfo('processTimeEn', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Processing Time (AR)</label>
+            <input class="field-input rtl" [value]="info().processTimeAr || ''"
+                   (input)="setInfo('processTimeAr', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Platform Code</label>
+            <input class="field-input" [value]="info().platformCode || ''"
+                   (input)="setInfo('platformCode', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Platform ICP User ID</label>
+            <input class="field-input" [value]="info().platformIcpUserId || ''"
+                   (input)="setInfo('platformIcpUserId', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Action Type</label>
+            <input class="field-input" [value]="info().actionType || ''"
+                   (input)="setInfo('actionType', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Action URL</label>
+            <input class="field-input" [value]="info().actionUrl || ''"
+                   (input)="setInfo('actionUrl', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Action URL 2</label>
+            <input class="field-input" [value]="info().actionUrl2 || ''"
+                   (input)="setInfo('actionUrl2', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">iOS Action Type</label>
+            <input class="field-input" [value]="info().iosActionType || ''"
+                   (input)="setInfo('iosActionType', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Android Action Type</label>
+            <input class="field-input" [value]="info().androidActionType || ''"
+                   (input)="setInfo('androidActionType', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Survey Entity ID</label>
+            <input class="field-input mono" type="number" [value]="info().surveyEntityId ?? ''"
+                   (input)="setInfoVal('surveyEntityId', +$any($event.target).value || null)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Survey Service ID</label>
+            <input class="field-input mono" type="number" [value]="info().surveyServiceId ?? ''"
+                   (input)="setInfoVal('surveyServiceId', +$any($event.target).value || null)">
+          </div>
+
+          <!-- Flag row -->
+          <div class="field-group span-2">
+            <label class="field-label">Flags</label>
+            <div class="flag-row">
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).sendMail === 'Y'" (change)="setInfoVal('sendMail', $any($event.target).checked ? 'Y' : 'N')"><span>Send Mail</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).sendSms === 'Y'" (change)="setInfoVal('sendSms', $any($event.target).checked ? 'Y' : 'N')"><span>Send SMS</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).showOnInbox === 'Y'" (change)="setInfoVal('showOnInbox', $any($event.target).checked ? 'Y' : 'N')"><span>Show Inbox</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).directAccess === 'Y'" (change)="setInfoVal('directAccess', $any($event.target).checked ? 'Y' : 'N')"><span>Direct Access</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).allowTerms === 'Y'" (change)="setInfoVal('allowTerms', $any($event.target).checked ? 'Y' : 'N')"><span>Allow Terms</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).allowRating === 'Y'" (change)="setInfoVal('allowRating', $any($event.target).checked ? 'Y' : 'N')"><span>Allow Rating</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).cardRedirectionRequired === 'Y'" (change)="setInfoVal('cardRedirectionRequired', $any($event.target).checked ? 'Y' : 'N')"><span>Card Redirect</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).walletRequireOtp === 'Y'" (change)="setInfoVal('walletRequireOtp', $any($event.target).checked ? 'Y' : 'N')"><span>Wallet OTP</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).askBeforePayWallet === 'Y'" (change)="setInfoVal('askBeforePayWallet', $any($event.target).checked ? 'Y' : 'N')"><span>Ask Pay Wallet</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).testFlag === 'Y'" (change)="setInfoVal('testFlag', $any($event.target).checked ? 'Y' : 'N')"><span>Test</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).requireOtp === 'Y'" (change)="setInfoVal('requireOtp', $any($event.target).checked ? 'Y' : 'N')"><span>Require OTP</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).preAuth === 'Y'" (change)="setInfoVal('preAuth', $any($event.target).checked ? 'Y' : 'N')"><span>Pre Auth</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).iosShow === 'Y'" (change)="setInfoVal('iosShow', $any($event.target).checked ? 'Y' : 'N')"><span>iOS Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).androidShow === 'Y'" (change)="setInfoVal('androidShow', $any($event.target).checked ? 'Y' : 'N')"><span>Android Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).webShow === 'Y'" (change)="setInfoVal('webShow', $any($event.target).checked ? 'Y' : 'N')"><span>Web Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).adminPayment === 'Y'" (change)="setInfoVal('adminPayment', $any($event.target).checked ? 'Y' : 'N')"><span>Admin Payment</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).isServiceCatalogOneTime === 'Y'" (change)="setInfoVal('isServiceCatalogOneTime', $any($event.target).checked ? 'Y' : 'N')"><span>One Time</span></label>
+            </div>
+          </div>
+
+          <!-- Inbox custom columns -->
+          <div class="field-group">
+            <label class="field-label">Inbox Column 1 (EN)</label>
+            <input class="field-input" [value]="info().inboxCustomColumn1 || ''"
+                   (input)="setInfo('inboxCustomColumn1', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 1 (AR)</label>
+            <input class="field-input rtl" [value]="info().inboxCustomColumn1Ar || ''"
+                   (input)="setInfo('inboxCustomColumn1Ar', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 2 (EN)</label>
+            <input class="field-input" [value]="info().inboxCustomColumn2 || ''"
+                   (input)="setInfo('inboxCustomColumn2', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 2 (AR)</label>
+            <input class="field-input rtl" [value]="info().inboxCustomColumn2Ar || ''"
+                   (input)="setInfo('inboxCustomColumn2Ar', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 3 (EN)</label>
+            <input class="field-input" [value]="info().inboxCustomColumn3 || ''"
+                   (input)="setInfo('inboxCustomColumn3', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 3 (AR)</label>
+            <input class="field-input rtl" [value]="info().inboxCustomColumn3Ar || ''"
+                   (input)="setInfo('inboxCustomColumn3Ar', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 4 (EN)</label>
+            <input class="field-input" [value]="info().inboxCustomColumn4 || ''"
+                   (input)="setInfo('inboxCustomColumn4', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 4 (AR)</label>
+            <input class="field-input rtl" [value]="info().inboxCustomColumn4Ar || ''"
+                   (input)="setInfo('inboxCustomColumn4Ar', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 5 (EN)</label>
+            <input class="field-input" [value]="info().inboxCustomColumn5 || ''"
+                   (input)="setInfo('inboxCustomColumn5', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Inbox Column 5 (AR)</label>
+            <input class="field-input rtl" [value]="info().inboxCustomColumn5Ar || ''"
+                   (input)="setInfo('inboxCustomColumn5Ar', $any($event.target).value)">
+          </div>
+
+        </div>
+
+        <div class="tab-actions">
+          <button mat-flat-button color="primary" (click)="saveInfo()" [disabled]="saving()">
+            <mat-icon>save</mat-icon> {{ isNew() ? 'Create Service' : 'Save Basic Info' }}
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ── Tab 2: Steps ───────────────────────────────────────────────── -->
+    <mat-tab label="Steps ({{ steps().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing sub-sections.</div>
+        } @else {
+
+          @for (step of steps(); track $index; let i = $index) {
+            <div class="step-card" [class.expanded]="expandedStep() === i">
+              <div class="step-header" (click)="toggleStep(i)">
+                <mat-icon class="step-chevron">{{ expandedStep() === i ? 'expand_less' : 'expand_more' }}</mat-icon>
+                <span class="step-id mono">{{ step.requiredStepId || ('Step ' + (i+1)) }}</span>
+                <span class="step-label">{{ step.requiredStepDescEn || '—' }}</span>
+                <span class="step-order mono">{{ step.orderC ?? '' }}</span>
+                <button mat-icon-button class="btn-remove" matTooltip="Remove step"
+                        (click)="$event.stopPropagation(); removeStep(i)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+
+              @if (expandedStep() === i) {
+                <div class="step-body">
+                  <div class="form-grid">
+                    <div class="field-group">
+                      <label class="field-label">Step ID *</label>
+                      <input class="field-input mono" [(ngModel)]="step.requiredStepId">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Order</label>
+                      <input class="field-input mono" type="number" [(ngModel)]="step.orderC">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Description (EN) *</label>
+                      <input class="field-input" [(ngModel)]="step.requiredStepDescEn">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Description (AR) *</label>
+                      <input class="field-input rtl" [(ngModel)]="step.requiredStepDescAr">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Step Type</label>
+                      <input class="field-input" [(ngModel)]="step.stepType">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">BPMN Process Name</label>
+                      <input class="field-input mono" [(ngModel)]="step.bpmnProcessName">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Link Desc (EN)</label>
+                      <input class="field-input" [(ngModel)]="step.linkDescEn">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Link Desc (AR)</label>
+                      <input class="field-input rtl" [(ngModel)]="step.linkDescAr">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Attention Msg (EN)</label>
+                      <input class="field-input" [(ngModel)]="step.attentionMsgEn">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Attention Msg (AR)</label>
+                      <input class="field-input rtl" [(ngModel)]="step.attentionMsgAr">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Step SLA</label>
+                      <input class="field-input mono" type="number" [(ngModel)]="step.stepSla">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Entity Code</label>
+                      <input class="field-input" [(ngModel)]="step.entityCode">
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Show Link</label>
+                      <select class="field-select" [(ngModel)]="step.showLinkFlag">
+                        <option value="Y">Y</option><option value="N">N</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Status Links sub-grid -->
+                  <div class="sub-section">
+                    <div class="sub-header">
+                      <span>Status Links ({{ step.statusLinks.length }})</span>
+                      <button mat-stroked-button (click)="addLink(step)">
+                        <mat-icon>add</mat-icon> Add Link
+                      </button>
+                    </div>
+                    @for (link of step.statusLinks; track $index; let li = $index) {
+                      <div class="link-row">
+                        <span class="link-num">{{ li + 1 }}</span>
+                        <input class="field-input" [(ngModel)]="link.requiredStatusCode" placeholder="Status Code">
+                        <input class="field-input" [(ngModel)]="link.labelEn" placeholder="Label EN">
+                        <input class="field-input rtl" [(ngModel)]="link.labelAr" placeholder="Label AR">
+                        <input class="field-input" [(ngModel)]="link.actionCode" placeholder="Action Code">
+                        <input class="field-input" [(ngModel)]="link.webLinkUrl" placeholder="Web URL">
+                        <button mat-icon-button class="btn-remove" (click)="removeLink(step, li)">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                    @if (step.statusLinks.length === 0) {
+                      <div class="sub-empty">No status links</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (steps().length === 0) {
+            <div class="tab-empty">No steps yet</div>
+          }
+
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addStep()">
+              <mat-icon>add</mat-icon> Add Step
+            </button>
+            <button mat-flat-button color="primary" (click)="saveSteps()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Steps
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ── Tab 3: Fees ────────────────────────────────────────────────── -->
+    <mat-tab label="Fees ({{ fees().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing sub-sections.</div>
+        } @else {
+          <table class="sub-table">
+            <thead><tr>
+              <th>#</th><th>Description (AR) *</th><th>Description (EN)</th>
+              <th>Amount</th><th>Currency (AR)</th><th>Currency (EN)</th><th>Order</th><th></th>
+            </tr></thead>
+            <tbody>
+              @for (fee of fees(); track $index; let i = $index) {
+                <tr>
+                  <td class="mono">{{ i + 1 }}</td>
+                  <td><input class="field-input rtl" [(ngModel)]="fee.feesDescAr"></td>
+                  <td><input class="field-input" [(ngModel)]="fee.feesDescEn"></td>
+                  <td><input class="field-input mono" [(ngModel)]="fee.feesAmount"></td>
+                  <td><input class="field-input rtl" [(ngModel)]="fee.currencyAr"></td>
+                  <td><input class="field-input" [(ngModel)]="fee.currencyEn"></td>
+                  <td><input class="field-input mono" type="number" [(ngModel)]="fee.orderC"></td>
+                  <td>
+                    <button mat-icon-button class="btn-remove" (click)="removeFee(i)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (fees().length === 0) { <div class="tab-empty">No fees</div> }
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addFee()"><mat-icon>add</mat-icon> Add Fee</button>
+            <button mat-flat-button color="primary" (click)="saveFees()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Fees
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ── Tab 4: Required Docs ───────────────────────────────────────── -->
+    <mat-tab label="Documents ({{ docs().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing sub-sections.</div>
+        } @else {
+          <table class="sub-table">
+            <thead><tr>
+              <th>#</th><th>Description (AR) *</th><th>Description (EN) *</th><th>Order</th><th></th>
+            </tr></thead>
+            <tbody>
+              @for (doc of docs(); track $index; let i = $index) {
+                <tr>
+                  <td class="mono">{{ i + 1 }}</td>
+                  <td><input class="field-input rtl" [(ngModel)]="doc.requiredDocsDescAr"></td>
+                  <td><input class="field-input" [(ngModel)]="doc.requiredDocsDescEn"></td>
+                  <td><input class="field-input mono" type="number" [(ngModel)]="doc.orderC"></td>
+                  <td>
+                    <button mat-icon-button class="btn-remove" (click)="removeDoc(i)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (docs().length === 0) { <div class="tab-empty">No required documents</div> }
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addDoc()"><mat-icon>add</mat-icon> Add Document</button>
+            <button mat-flat-button color="primary" (click)="saveDocs()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Documents
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ── Tab 5: Providers (Related Depts) ──────────────────────────── -->
+    <mat-tab label="Providers ({{ depts().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing sub-sections.</div>
+        } @else {
+          <table class="sub-table">
+            <thead><tr>
+              <th>#</th><th>Description (AR) *</th><th>Description (EN) *</th>
+              <th>Entity Code</th><th>Entity Src</th><th>Order</th><th></th>
+            </tr></thead>
+            <tbody>
+              @for (dept of depts(); track $index; let i = $index) {
+                <tr>
+                  <td class="mono">{{ i + 1 }}</td>
+                  <td><input class="field-input rtl" [(ngModel)]="dept.relatedDepartmentsDescAr"></td>
+                  <td><input class="field-input" [(ngModel)]="dept.relatedDepartmentsDescEn"></td>
+                  <td><input class="field-input mono" [(ngModel)]="dept.entityCode"></td>
+                  <td><input class="field-input mono" [(ngModel)]="dept.entityCodeSrc"></td>
+                  <td><input class="field-input mono" type="number" [(ngModel)]="dept.orderC"></td>
+                  <td>
+                    <button mat-icon-button class="btn-remove" (click)="removeDept(i)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (depts().length === 0) { <div class="tab-empty">No providers</div> }
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addDept()"><mat-icon>add</mat-icon> Add Provider</button>
+            <button mat-flat-button color="primary" (click)="saveDepts()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Providers
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ── Tab 6: Target Audience ─────────────────────────────────────── -->
+    <mat-tab label="Audience ({{ audiences().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing sub-sections.</div>
+        } @else {
+          <table class="sub-table">
+            <thead><tr>
+              <th>#</th><th>Description (AR) *</th><th>Description (EN) *</th>
+              <th>Main Audience</th><th>Order</th><th></th>
+            </tr></thead>
+            <tbody>
+              @for (aud of audiences(); track $index; let i = $index) {
+                <tr>
+                  <td class="mono">{{ i + 1 }}</td>
+                  <td><input class="field-input rtl" [(ngModel)]="aud.targetAudienceDescAr"></td>
+                  <td><input class="field-input" [(ngModel)]="aud.targetAudienceDescEn"></td>
+                  <td>
+                    <select class="field-select" [(ngModel)]="aud.mainTargetAudienceSeq">
+                      <option [ngValue]="null">— none —</option>
+                      @for (a of audienceLookup(); track a.seq) {
+                        <option [ngValue]="a.seq">{{ a.descEn }}</option>
+                      }
+                    </select>
+                  </td>
+                  <td><input class="field-input mono" type="number" [(ngModel)]="aud.orderC"></td>
+                  <td>
+                    <button mat-icon-button class="btn-remove" (click)="removeAudience(i)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (audiences().length === 0) { <div class="tab-empty">No target audiences</div> }
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addAudience()"><mat-icon>add</mat-icon> Add Audience</button>
+            <button mat-flat-button color="primary" (click)="saveAudiences()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Audience
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ── Tab 7: Confirmation Screens ───────────────────────────────── -->
+    <mat-tab label="Confirmation ({{ confirmations().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing sub-sections.</div>
+        } @else {
+
+          @for (cfg of confirmations(); track $index; let i = $index) {
+            <div class="conf-card">
+              <div class="conf-card-header">
+                <span class="mono">Screen {{ i + 1 }}</span>
+                <button mat-icon-button class="btn-remove" (click)="removeConfirmation(i)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+              <div class="form-grid">
+                <div class="field-group">
+                  <label class="field-label">Screen Info</label>
+                  <select class="field-select" [(ngModel)]="cfg.dsConfirmationScreenInfoId">
+                    <option [ngValue]="null">— none —</option>
+                    @for (s of screenLookup(); track s.id) {
+                      <option [ngValue]="s.id">{{ s.headerEn }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Required Step ID</label>
+                  <input class="field-input mono" [(ngModel)]="cfg.requiredStepId">
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Required Status Code</label>
+                  <input class="field-input mono" [(ngModel)]="cfg.requiredStatusCode">
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Action</label>
+                  <input class="field-input" [(ngModel)]="cfg.action">
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Has Payment</label>
+                  <select class="field-select" [(ngModel)]="cfg.hasPayment">
+                    <option value="Y">Y</option><option value="N">N</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Has RT Record</label>
+                  <select class="field-select" [(ngModel)]="cfg.hasRtRecord">
+                    <option value="Y">Y</option><option value="N">N</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Show Ref No</label>
+                  <select class="field-select" [(ngModel)]="cfg.showRefNo">
+                    <option value="Y">Y</option><option value="N">N</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Guest</label>
+                  <select class="field-select" [(ngModel)]="cfg.guest">
+                    <option value="Y">Y</option><option value="N">N</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="sub-section">
+                <div class="sub-header"><span>Components</span></div>
+                <div class="component-grid">
+                  @for (comp of componentLookup(); track comp.id) {
+                    <label class="comp-item" [class.selected]="hasComponent(cfg, comp.id)"
+                           (click)="toggleComponent(cfg, comp.id)">
+                      <mat-icon class="comp-check">{{ hasComponent(cfg, comp.id) ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+                      <span>{{ comp.labelEn }}</span>
+                    </label>
+                  }
+                  @if (componentLookup().length === 0) {
+                    <span class="sub-empty">No components available</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (confirmations().length === 0) {
+            <div class="tab-empty">No confirmation screens</div>
+          }
+
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addConfirmation()"><mat-icon>add</mat-icon> Add Screen</button>
+            <button mat-flat-button color="primary" (click)="saveConfirmations()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Screens
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

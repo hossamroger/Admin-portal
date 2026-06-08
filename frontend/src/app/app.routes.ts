@@ -25,6 +25,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/attachments/attachments').then(m => m.AttachmentsComponent),
       },
       {
+        path: 'service-config',
+        loadComponent: () => import('./features/service-config/service-config-list').then(m => m.ServiceConfigListComponent),
+      },
+      {
+        path: 'service-config/:code',
+        loadComponent: () => import('./features/service-config/service-config-form').then(m => m.ServiceConfigFormComponent),
+      },
+      {
         path: 'admin/users',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/user-management/user-management').then(m => m.UserManagementComponent),

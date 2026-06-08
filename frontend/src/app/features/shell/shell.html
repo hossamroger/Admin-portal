@@ -55,6 +55,11 @@
                [mode]="isHandset() ? 'over' : 'side'"
                [opened]="!isHandset()">
     <nav class="tree">
+      <a class="pinned-link" routerLink="/service-config" routerLinkActive="active"
+         (click)="onObjectClick(drawer.close.bind(drawer))">
+        <mat-icon>settings_applications</mat-icon>
+        <span>Service Config</span>
+      </a>
       <a class="pinned-link" routerLink="/attachments" routerLinkActive="active"
          (click)="onObjectClick(drawer.close.bind(drawer))">
         <mat-icon>cloud_upload</mat-icon>
