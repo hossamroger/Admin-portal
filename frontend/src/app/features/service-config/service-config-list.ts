@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy, Component, computed, inject, signal,
+  ElementRef, ViewChild, AfterViewInit, OnDestroy, NgZone,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LowerCasePipe } from '@angular/common';
@@ -11,7 +14,6 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
-import { AuthService } from '../../core/auth.service';
 import { ServiceSummary } from '../../core/models';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 
@@ -23,34 +25,55 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
   templateUrl: './service-config-list.html',
   styleUrl:    './service-config-list.scss',
 })
-export class ServiceConfigListComponent {
+export class ServiceConfigListComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('tableWrap') private tableWrap!: ElementRef<HTMLDivElement>;
+
   private readonly api    = inject(ApiService);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
-  readonly auth           = inject(AuthService);
+  private readonly zone   = inject(NgZone);
 
-  readonly loading  = signal(false);
-  readonly items    = signal<ServiceSummary[]>([]);
-  readonly total    = signal(0);
-  readonly page     = signal(0);
-  readonly pageSize = 20;
+  readonly loading     = signal(false);
+  readonly items       = signal<ServiceSummary[]>([]);
+  readonly total       = signal(0);
+  readonly page        = signal(0);
+  readonly pageSize    = 50;
 
-  readonly search   = signal('');
-  readonly status   = signal('');
-  readonly type     = signal('');
+  readonly search  = signal('');
+  readonly status  = signal('');
+  readonly type    = signal('');
 
   readonly statuses = signal<string[]>([]);
   readonly types    = signal<string[]>([]);
 
-  readonly fromRow  = computed(() => this.total() === 0 ? 0 : this.page() * this.pageSize + 1);
-  readonly toRow    = computed(() => Math.min((this.page() + 1) * this.pageSize, this.total()));
-  readonly hasPrev  = computed(() => this.page() > 0);
-  readonly hasNext  = computed(() => (this.page() + 1) * this.pageSize < this.total());
+  readonly hasMore = computed(() => this.items().length < this.total());
+
+  private scrollListener?: () => void;
 
   constructor() {
     this.loadFilters();
-    this.load();
+    this.load(true);
+  }
+
+  ngAfterViewInit(): void {
+    this.zone.runOutsideAngular(() => {
+      this.scrollListener = () => {
+        const el = this.tableWrap?.nativeElement;
+        if (!el) return;
+        const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 120;
+        if (nearBottom && !this.loading() && this.hasMore()) {
+          this.zone.run(() => this.loadMore());
+        }
+      };
+      this.tableWrap.nativeElement.addEventListener('scroll', this.scrollListener!);
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollListener) {
+      this.tableWrap?.nativeElement.removeEventListener('scroll', this.scrollListener);
+    }
   }
 
   private loadFilters(): void {
@@ -58,18 +81,18 @@ export class ServiceConfigListComponent {
     this.api.lookupServiceTypes().subscribe({ next: v => this.types.set(v), error: () => {} });
   }
 
-  load(resetPage = false): void {
-    if (resetPage) this.page.set(0);
+  load(reset = false): void {
+    if (reset) { this.page.set(0); this.items.set([]); }
     this.loading.set(true);
     this.api.listServices({
-      search:   this.search() || undefined,
-      status:   this.status() || undefined,
-      type:     this.type()   || undefined,
+      search:   this.search()  || undefined,
+      status:   this.status()  || undefined,
+      type:     this.type()    || undefined,
       page:     this.page(),
       pageSize: this.pageSize,
     }).subscribe({
       next: r => {
-        this.items.set(r.items);
+        this.items.update(arr => [...arr, ...r.items]);
         this.total.set(r.total);
         this.loading.set(false);
       },
@@ -80,9 +103,13 @@ export class ServiceConfigListComponent {
     });
   }
 
+  private loadMore(): void {
+    if (this.loading() || !this.hasMore()) return;
+    this.page.update(p => p + 1);
+    this.load();
+  }
+
   clearSearch(): void { this.search.set(''); this.load(true); }
-  prev(): void { if (this.hasPrev()) { this.page.update(p => p - 1); this.load(); } }
-  next(): void { if (this.hasNext()) { this.page.update(p => p + 1); this.load(); } }
 
   create(): void { this.router.navigate(['/service-config', 'new']); }
   edit(code: string): void { this.router.navigate(['/service-config', code]); }
@@ -94,7 +121,7 @@ export class ServiceConfigListComponent {
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.api.deleteService(code).subscribe({
-        next: () => { this.notify.success('Service deleted'); this.load(); },
+        next: () => { this.notify.success('Service deleted'); this.load(true); },
         error: err => this.notify.error(err, 'Delete failed'),
       });
     });
