@@ -47,6 +47,17 @@ public class ServiceConfigController {
         return r == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(r);
     }
 
+    // ── Next order value ──────────────────────────────────────────────────────
+
+    @GetMapping("/next-order")
+    public ResponseEntity<Map<String, Object>> nextOrder(HttpServletRequest http) {
+        requireSelect(http);
+        long next = svc.nextProcessOrder();
+        Map<String, Object> r = new HashMap<>();
+        r.put("nextOrder", next);
+        return ResponseEntity.ok(r);
+    }
+
     // ── Create ────────────────────────────────────────────────────────────────
 
     @PostMapping

@@ -22,6 +22,12 @@ public class ServiceConfigService {
 
     // ── List / search ─────────────────────────────────────────────────────────
 
+    public long nextProcessOrder() {
+        Long max = jdbc.queryForObject(
+            "SELECT NVL(MAX(PROCESS_ORDER), 0) + 1 FROM BPM_PROCESSES_INFO", Long.class);
+        return max == null ? 1L : max;
+    }
+
     public ServiceListResponse list(String search, String status, String type, int page, int pageSize) {
         String baseWhere = buildListWhere(search, status, type);
         String countSql  = "SELECT COUNT(*) FROM BPM_PROCESSES_INFO" + baseWhere;
