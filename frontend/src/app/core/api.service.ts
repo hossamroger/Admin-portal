@@ -2,8 +2,11 @@ import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  AdminUserDetail, AdminUserSummary, ColumnFilter, DataPage, DbObject, Fingerprint, Insights, Me,
-  ObjectType, QueryResult, SaveUserRequest, SchemaOverview, SourceCode, TableDetail, UploadResult,
+  AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
+  DataPage, DbObject, FeeDto, Fingerprint, Insights, Me, ObjectType, ProcessInfoDto,
+  QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview, ScreenInfoLookup,
+  ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
+  TargetAudienceDto, TargetAudienceLookup, UploadResult,
 } from './models';
 
 /** Single gateway for every backend call. Keeps URLs and shapes in one place. */
@@ -67,6 +70,53 @@ export class ApiService {
   deleteRow(table: string, key: Record<string, any>): Observable<unknown> {
     return this.http.request('delete', `/api/data/${encodeURIComponent(table)}`, { body: { key } });
   }
+
+  // ---- service config ----
+  listServices(params: { search?: string; status?: string; type?: string; page?: number; pageSize?: number }): Observable<ServiceListResponse> {
+    let p = new HttpParams();
+    if (params.search)   p = p.set('search',   params.search);
+    if (params.status)   p = p.set('status',   params.status);
+    if (params.type)     p = p.set('type',     params.type);
+    if (params.page != null)     p = p.set('page',     params.page);
+    if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
+    return this.http.get<ServiceListResponse>('/api/service-config', { params: p });
+  }
+  getService(code: string): Observable<ServiceConfigPayload> {
+    return this.http.get<ServiceConfigPayload>(`/api/service-config/${encodeURIComponent(code)}`);
+  }
+  createService(payload: ServiceConfigPayload): Observable<unknown> {
+    return this.http.post('/api/service-config', payload);
+  }
+  updateService(code: string, payload: ServiceConfigPayload): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}`, payload);
+  }
+  deleteService(code: string): Observable<unknown> {
+    return this.http.delete(`/api/service-config/${encodeURIComponent(code)}`);
+  }
+  saveServiceSteps(code: string, steps: StepDto[]): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}/steps`, steps);
+  }
+  saveServiceFees(code: string, fees: FeeDto[]): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}/fees`, fees);
+  }
+  saveServiceDocs(code: string, docs: RequiredDocDto[]): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}/docs`, docs);
+  }
+  saveServiceDepts(code: string, depts: RelatedDeptDto[]): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}/depts`, depts);
+  }
+  saveServiceAudience(code: string, audiences: TargetAudienceDto[]): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}/audience`, audiences);
+  }
+  saveServiceConfirmation(code: string, cfgs: ConfirmationScreenConfigDto[]): Observable<unknown> {
+    return this.http.put(`/api/service-config/${encodeURIComponent(code)}/confirmation`, cfgs);
+  }
+  // Lookups
+  lookupTargetAudience(): Observable<TargetAudienceLookup[]>  { return this.http.get<TargetAudienceLookup[]>('/api/service-config/lookups/audience'); }
+  lookupScreenInfo(): Observable<ScreenInfoLookup[]>          { return this.http.get<ScreenInfoLookup[]>('/api/service-config/lookups/screen-info'); }
+  lookupComponents(): Observable<ComponentInfoLookup[]>       { return this.http.get<ComponentInfoLookup[]>('/api/service-config/lookups/components'); }
+  lookupServiceStatuses(): Observable<string[]>               { return this.http.get<string[]>('/api/service-config/lookups/statuses'); }
+  lookupServiceTypes(): Observable<string[]>                  { return this.http.get<string[]>('/api/service-config/lookups/types'); }
 
   // ---- attachments ----
   uploadAttachment(file: File, folder: string, documentName: string): Observable<HttpEvent<UploadResult>> {

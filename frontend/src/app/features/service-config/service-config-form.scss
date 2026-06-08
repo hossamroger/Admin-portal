@@ -1,0 +1,174 @@
+:host { display: block; }
+
+.scf-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.scf-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.scf-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); flex: 1; }
+.btn-delete { margin-left: auto; }
+
+.scf-tabs {
+  .tab-body {
+    padding: 20px 0;
+  }
+}
+
+.tab-notice {
+  padding: 16px; border-radius: 8px;
+  background: rgba(200,140,0,.10); color: #a07000;
+  font-size: 14px; border: 1px solid rgba(200,140,0,.25);
+}
+
+.tab-empty {
+  padding: 40px 0; text-align: center;
+  color: var(--app-muted); font-size: 14px;
+}
+
+.tab-actions {
+  display: flex; gap: 10px; margin-top: 20px;
+}
+
+// ── Form grid ──────────────────────────────────────────────────────────────
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+}
+
+.field-group {
+  display: flex; flex-direction: column; gap: 4px;
+  &.span-2 { grid-column: span 2; }
+}
+
+.field-label {
+  font-size: 12px; font-weight: 500; color: var(--app-muted);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+
+.field-input, .field-select, .field-textarea {
+  height: 34px; padding: 0 10px;
+  border: 1px solid var(--app-line); border-radius: 6px;
+  background: white; color: var(--app-fg); font-size: 14px;
+  outline: none; box-sizing: border-box;
+  font-family: inherit;
+  &:focus { border-color: var(--app-accent); }
+  &:disabled { background: var(--app-surface); color: var(--app-muted); }
+}
+.field-textarea {
+  height: auto; padding: 8px 10px; resize: vertical;
+}
+.field-select { cursor: pointer; }
+.rtl { direction: rtl; text-align: right; }
+
+// ── Flags ─────────────────────────────────────────────────────────────────
+
+.flag-row {
+  display: flex; flex-wrap: wrap; gap: 10px 20px;
+}
+.flag-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; cursor: pointer;
+  input[type="checkbox"] { cursor: pointer; accent-color: var(--app-accent); }
+}
+
+// ── Steps ─────────────────────────────────────────────────────────────────
+
+.step-card {
+  border: 1px solid var(--app-line); border-radius: 8px;
+  margin-bottom: 8px; overflow: hidden;
+
+  &.expanded { border-color: var(--app-accent); }
+}
+
+.step-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; cursor: pointer; background: var(--app-surface);
+  &:hover { background: var(--app-bg); }
+}
+.step-chevron { color: var(--app-muted); flex-shrink: 0; }
+.step-id   { font-family: var(--app-mono); font-size: 13px; font-weight: 600; color: var(--app-fg); }
+.step-label { flex: 1; font-size: 13px; color: var(--app-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.step-order { font-family: var(--app-mono); font-size: 12px; color: var(--app-faint); width: 36px; text-align: right; }
+
+.step-body {
+  padding: 16px;
+  border-top: 1px solid var(--app-line);
+}
+
+.btn-remove {
+  color: var(--app-error) !important;
+}
+
+// ── Sub-sections (status links, components) ───────────────────────────────
+
+.sub-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--app-line);
+}
+.sub-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--app-muted);
+}
+.sub-empty {
+  font-size: 13px; color: var(--app-faint); padding: 8px 0;
+}
+
+.link-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  .field-input { flex: 1; min-width: 80px; }
+}
+.link-num { font-family: var(--app-mono); font-size: 12px; color: var(--app-faint); width: 18px; }
+
+// ── Sub-table (fees / docs / depts / audience) ────────────────────────────
+
+.sub-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  margin-bottom: 4px;
+
+  th {
+    padding: 8px 10px; text-align: left;
+    font-size: 11px; font-weight: 600; color: var(--app-muted);
+    text-transform: uppercase; letter-spacing: .04em;
+    background: var(--app-surface);
+    border-bottom: 1px solid var(--app-line);
+  }
+  td {
+    padding: 4px 6px; border-bottom: 1px solid var(--app-line);
+    vertical-align: middle;
+    .field-input { width: 100%; }
+  }
+  tr:last-child td { border-bottom: none; }
+  .mono { font-family: var(--app-mono); font-size: 12px; color: var(--app-muted); }
+}
+
+// ── Confirmation screens ──────────────────────────────────────────────────
+
+.conf-card {
+  border: 1px solid var(--app-line); border-radius: 8px;
+  padding: 16px; margin-bottom: 12px;
+}
+.conf-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; font-size: 14px; font-weight: 600; color: var(--app-fg);
+}
+
+.component-grid {
+  display: flex; flex-wrap: wrap; gap: 8px 20px;
+}
+.comp-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; border: 1px solid var(--app-line);
+  &:hover { border-color: var(--app-accent); }
+  &.selected { background: rgba(0,102,53,.08); border-color: var(--app-accent); color: var(--app-accent); }
+
+  .comp-check { font-size: 18px; }
+}
