@@ -4,6 +4,10 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .scf-header {
@@ -14,6 +18,11 @@
 .btn-delete { margin-left: auto; }
 
 .scf-tabs {
+  flex: 1; min-height: 0;
+
+  ::ng-deep .mat-mdc-tab-body-wrapper { height: calc(100vh - 185px); }
+  ::ng-deep .mat-mdc-tab-body-content { overflow: auto; height: 100%; }
+
   .tab-body {
     padding: 20px 0;
   }
