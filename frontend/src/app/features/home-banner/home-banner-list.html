@@ -1,0 +1,82 @@
+<div class="hb-page">
+
+  <div class="hb-header">
+    <div class="hb-header-left">
+      <h1 class="hb-title">Home Banner Config</h1>
+      <span class="hb-count">{{ items().length }} / {{ total() }}</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> New Banner
+    </button>
+  </div>
+
+  <div class="hb-filters">
+    <div class="hb-search-wrap">
+      <mat-icon class="hb-search-icon">search</mat-icon>
+      <input class="hb-search-input" placeholder="Search by URL…"
+             [(ngModel)]="search" (ngModelChange)="load(true)"
+             (keydown.escape)="clearSearch()">
+      @if (search()) {
+        <mat-icon class="hb-search-clear" (click)="clearSearch()">close</mat-icon>
+      }
+    </div>
+    <input class="hb-filter-input" placeholder="Platform filter…"
+           [(ngModel)]="platform" (ngModelChange)="load(true)">
+  </div>
+
+  @if (total() === 0 && !loading()) {
+    <div class="hb-empty">
+      <mat-icon>image_not_supported</mat-icon>
+      <span>No banners found</span>
+    </div>
+  } @else {
+    <div class="hb-table-wrap" #tableWrap>
+      <table class="hb-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Order</th>
+            <th>Platform</th>
+            <th>Language</th>
+            <th>URL</th>
+            <th>Start</th>
+            <th>Expiry</th>
+            <th>Active</th>
+            <th class="th-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr class="hb-row" (click)="edit(item.id!)">
+              <td class="mono">{{ item.id }}</td>
+              <td class="mono">{{ item.bannerOrder ?? '—' }}</td>
+              <td>{{ item.platform || '—' }}</td>
+              <td>{{ item.language || '—' }}</td>
+              <td class="url-cell">{{ item.url || '—' }}</td>
+              <td class="mono">{{ item.startDt || '—' }}</td>
+              <td class="mono">{{ item.expiryDt || '—' }}</td>
+              <td>
+                <span class="hb-badge" [class.active]="item.isActive === 1">
+                  {{ item.isActive === 1 ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(item.id!)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (loading()) {
+        <div class="hb-scroll-loading"><mat-progress-bar mode="indeterminate" /></div>
+      } @else if (hasMore()) {
+        <div class="hb-scroll-hint">Scroll down to load more…</div>
+      } @else if (items().length > 0) {
+        <div class="hb-scroll-end">All {{ total() }} banners loaded</div>
+      }
+    </div>
+  }
+</div>

@@ -41,6 +41,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/process-status/process-status-form').then(m => m.ProcessStatusFormComponent),
       },
       {
+        path: 'home-banner',
+        loadComponent: () => import('./features/home-banner/home-banner-list').then(m => m.HomeBannerListComponent),
+      },
+      {
+        path: 'home-banner/:id',
+        loadComponent: () => import('./features/home-banner/home-banner-form').then(m => m.HomeBannerFormComponent),
+      },
+      {
         path: 'admin/users',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/user-management/user-management').then(m => m.UserManagementComponent),

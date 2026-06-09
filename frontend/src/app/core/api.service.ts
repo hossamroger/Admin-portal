@@ -3,7 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
-  DataPage, DbObject, FeeDto, Fingerprint, Insights, Me, ObjectType, ProcessInfoDto,
+  DataPage, DbObject, FeeDto, Fingerprint, HomeBannerDto, HomeBannerListResponse,
+  Insights, Me, ObjectType, ProcessInfoDto,
   ProcessStatusDto, ProcessStatusListResponse, ProcessStatusMsgDto,
   QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview, ScreenInfoLookup,
   ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
@@ -121,6 +122,28 @@ export class ApiService {
   lookupComponents(): Observable<ComponentInfoLookup[]>       { return this.http.get<ComponentInfoLookup[]>('/api/service-config/lookups/components'); }
   lookupServiceStatuses(): Observable<string[]>               { return this.http.get<string[]>('/api/service-config/lookups/statuses'); }
   lookupServiceTypes(): Observable<string[]>                  { return this.http.get<string[]>('/api/service-config/lookups/types'); }
+
+  // ---- home banner ----
+  listHomeBanners(params: { search?: string; platform?: string; page?: number; pageSize?: number }): Observable<HomeBannerListResponse> {
+    let p = new HttpParams();
+    if (params.search)           p = p.set('search',   params.search);
+    if (params.platform)         p = p.set('platform', params.platform);
+    if (params.page != null)     p = p.set('page',     params.page);
+    if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
+    return this.http.get<HomeBannerListResponse>('/api/home-banner', { params: p });
+  }
+  getHomeBanner(id: number): Observable<HomeBannerDto> {
+    return this.http.get<HomeBannerDto>(`/api/home-banner/${id}`);
+  }
+  createHomeBanner(dto: HomeBannerDto): Observable<unknown> {
+    return this.http.post('/api/home-banner', dto);
+  }
+  updateHomeBanner(id: number, dto: HomeBannerDto): Observable<unknown> {
+    return this.http.put(`/api/home-banner/${id}`, dto);
+  }
+  nextBannerOrder(): Observable<{ nextOrder: number }> {
+    return this.http.get<{ nextOrder: number }>('/api/home-banner/next-order');
+  }
 
   // ---- process status ----
   listProcessStatuses(params: { search?: string; page?: number; pageSize?: number }): Observable<ProcessStatusListResponse> {

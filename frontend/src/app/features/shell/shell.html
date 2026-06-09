@@ -65,6 +65,11 @@
         <mat-icon>rule</mat-icon>
         <span>Process Statuses</span>
       </a>
+      <a class="pinned-link" routerLink="/home-banner" routerLinkActive="active"
+         (click)="onObjectClick(drawer.close.bind(drawer))">
+        <mat-icon>view_carousel</mat-icon>
+        <span>Home Banner</span>
+      </a>
       <a class="pinned-link" routerLink="/attachments" routerLinkActive="active"
          (click)="onObjectClick(drawer.close.bind(drawer))">
         <mat-icon>cloud_upload</mat-icon>
