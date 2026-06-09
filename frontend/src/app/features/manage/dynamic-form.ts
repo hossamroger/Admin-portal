@@ -122,6 +122,7 @@ export class DynamicFormComponent implements OnInit {
     const s = String(v);
     if (f.type === 'date')     return s.slice(0, 10);
     if (f.type === 'datetime') return s.slice(0, 16);
+    if (f.type === 'readonly') return s.replace('T', ' ');
     return s;
   }
 

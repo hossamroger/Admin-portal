@@ -15,7 +15,7 @@
     <div class="dl-search-wrap">
       <mat-icon class="dl-search-icon">search</mat-icon>
       <input class="dl-search-input" [placeholder]="c.searchPlaceholder"
-             [(ngModel)]="search" (ngModelChange)="load(true)"
+             [(ngModel)]="search" (ngModelChange)="onSearchChange()"
              (keydown.escape)="clearSearch()">
       @if (search()) {
         <mat-icon class="dl-search-clear" (click)="clearSearch()">close</mat-icon>
@@ -29,7 +29,9 @@
       <span>No records found</span>
     </div>
   } @else {
-    <div class="dl-table-wrap" #tableWrap>
+    <!-- (scroll) binding survives this branch being destroyed/re-created,
+         unlike a manually attached listener -->
+    <div class="dl-table-wrap" #tableWrap (scroll)="onScroll(tableWrap)">
       <table class="dl-table">
         <thead>
           <tr>

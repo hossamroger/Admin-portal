@@ -32,9 +32,23 @@ public class GenericCrudService {
     // ── List / search ─────────────────────────────────────────────────────────
 
     public Map<String, Object> list(CrudEntity e, String search, int page, int pageSize) {
-        String where = buildSearchWhere(e, search);
+        boolean searching = search != null && !search.trim().isEmpty() && !e.searchCols.isEmpty();
+        String where = "";
+        Object[] whereArgs = new Object[0];
+        if (searching) {
+            List<String> conds = new ArrayList<>();
+            List<Object> args = new ArrayList<>();
+            String q = "%" + search.trim().toUpperCase() + "%";
+            for (String col : e.searchCols) {
+                conds.add("UPPER(TO_CHAR(" + col + ")) LIKE ?");
+                args.add(q);
+            }
+            where = " WHERE (" + String.join(" OR ", conds) + ")";
+            whereArgs = args.toArray();
+        }
+
         long total = Optional.ofNullable(
-            jdbc.queryForObject("SELECT COUNT(*) FROM " + e.table + where, Long.class)
+            jdbc.queryForObject("SELECT COUNT(*) FROM " + e.table + where, Long.class, whereArgs)
         ).orElse(0L);
 
         String sql =
@@ -44,7 +58,7 @@ public class GenericCrudService {
             "  ) a WHERE ROWNUM <= " + ((page + 1) * pageSize) +
             ") WHERE rnum_ > " + (page * pageSize);
 
-        List<Map<String, Object>> items = jdbc.query(sql, (rs, i) -> mapRow(rs));
+        List<Map<String, Object>> items = jdbc.query(sql, (rs, i) -> mapRow(rs), whereArgs);
 
         Map<String, Object> r = new LinkedHashMap<>();
         r.put("items", items);
@@ -52,16 +66,6 @@ public class GenericCrudService {
         r.put("page", page);
         r.put("pageSize", pageSize);
         return r;
-    }
-
-    private String buildSearchWhere(CrudEntity e, String search) {
-        if (search == null || search.trim().isEmpty() || e.searchCols.isEmpty()) return "";
-        String q = search.trim().toUpperCase().replace("'", "''");
-        List<String> conds = new ArrayList<>();
-        for (String col : e.searchCols) {
-            conds.add("UPPER(TO_CHAR(" + col + ")) LIKE '%" + q + "%'");
-        }
-        return " WHERE (" + String.join(" OR ", conds) + ")";
     }
 
     // ── Get one ───────────────────────────────────────────────────────────────

@@ -41,8 +41,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/manage/dynamic-form').then(m => m.DynamicFormComponent),
       },
       // Legacy URLs from before the dynamic CRUD engine
-      { path: 'process-status', redirectTo: 'manage/process-status' },
-      { path: 'home-banner',    redirectTo: 'manage/home-banner' },
+      { path: 'process-status',     redirectTo: 'manage/process-status' },
+      { path: 'process-status/:id', redirectTo: 'manage/process-status/:id' },
+      { path: 'home-banner',        redirectTo: 'manage/home-banner' },
+      { path: 'home-banner/:id',    redirectTo: 'manage/home-banner/:id' },
       {
         path: 'admin/users',
         canActivate: [adminGuard],

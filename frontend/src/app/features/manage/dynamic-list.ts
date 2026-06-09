@@ -1,6 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, inject, signal,
-  ElementRef, ViewChild, AfterViewInit, OnDestroy, OnInit, NgZone,
+  ChangeDetectionStrategy, Component, computed, inject, signal, OnDestroy, OnInit,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +14,8 @@ import { NotifyService } from '../../core/notify.service';
 import { CrudRow } from '../../core/models';
 import { ENTITY_CONFIGS, EntityConfig, ListColDef } from './entity-configs';
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 /** Generic list page for any entity registered in ENTITY_CONFIGS. */
 @Component({
   selector: 'app-dynamic-list',
@@ -23,14 +24,11 @@ import { ENTITY_CONFIGS, EntityConfig, ListColDef } from './entity-configs';
   templateUrl: './dynamic-list.html',
   styleUrl:    './dynamic-list.scss',
 })
-export class DynamicListComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('tableWrap') private tableWrap!: ElementRef<HTMLDivElement>;
-
+export class DynamicListComponent implements OnInit, OnDestroy {
   private readonly api    = inject(ApiService);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
-  private readonly zone   = inject(NgZone);
 
   readonly cfg = signal<EntityConfig | null>(null);
 
@@ -44,7 +42,7 @@ export class DynamicListComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly hasMore = computed(() => this.items().length < this.total());
 
   private routeSub?: Subscription;
-  private scrollListener?: () => void;
+  private searchTimer?: ReturnType<typeof setTimeout>;
 
   ngOnInit(): void {
     this.routeSub = this.route.paramMap.subscribe(params => {
@@ -56,24 +54,9 @@ export class DynamicListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
-    this.zone.runOutsideAngular(() => {
-      this.scrollListener = () => {
-        const el = this.tableWrap?.nativeElement;
-        if (!el) return;
-        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120 && !this.loading() && this.hasMore()) {
-          this.zone.run(() => this.loadMore());
-        }
-      };
-      this.tableWrap?.nativeElement.addEventListener('scroll', this.scrollListener!);
-    });
-  }
-
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
-    if (this.scrollListener) {
-      this.tableWrap?.nativeElement.removeEventListener('scroll', this.scrollListener);
-    }
+    clearTimeout(this.searchTimer);
   }
 
   load(reset = false): void {
@@ -81,12 +64,15 @@ export class DynamicListComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!cfg) return;
     if (reset) { this.page.set(0); this.items.set([]); }
     this.loading.set(true);
+    const requestedEntity = cfg.name;
     this.api.crudList(cfg.name, {
       search: this.search() || undefined,
       page: this.page(),
       pageSize: this.pageSize,
     }).subscribe({
       next: r => {
+        // Ignore responses that arrive after navigating to a different entity
+        if (this.cfg()?.name !== requestedEntity) return;
         this.items.update(arr => [...arr, ...r.items]);
         this.total.set(r.total);
         this.loading.set(false);
@@ -95,10 +81,16 @@ export class DynamicListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private loadMore(): void {
-    if (this.loading() || !this.hasMore()) return;
-    this.page.update(p => p + 1);
-    this.load();
+  onSearchChange(): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.load(true), SEARCH_DEBOUNCE_MS);
+  }
+
+  onScroll(el: HTMLElement): void {
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120 && !this.loading() && this.hasMore()) {
+      this.page.update(p => p + 1);
+      this.load();
+    }
   }
 
   clearSearch(): void { this.search.set(''); this.load(true); }
