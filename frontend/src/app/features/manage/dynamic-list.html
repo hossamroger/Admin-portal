@@ -1,0 +1,76 @@
+@if (cfg(); as c) {
+<div class="dl-page">
+
+  <div class="dl-header">
+    <div class="dl-header-left">
+      <h1 class="dl-title">{{ c.title }}</h1>
+      <span class="dl-count">{{ items().length }} / {{ total() }}</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> New {{ c.titleSingular }}
+    </button>
+  </div>
+
+  <div class="dl-filters">
+    <div class="dl-search-wrap">
+      <mat-icon class="dl-search-icon">search</mat-icon>
+      <input class="dl-search-input" [placeholder]="c.searchPlaceholder"
+             [(ngModel)]="search" (ngModelChange)="load(true)"
+             (keydown.escape)="clearSearch()">
+      @if (search()) {
+        <mat-icon class="dl-search-clear" (click)="clearSearch()">close</mat-icon>
+      }
+    </div>
+  </div>
+
+  @if (total() === 0 && !loading()) {
+    <div class="dl-empty">
+      <mat-icon>manage_search</mat-icon>
+      <span>No records found</span>
+    </div>
+  } @else {
+    <div class="dl-table-wrap" #tableWrap>
+      <table class="dl-table">
+        <thead>
+          <tr>
+            @for (col of c.listColumns; track col.col) {
+              <th>{{ col.label }}</th>
+            }
+            <th class="th-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of items(); track trackId(row)) {
+            <tr class="dl-row" (click)="edit(row)">
+              @for (col of c.listColumns; track col.col) {
+                <td [class.mono]="col.mono" [class.rtl]="col.rtl">
+                  @if (col.badge01) {
+                    <span class="dl-badge" [class.active]="row[col.col] === 1">
+                      {{ row[col.col] === 1 ? 'Active' : 'Inactive' }}
+                    </span>
+                  } @else {
+                    {{ cellValue(row, col) }}
+                  }
+                </td>
+              }
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (loading()) {
+        <div class="dl-scroll-loading"><mat-progress-bar mode="indeterminate" /></div>
+      } @else if (hasMore()) {
+        <div class="dl-scroll-hint">Scroll down to load more…</div>
+      } @else if (items().length > 0) {
+        <div class="dl-scroll-end">All {{ total() }} records loaded</div>
+      }
+    </div>
+  }
+</div>
+}

@@ -1,16 +1,11 @@
 :host { display: block; }
 
-.psf-page { padding: 24px; max-width: 900px; margin: 0 auto; }
+.df-page { padding: 24px; max-width: 960px; margin: 0 auto; }
 
-.psf-header {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 24px;
-}
-.psf-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); }
+.df-header { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.df-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); }
 
-.form-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  margin-bottom: 24px;
-}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 
 .field-group { display: flex; flex-direction: column; gap: 4px; }
 .field-group.span-2 { grid-column: span 2; }
@@ -23,9 +18,16 @@
   background: white; font-size: 14px; color: var(--app-fg); outline: none;
   font-family: inherit; box-sizing: border-box; width: 100%;
   &:focus { border-color: var(--app-accent); }
+  &:disabled { background: var(--app-surface); color: var(--app-muted); cursor: default; }
 }
 .field-textarea { height: auto; padding: 8px 10px; resize: vertical; }
 .mono { font-family: var(--app-mono); font-size: 13px; }
 .rtl  { direction: rtl; text-align: right; }
+
+.flag-row { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; padding: 8px 0; }
+.flag-item {
+  display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: var(--app-fg);
+  input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--app-accent); }
+}
 
 .form-actions { display: flex; gap: 12px; }

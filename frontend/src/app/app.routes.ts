@@ -33,21 +33,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/service-config/service-config-form').then(m => m.ServiceConfigFormComponent),
       },
       {
-        path: 'process-status',
-        loadComponent: () => import('./features/process-status/process-status-list').then(m => m.ProcessStatusListComponent),
+        path: 'manage/:entity',
+        loadComponent: () => import('./features/manage/dynamic-list').then(m => m.DynamicListComponent),
       },
       {
-        path: 'process-status/:id',
-        loadComponent: () => import('./features/process-status/process-status-form').then(m => m.ProcessStatusFormComponent),
+        path: 'manage/:entity/:id',
+        loadComponent: () => import('./features/manage/dynamic-form').then(m => m.DynamicFormComponent),
       },
-      {
-        path: 'home-banner',
-        loadComponent: () => import('./features/home-banner/home-banner-list').then(m => m.HomeBannerListComponent),
-      },
-      {
-        path: 'home-banner/:id',
-        loadComponent: () => import('./features/home-banner/home-banner-form').then(m => m.HomeBannerFormComponent),
-      },
+      // Legacy URLs from before the dynamic CRUD engine
+      { path: 'process-status', redirectTo: 'manage/process-status' },
+      { path: 'home-banner',    redirectTo: 'manage/home-banner' },
       {
         path: 'admin/users',
         canActivate: [adminGuard],

@@ -21,6 +21,7 @@ import { AuthService } from '../../core/auth.service';
 import { SchemaStateService } from '../../core/schema-state.service';
 import { NotifyService } from '../../core/notify.service';
 import { DbObject, ObjectType } from '../../core/models';
+import { NAV_ENTITIES } from '../manage/entity-configs';
 
 interface Group { type: ObjectType; label: string; icon: string; }
 
@@ -50,6 +51,9 @@ export class ShellComponent implements OnDestroy {
   readonly changed = this.schemaState.changed;
   readonly syncing = signal(false);
   readonly filterText = signal('');
+
+  /** Dynamic-CRUD entities pinned in the sidebar. */
+  readonly navEntities = NAV_ENTITIES;
 
   readonly isHandset = toSignal(
     this.breakpoints.observe('(max-width: 960px)').pipe(map(r => r.matches)),
@@ -95,6 +99,10 @@ export class ShellComponent implements OnDestroy {
     if (url.startsWith('/table/')) return decodeURIComponent(url.split('/table/')[1].split('?')[0]);
     if (url.startsWith('/source/')) { const p = url.split('/'); return decodeURIComponent(p[p.length - 1]); }
     if (url.startsWith('/admin/users')) return 'User Management';
+    if (url.startsWith('/manage/')) {
+      const entity = url.split('/manage/')[1].split('/')[0].split('?')[0];
+      return NAV_ENTITIES.find(e => e.name === entity)?.title ?? '';
+    }
     return '';
   }
 
