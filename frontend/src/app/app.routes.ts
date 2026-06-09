@@ -33,6 +33,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/service-config/service-config-form').then(m => m.ServiceConfigFormComponent),
       },
       {
+        path: 'process-status',
+        loadComponent: () => import('./features/process-status/process-status-list').then(m => m.ProcessStatusListComponent),
+      },
+      {
+        path: 'process-status/:id',
+        loadComponent: () => import('./features/process-status/process-status-form').then(m => m.ProcessStatusFormComponent),
+      },
+      {
         path: 'admin/users',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/user-management/user-management').then(m => m.UserManagementComponent),

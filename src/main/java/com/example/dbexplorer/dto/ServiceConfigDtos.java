@@ -224,4 +224,37 @@ public class ServiceConfigDtos {
         public int  page;
         public int  pageSize;
     }
+
+    // ── Process Status (BPM_PROCESS_STATUS) ───────────────────────────────────
+
+    public static class ProcessStatusDto {
+        public Object id;               // ID (PK)
+        public Object processCode;      // PROCESS_CODE (NOT NULL)
+        public String processName;      // PROCESS_NAME (NOT NULL)
+        public Object statusCode;       // STATUS_CODE (FK → BPM_PROCESS_STATUS_MSG)
+        public Object statusOnWeb;      // STATUS_ON_WEB (FK → BPM_PROCESS_STATUS_MSG)
+        public Object statusOnIos;      // STATUS_ON_IOS (FK → BPM_PROCESS_STATUS_MSG)
+        public Object statusOnAndroid;  // STATUS_ON_ANDROID (FK → BPM_PROCESS_STATUS_MSG)
+        public String iosVersion;       // IOS_VERSION
+        public String timeToBeAvailable; // TIME_TO_BE_AVAILABLE (DATE as ISO string)
+        public String androidVersion;   // ANDROID_VERSION
+        public String msgAr;            // MSG_AR
+        public String msgEn;            // MSG_EN
+    }
+
+    public static class ProcessStatusMsgDto {
+        public Object id;               // ID (PK)
+        public String messageAr;        // MESSAGE_AR
+        public String messageEn;        // MESSAGE_EN
+        public String actionLabelAr;    // ACTION_LABEL_AR
+        public String actionLabelEn;    // ACTION_LABEL_EN
+        public String url;              // URL
+    }
+
+    public static class ProcessStatusListResponse {
+        public List<ProcessStatusDto> items;
+        public long total;
+        public int  page;
+        public int  pageSize;
+    }
 }

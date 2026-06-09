@@ -1,0 +1,123 @@
+<div class="psf-page">
+
+  <div class="psf-header">
+    <button mat-icon-button (click)="back()" matTooltip="Back to list">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="psf-title">{{ title() }}</h1>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+  <div class="form-grid">
+
+    <div class="field-group">
+      <label class="field-label">Process Code *</label>
+      <input class="field-input mono" type="number"
+             [value]="dto().processCode ?? ''"
+             (input)="setNum('processCode', $any($event.target).value)"
+             placeholder="e.g. 1001">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Process Name *</label>
+      <input class="field-input"
+             [value]="dto().processName"
+             (input)="set('processName', $any($event.target).value)"
+             placeholder="e.g. MY_PROCESS">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Status Code</label>
+      <select class="field-select"
+              [value]="dto().statusCode ?? ''"
+              (change)="setNum('statusCode', $any($event.target).value)">
+        <option value="">— none —</option>
+        @for (m of msgs(); track m.id) {
+          <option [value]="m.id">{{ m.messageEn || m.messageAr || '#' + m.id }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Status on Web</label>
+      <select class="field-select"
+              [value]="dto().statusOnWeb ?? ''"
+              (change)="setNum('statusOnWeb', $any($event.target).value)">
+        <option value="">— none —</option>
+        @for (m of msgs(); track m.id) {
+          <option [value]="m.id">{{ m.messageEn || m.messageAr || '#' + m.id }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Status on iOS</label>
+      <select class="field-select"
+              [value]="dto().statusOnIos ?? ''"
+              (change)="setNum('statusOnIos', $any($event.target).value)">
+        <option value="">— none —</option>
+        @for (m of msgs(); track m.id) {
+          <option [value]="m.id">{{ m.messageEn || m.messageAr || '#' + m.id }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Status on Android</label>
+      <select class="field-select"
+              [value]="dto().statusOnAndroid ?? ''"
+              (change)="setNum('statusOnAndroid', $any($event.target).value)">
+        <option value="">— none —</option>
+        @for (m of msgs(); track m.id) {
+          <option [value]="m.id">{{ m.messageEn || m.messageAr || '#' + m.id }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">iOS Version</label>
+      <input class="field-input mono"
+             [value]="dto().iosVersion || ''"
+             (input)="set('iosVersion', $any($event.target).value)"
+             placeholder="e.g. 2.0.0">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Android Version</label>
+      <input class="field-input mono"
+             [value]="dto().androidVersion || ''"
+             (input)="set('androidVersion', $any($event.target).value)"
+             placeholder="e.g. 2.0.0">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Available From</label>
+      <input class="field-input mono" type="datetime-local"
+             [value]="dto().timeToBeAvailable || ''"
+             (input)="set('timeToBeAvailable', $any($event.target).value)">
+    </div>
+
+    <div class="field-group span-2">
+      <label class="field-label">Message (AR)</label>
+      <textarea class="field-textarea rtl" rows="3"
+                [value]="dto().msgAr || ''"
+                (input)="set('msgAr', $any($event.target).value)"></textarea>
+    </div>
+
+    <div class="field-group span-2">
+      <label class="field-label">Message (EN)</label>
+      <textarea class="field-textarea" rows="3"
+                [value]="dto().msgEn || ''"
+                (input)="set('msgEn', $any($event.target).value)"></textarea>
+    </div>
+
+  </div>
+
+  <div class="form-actions">
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="saving()">
+      <mat-icon>save</mat-icon> {{ isNew() ? 'Create' : 'Save' }}
+    </button>
+  </div>
+
+</div>

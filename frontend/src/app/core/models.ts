@@ -340,6 +340,39 @@ export interface UploadResult {
   sizeBytes: number;
 }
 
+// ── Process Status ────────────────────────────────────────────────────────────
+
+export interface ProcessStatusDto {
+  id?: number | null;
+  processCode: number | null;
+  processName: string;
+  statusCode?: number | null;
+  statusOnWeb?: number | null;
+  statusOnIos?: number | null;
+  statusOnAndroid?: number | null;
+  iosVersion?: string | null;
+  timeToBeAvailable?: string | null;
+  androidVersion?: string | null;
+  msgAr?: string | null;
+  msgEn?: string | null;
+}
+
+export interface ProcessStatusMsgDto {
+  id: number;
+  messageAr: string | null;
+  messageEn: string | null;
+  actionLabelAr: string | null;
+  actionLabelEn: string | null;
+  url: string | null;
+}
+
+export interface ProcessStatusListResponse {
+  items: ProcessStatusDto[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface SaveUserRequest {
   username: string;
   password?: string;
