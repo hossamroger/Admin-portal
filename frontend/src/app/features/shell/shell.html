@@ -60,16 +60,13 @@
         <mat-icon>settings_applications</mat-icon>
         <span>Service Config</span>
       </a>
-      <a class="pinned-link" routerLink="/process-status" routerLinkActive="active"
-         (click)="onObjectClick(drawer.close.bind(drawer))">
-        <mat-icon>rule</mat-icon>
-        <span>Process Statuses</span>
-      </a>
-      <a class="pinned-link" routerLink="/home-banner" routerLinkActive="active"
-         (click)="onObjectClick(drawer.close.bind(drawer))">
-        <mat-icon>view_carousel</mat-icon>
-        <span>Home Banner</span>
-      </a>
+      @for (entity of navEntities; track entity.name) {
+        <a class="pinned-link" [routerLink]="['/manage', entity.name]" routerLinkActive="active"
+           (click)="onObjectClick(drawer.close.bind(drawer))">
+          <mat-icon>{{ entity.icon }}</mat-icon>
+          <span>{{ entity.title }}</span>
+        </a>
+      }
       <a class="pinned-link" routerLink="/attachments" routerLinkActive="active"
          (click)="onObjectClick(drawer.close.bind(drawer))">
         <mat-icon>cloud_upload</mat-icon>

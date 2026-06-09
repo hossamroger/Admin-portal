@@ -1,0 +1,90 @@
+@if (cfg(); as c) {
+<div class="df-page">
+
+  <div class="df-header">
+    <button mat-icon-button (click)="back()" matTooltip="Back to list">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="df-title">{{ title() }}</h1>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+  <div class="form-grid">
+
+    @for (f of gridFields(); track f.col) {
+      <div class="field-group" [class.span-2]="f.span2">
+        <label class="field-label">{{ f.label }}</label>
+
+        @switch (f.type) {
+          @case ('textarea') {
+            <textarea class="field-textarea" [class.rtl]="f.rtl" rows="3"
+                      [value]="value(f)"
+                      (input)="set(f, $any($event.target).value)"></textarea>
+          }
+          @case ('lookup') {
+            <select class="field-select"
+                    [value]="value(f)"
+                    (change)="set(f, $any($event.target).value)">
+              <option value="" [selected]="value(f) === ''">— none —</option>
+              @for (o of optionsFor(f); track o.id) {
+                <!-- [selected] re-applies after async options arrive; [value] alone would not -->
+                <option [value]="o.id" [selected]="isSelected(f, o)">{{ o.label || '#' + o.id }}</option>
+              }
+            </select>
+          }
+          @case ('readonly') {
+            <input class="field-input" [class.mono]="f.mono" [value]="value(f) || '—'" disabled>
+          }
+          @case ('number') {
+            <input class="field-input" [class.mono]="f.mono" type="number"
+                   [value]="value(f)" [placeholder]="f.placeholder || ''"
+                   (input)="set(f, $any($event.target).value)">
+          }
+          @case ('date') {
+            <input class="field-input" [class.mono]="f.mono" type="date"
+                   [value]="value(f)" (input)="set(f, $any($event.target).value)">
+          }
+          @case ('datetime') {
+            <input class="field-input" [class.mono]="f.mono" type="datetime-local"
+                   [value]="value(f)" (input)="set(f, $any($event.target).value)">
+          }
+          @case ('color') {
+            <input class="field-input mono" type="color"
+                   [value]="value(f) || '#000000'" (input)="set(f, $any($event.target).value)">
+          }
+          @default {
+            <input class="field-input" [class.mono]="f.mono" [class.rtl]="f.rtl"
+                   [value]="value(f)" [placeholder]="f.placeholder || ''"
+                   (input)="set(f, $any($event.target).value)">
+          }
+        }
+      </div>
+    }
+
+    @if (flagFields().length > 0) {
+      <div class="field-group span-2">
+        <label class="field-label">Flags</label>
+        <div class="flag-row">
+          @for (f of flagFields(); track f.col) {
+            <label class="flag-item">
+              <input type="checkbox" [checked]="isChecked(f)"
+                     (change)="setChecked(f, $any($event.target).checked)">
+              <span>{{ f.label }}</span>
+            </label>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <div class="form-actions">
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="saving()">
+      <mat-icon>save</mat-icon>
+      {{ isNew() ? 'Create ' + c.titleSingular : 'Save ' + c.titleSingular }}
+    </button>
+  </div>
+
+</div>
+}

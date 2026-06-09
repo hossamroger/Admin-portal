@@ -340,72 +340,21 @@ export interface UploadResult {
   sizeBytes: number;
 }
 
-// ── Process Status ────────────────────────────────────────────────────────────
+// ── Generic CRUD (dynamic entities, see features/manage/entity-configs.ts) ────
 
-export interface ProcessStatusDto {
-  id?: number | null;
-  processCode: number | null;
-  processName: string;
-  statusCode?: number | null;
-  statusOnWeb?: number | null;
-  statusOnIos?: number | null;
-  statusOnAndroid?: number | null;
-  iosVersion?: string | null;
-  timeToBeAvailable?: string | null;
-  androidVersion?: string | null;
-  msgAr?: string | null;
-  msgEn?: string | null;
-}
+/** A table row keyed by COLUMN_NAME, exactly as returned by /api/crud. */
+export type CrudRow = Record<string, any>;
 
-export interface ProcessStatusMsgDto {
-  id: number;
-  messageAr: string | null;
-  messageEn: string | null;
-  actionLabelAr: string | null;
-  actionLabelEn: string | null;
-  url: string | null;
-}
-
-export interface ProcessStatusListResponse {
-  items: ProcessStatusDto[];
+export interface CrudListResponse {
+  items: CrudRow[];
   total: number;
   page: number;
   pageSize: number;
 }
 
-// ── Home Banner Config ────────────────────────────────────────────────────────
-
-export interface HomeBannerDto {
-  id?: number | null;
-  url?: string | null;
-  platform?: string | null;
-  language?: string | null;
-  startDt?: string | null;
-  expiryDt?: string | null;
-  foreColor?: string | null;
-  bgColor?: string | null;
-  hasAction?: number | null;
-  actionType?: string | null;
-  actionCode?: string | null;
-  actionUrl?: string | null;
-  bannerOrder?: number | null;
-  isActive?: number | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  urlSm?: string | null;
-  isHeadline?: number | null;
-  extensionType?: string | null;
-  catalogId?: string | null;
-  mainTitleColor?: string | null;
-  isDarkMode?: number | null;
-  minVersion?: string | null;
-}
-
-export interface HomeBannerListResponse {
-  items: HomeBannerDto[];
-  total: number;
-  page: number;
-  pageSize: number;
+export interface LookupItem {
+  id: number | string;
+  label: string | null;
 }
 
 export interface SaveUserRequest {

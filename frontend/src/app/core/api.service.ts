@@ -3,9 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
-  DataPage, DbObject, FeeDto, Fingerprint, HomeBannerDto, HomeBannerListResponse,
-  Insights, Me, ObjectType, ProcessInfoDto,
-  ProcessStatusDto, ProcessStatusListResponse, ProcessStatusMsgDto,
+  CrudListResponse, CrudRow, DataPage, DbObject, FeeDto, Fingerprint,
+  Insights, LookupItem, Me, ObjectType, ProcessInfoDto,
   QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview, ScreenInfoLookup,
   ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
   TargetAudienceDto, TargetAudienceLookup, UploadResult,
@@ -123,47 +122,25 @@ export class ApiService {
   lookupServiceStatuses(): Observable<string[]>               { return this.http.get<string[]>('/api/service-config/lookups/statuses'); }
   lookupServiceTypes(): Observable<string[]>                  { return this.http.get<string[]>('/api/service-config/lookups/types'); }
 
-  // ---- home banner ----
-  listHomeBanners(params: { search?: string; platform?: string; page?: number; pageSize?: number }): Observable<HomeBannerListResponse> {
+  // ---- generic CRUD (dynamic entities) ----
+  crudList(entity: string, params: { search?: string; page?: number; pageSize?: number }): Observable<CrudListResponse> {
     let p = new HttpParams();
     if (params.search)           p = p.set('search',   params.search);
-    if (params.platform)         p = p.set('platform', params.platform);
     if (params.page != null)     p = p.set('page',     params.page);
     if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
-    return this.http.get<HomeBannerListResponse>('/api/home-banner', { params: p });
+    return this.http.get<CrudListResponse>(`/api/crud/${entity}`, { params: p });
   }
-  getHomeBanner(id: number): Observable<HomeBannerDto> {
-    return this.http.get<HomeBannerDto>(`/api/home-banner/${id}`);
+  crudGet(entity: string, id: string): Observable<CrudRow> {
+    return this.http.get<CrudRow>(`/api/crud/${entity}/${encodeURIComponent(id)}`);
   }
-  createHomeBanner(dto: HomeBannerDto): Observable<unknown> {
-    return this.http.post('/api/home-banner', dto);
+  crudCreate(entity: string, row: CrudRow): Observable<unknown> {
+    return this.http.post(`/api/crud/${entity}`, row);
   }
-  updateHomeBanner(id: number, dto: HomeBannerDto): Observable<unknown> {
-    return this.http.put(`/api/home-banner/${id}`, dto);
+  crudUpdate(entity: string, id: string, row: CrudRow): Observable<unknown> {
+    return this.http.put(`/api/crud/${entity}/${encodeURIComponent(id)}`, row);
   }
-  nextBannerOrder(): Observable<{ nextOrder: number }> {
-    return this.http.get<{ nextOrder: number }>('/api/home-banner/next-order');
-  }
-
-  // ---- process status ----
-  listProcessStatuses(params: { search?: string; page?: number; pageSize?: number }): Observable<ProcessStatusListResponse> {
-    let p = new HttpParams();
-    if (params.search)             p = p.set('search',   params.search);
-    if (params.page != null)       p = p.set('page',     params.page);
-    if (params.pageSize != null)   p = p.set('pageSize', params.pageSize);
-    return this.http.get<ProcessStatusListResponse>('/api/process-status', { params: p });
-  }
-  getProcessStatus(id: number): Observable<ProcessStatusDto> {
-    return this.http.get<ProcessStatusDto>(`/api/process-status/${id}`);
-  }
-  createProcessStatus(dto: ProcessStatusDto): Observable<unknown> {
-    return this.http.post('/api/process-status', dto);
-  }
-  updateProcessStatus(id: number, dto: ProcessStatusDto): Observable<unknown> {
-    return this.http.put(`/api/process-status/${id}`, dto);
-  }
-  lookupProcessStatusMsgs(): Observable<ProcessStatusMsgDto[]> {
-    return this.http.get<ProcessStatusMsgDto[]>('/api/process-status/lookups/msgs');
+  crudLookup(entity: string, name: string): Observable<LookupItem[]> {
+    return this.http.get<LookupItem[]>(`/api/crud/${entity}/lookup/${encodeURIComponent(name)}`);
   }
 
   // ---- attachments ----
