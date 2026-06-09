@@ -257,4 +257,39 @@ public class ServiceConfigDtos {
         public int  page;
         public int  pageSize;
     }
+
+    // ── Home Banner Config (DS_HOME_BANNER_CONFIG) ────────────────────────────
+
+    public static class HomeBannerDto {
+        public Object id;             // ID (PK, auto-increment)
+        public String url;            // URL
+        public String platform;       // PLATFORM
+        public String language;       // LANGUAGE
+        public String startDt;        // START_DT (DATE as ISO string)
+        public String expiryDt;       // EXPIRY_DT (DATE as ISO string)
+        public String foreColor;      // FORE_COLOR
+        public String bgColor;        // BG_COLOR
+        public Object hasAction;      // HAS_ACTION (0/1)
+        public String actionType;     // ACTION_TYPE
+        public String actionCode;     // ACTION_CODE
+        public String actionUrl;      // ACTION_URL
+        public Object bannerOrder;    // BANNER_ORDER (auto MAX+1)
+        public Object isActive;       // IS_ACTIVE (0/1)
+        public String createdAt;      // CREATED_AT (read-only)
+        public String updatedAt;      // UPDATED_AT (read-only)
+        public String urlSm;          // URL_SM
+        public Object isHeadline;     // IS_HEADLINE (0/1)
+        public String extensionType;  // EXTENSION_TYPE
+        public String catalogId;      // CATALOG_ID
+        public String mainTitleColor; // MAIN_TITLE_COLOR
+        public Object isDarkMode;     // IS_DARK_MODE (0/1)
+        public String minVersion;     // MIN_VERSION
+    }
+
+    public static class HomeBannerListResponse {
+        public List<HomeBannerDto> items;
+        public long total;
+        public int  page;
+        public int  pageSize;
+    }
 }
