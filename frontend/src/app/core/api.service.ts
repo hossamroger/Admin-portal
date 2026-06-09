@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
   DataPage, DbObject, FeeDto, Fingerprint, Insights, Me, ObjectType, ProcessInfoDto,
+  ProcessStatusDto, ProcessStatusListResponse, ProcessStatusMsgDto,
   QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview, ScreenInfoLookup,
   ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
   TargetAudienceDto, TargetAudienceLookup, UploadResult,
@@ -120,6 +121,27 @@ export class ApiService {
   lookupComponents(): Observable<ComponentInfoLookup[]>       { return this.http.get<ComponentInfoLookup[]>('/api/service-config/lookups/components'); }
   lookupServiceStatuses(): Observable<string[]>               { return this.http.get<string[]>('/api/service-config/lookups/statuses'); }
   lookupServiceTypes(): Observable<string[]>                  { return this.http.get<string[]>('/api/service-config/lookups/types'); }
+
+  // ---- process status ----
+  listProcessStatuses(params: { search?: string; page?: number; pageSize?: number }): Observable<ProcessStatusListResponse> {
+    let p = new HttpParams();
+    if (params.search)             p = p.set('search',   params.search);
+    if (params.page != null)       p = p.set('page',     params.page);
+    if (params.pageSize != null)   p = p.set('pageSize', params.pageSize);
+    return this.http.get<ProcessStatusListResponse>('/api/process-status', { params: p });
+  }
+  getProcessStatus(id: number): Observable<ProcessStatusDto> {
+    return this.http.get<ProcessStatusDto>(`/api/process-status/${id}`);
+  }
+  createProcessStatus(dto: ProcessStatusDto): Observable<unknown> {
+    return this.http.post('/api/process-status', dto);
+  }
+  updateProcessStatus(id: number, dto: ProcessStatusDto): Observable<unknown> {
+    return this.http.put(`/api/process-status/${id}`, dto);
+  }
+  lookupProcessStatusMsgs(): Observable<ProcessStatusMsgDto[]> {
+    return this.http.get<ProcessStatusMsgDto[]>('/api/process-status/lookups/msgs');
+  }
 
   // ---- attachments ----
   uploadAttachment(file: File, folder: string, documentName: string): Observable<HttpEvent<UploadResult>> {
