@@ -79,10 +79,4 @@ export class ProcessStatusFormComponent implements OnInit {
   }
 
   back(): void { this.router.navigate(['/process-status']); }
-
-  msgLabel(id: number | null | undefined): string {
-    if (id == null) return '— none —';
-    const m = this.msgs().find(x => x.id === id);
-    return m ? (m.messageEn || m.messageAr || `#${m.id}`) : `#${id}`;
-  }
 }
