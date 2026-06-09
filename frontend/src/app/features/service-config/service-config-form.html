@@ -153,15 +153,15 @@
           <div class="field-group span-2">
             <label class="field-label">Flags</label>
             <div class="flag-row">
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).directAccess === 'Y'" (change)="setInfoVal('directAccess', $any($event.target).checked ? 'Y' : 'N')"><span>Direct Access</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).cardRedirectionRequired === 'Y'" (change)="setInfoVal('cardRedirectionRequired', $any($event.target).checked ? 'Y' : 'N')"><span>Allow FE Credit Card Redirection</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).requireOtp === 'Y'" (change)="setInfoVal('requireOtp', $any($event.target).checked ? 'Y' : 'N')"><span>Require OTP</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).preAuth === 'Y'" (change)="setInfoVal('preAuth', $any($event.target).checked ? 'Y' : 'N')"><span>Pre Auth</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).iosShow === 'Y'" (change)="setInfoVal('iosShow', $any($event.target).checked ? 'Y' : 'N')"><span>iOS Show</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).androidShow === 'Y'" (change)="setInfoVal('androidShow', $any($event.target).checked ? 'Y' : 'N')"><span>Android Show</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).webShow === 'Y'" (change)="setInfoVal('webShow', $any($event.target).checked ? 'Y' : 'N')"><span>Web Show</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).adminPayment === 'Y'" (change)="setInfoVal('adminPayment', $any($event.target).checked ? 'Y' : 'N')"><span>Admin Payment</span></label>
-              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).isServiceCatalogOneTime === 'Y'" (change)="setInfoVal('isServiceCatalogOneTime', $any($event.target).checked ? 'Y' : 'N')"><span>One Time</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).directAccess === 'T'" (change)="setInfoVal('directAccess', $any($event.target).checked ? 'T' : 'F')"><span>Direct Access</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).cardRedirectionRequired === 'T'" (change)="setInfoVal('cardRedirectionRequired', $any($event.target).checked ? 'T' : 'F')"><span>Allow FE Credit Card Redirection</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).requireOtp === 'T'" (change)="setInfoVal('requireOtp', $any($event.target).checked ? 'T' : 'F')"><span>Require OTP</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).preAuth === 'T'" (change)="setInfoVal('preAuth', $any($event.target).checked ? 'T' : 'F')"><span>Pre Auth</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).iosShow === 'T'" (change)="setInfoVal('iosShow', $any($event.target).checked ? 'T' : 'F')"><span>iOS Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).androidShow === 'T'" (change)="setInfoVal('androidShow', $any($event.target).checked ? 'T' : 'F')"><span>Android Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).webShow === 'T'" (change)="setInfoVal('webShow', $any($event.target).checked ? 'T' : 'F')"><span>Web Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).adminPayment === 'T'" (change)="setInfoVal('adminPayment', $any($event.target).checked ? 'T' : 'F')"><span>Admin Payment</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).isServiceCatalogOneTime === 'T'" (change)="setInfoVal('isServiceCatalogOneTime', $any($event.target).checked ? 'T' : 'F')"><span>One Time</span></label>
             </div>
           </div>
 
