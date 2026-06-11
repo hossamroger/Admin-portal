@@ -12,43 +12,49 @@
   <mat-tab-group animationDuration="0" class="dpf-tabs">
 
     <!-- ── Basic Info ─────────────────────────────────────────────────── -->
-    <mat-tab label="Basic Info">
+    <mat-tab label="Basic Info{{ basicDirty() ? ' •' : '' }}">
       <div class="tab-body">
         <div class="form-grid">
 
-          <div class="field-group">
-            <label class="field-label">Name (EN) <span class="req-mark">*</span></label>
-            <input class="field-input" [value]="val('NAME_EN')"
+          <div class="field-group" [class.field-invalid]="!!errors()['NAME_EN']">
+            <label class="field-label" for="fld-NAME_EN">Name (EN) <span class="req-mark">*</span></label>
+            <input class="field-input" id="fld-NAME_EN" [value]="val('NAME_EN')"
                    (input)="set('NAME_EN', $any($event.target).value)">
+            @if (errors()['NAME_EN']) { <span class="field-error">{{ errors()['NAME_EN'] }}</span> }
           </div>
-          <div class="field-group">
-            <label class="field-label">Name (AR) <span class="req-mark">*</span></label>
-            <input class="field-input rtl" [value]="val('NAME_AR')"
+          <div class="field-group" [class.field-invalid]="!!errors()['NAME_AR']">
+            <label class="field-label" for="fld-NAME_AR">Name (AR) <span class="req-mark">*</span></label>
+            <input class="field-input rtl" id="fld-NAME_AR" [value]="val('NAME_AR')"
                    (input)="set('NAME_AR', $any($event.target).value)">
+            @if (errors()['NAME_AR']) { <span class="field-error">{{ errors()['NAME_AR'] }}</span> }
           </div>
 
           <div class="field-group">
-            <label class="field-label">Status</label>
-            <select class="field-select" [value]="val('STATUS')"
+            <label class="field-label" for="fld-STATUS">Status</label>
+            <select class="field-select" id="fld-STATUS" [value]="val('STATUS')"
                     (change)="set('STATUS', $any($event.target).value)">
               <option value="">— none —</option>
-              <option value="A">A — Active</option>
-              <option value="I">I — Inactive</option>
-              <option value="C">C — Closed</option>
+              <option value="A">Active</option>
+              <option value="I">Inactive</option>
+              <option value="C">Closed</option>
             </select>
           </div>
 
           <div class="field-group">
-            <label class="field-label">Display Order</label>
-            <input class="field-input mono" type="number" [value]="val('ORDER_C')"
+            <label class="field-label" for="fld-ORDER_C">Display Order</label>
+            <input class="field-input mono" type="number" id="fld-ORDER_C" [value]="val('ORDER_C')"
                    (input)="set('ORDER_C', $any($event.target).value)" placeholder="auto">
           </div>
 
           <div class="field-group">
-            <label class="field-label">Organization</label>
-            <select class="field-select" [value]="val('ORGANIZATION_ID')"
+            <label class="field-label" for="fld-ORGANIZATION_ID">Organization</label>
+            <select class="field-select" id="fld-ORGANIZATION_ID" [value]="val('ORGANIZATION_ID')"
                     (change)="set('ORGANIZATION_ID', $any($event.target).value)">
-              <option value="">— none —</option>
+              @switch (lookupState()['orgs']) {
+                @case ('loading') { <option value="" [selected]="true">Loading…</option> }
+                @case ('error')   { <option value="" [selected]="true">Failed to load options</option> }
+                @default          { <option value="" [selected]="val('ORGANIZATION_ID') === ''">— none —</option> }
+              }
               @for (o of orgs(); track o.id) {
                 <option [value]="o.id" [selected]="val('ORGANIZATION_ID') === String(o.id)">
                   {{ o.label || '#' + o.id }}
@@ -58,10 +64,14 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label">Category</label>
-            <select class="field-select" [value]="val('CATEGORY_ID')"
+            <label class="field-label" for="fld-CATEGORY_ID">Category</label>
+            <select class="field-select" id="fld-CATEGORY_ID" [value]="val('CATEGORY_ID')"
                     (change)="set('CATEGORY_ID', $any($event.target).value)">
-              <option value="">— none —</option>
+              @switch (lookupState()['cats']) {
+                @case ('loading') { <option value="" [selected]="true">Loading…</option> }
+                @case ('error')   { <option value="" [selected]="true">Failed to load options</option> }
+                @default          { <option value="" [selected]="val('CATEGORY_ID') === ''">— none —</option> }
+              }
               @for (o of cats(); track o.id) {
                 <option [value]="o.id" [selected]="val('CATEGORY_ID') === String(o.id)">
                   {{ o.label || '#' + o.id }}
@@ -71,67 +81,71 @@
           </div>
 
           <div class="field-group span-2">
-            <label class="field-label">Icon URL</label>
-            <input class="field-input" [value]="val('ICON_URL')" placeholder="https://…"
+            <label class="field-label" for="fld-ICON_URL">Icon URL</label>
+            <input class="field-input" id="fld-ICON_URL" [value]="val('ICON_URL')" placeholder="https://…"
                    (input)="set('ICON_URL', $any($event.target).value)">
           </div>
 
           <h2 class="section-header span-2">Amounts</h2>
 
           <div class="field-group">
-            <label class="field-label">Min Amount</label>
-            <input class="field-input mono" type="number" [value]="val('MIN_AMOUNT')"
-                   (input)="set('MIN_AMOUNT', $any($event.target).value)">
+            <label class="field-label" for="fld-MIN_AMOUNT">Min Amount</label>
+            <input class="field-input mono" type="number" id="fld-MIN_AMOUNT" [value]="val('MIN_AMOUNT')"
+                   (input)="set('MIN_AMOUNT', $any($event.target).value)" placeholder="0.00">
           </div>
 
           <div class="field-group">
-            <label class="field-label">Target Amount</label>
-            <input class="field-input mono" type="number" [value]="val('TOTAL_AMOUNT')"
-                   (input)="set('TOTAL_AMOUNT', $any($event.target).value)">
+            <label class="field-label" for="fld-TOTAL_AMOUNT">Target Amount</label>
+            <input class="field-input mono" type="number" id="fld-TOTAL_AMOUNT" [value]="val('TOTAL_AMOUNT')"
+                   (input)="set('TOTAL_AMOUNT', $any($event.target).value)" placeholder="0.00">
           </div>
 
           <div class="field-group">
-            <label class="field-label">Paid Amount</label>
-            <input class="field-input mono" type="number" [value]="val('PAID_AMOUNT')"
-                   (input)="set('PAID_AMOUNT', $any($event.target).value)">
+            <label class="field-label" for="fld-PAID_AMOUNT">Paid Amount</label>
+            <input class="field-input mono" type="number" id="fld-PAID_AMOUNT" [value]="val('PAID_AMOUNT')"
+                   (input)="set('PAID_AMOUNT', $any($event.target).value)" placeholder="0.00">
+            <span class="field-hint">Usually computed by the donations system</span>
           </div>
 
           <div class="field-group">
-            <label class="field-label">Remaining Amount</label>
-            <input class="field-input mono" type="number" [value]="val('REST_OF_AMOUNT')"
-                   (input)="set('REST_OF_AMOUNT', $any($event.target).value)">
+            <label class="field-label" for="fld-REST_OF_AMOUNT">Remaining Amount</label>
+            <input class="field-input mono" type="number" id="fld-REST_OF_AMOUNT" [value]="val('REST_OF_AMOUNT')"
+                   (input)="set('REST_OF_AMOUNT', $any($event.target).value)" placeholder="0.00">
+            <span class="field-hint">Usually computed by the donations system</span>
           </div>
 
           <div class="field-group">
-            <label class="field-label">Percentage %</label>
-            <input class="field-input mono" type="number" [value]="val('PERCENTAGE')"
-                   (input)="set('PERCENTAGE', $any($event.target).value)">
+            <label class="field-label" for="fld-PERCENTAGE">Percentage %</label>
+            <input class="field-input mono" type="number" id="fld-PERCENTAGE" [value]="val('PERCENTAGE')"
+                   (input)="set('PERCENTAGE', $any($event.target).value)" placeholder="0–100">
+            <span class="field-hint">Usually computed by the donations system</span>
           </div>
 
           <h2 class="section-header span-2">Schedule</h2>
 
           <div class="field-group">
-            <label class="field-label">Start Date</label>
-            <input class="field-input mono" type="date" [value]="val('START_DATE')"
+            <label class="field-label" for="fld-START_DATE">Start Date</label>
+            <input class="field-input mono" type="date" id="fld-START_DATE" [value]="val('START_DATE')"
                    (input)="set('START_DATE', $any($event.target).value)">
           </div>
 
           <div class="field-group">
-            <label class="field-label">Days Remaining</label>
-            <input class="field-input mono" type="number" [value]="val('REST_NUMBER_OF_DAYS')"
+            <label class="field-label" for="fld-REST_NUMBER_OF_DAYS">Days Remaining</label>
+            <input class="field-input mono" type="number" id="fld-REST_NUMBER_OF_DAYS" [value]="val('REST_NUMBER_OF_DAYS')"
                    (input)="set('REST_NUMBER_OF_DAYS', $any($event.target).value)">
+            <span class="field-hint">Usually computed by the donations system</span>
           </div>
 
           <div class="field-group">
-            <label class="field-label">Org. Display Order</label>
-            <input class="field-input mono" type="number" [value]="val('ORGANIZATION_ORDER_C')"
+            <label class="field-label" for="fld-ORGANIZATION_ORDER_C">Order within Organization</label>
+            <input class="field-input mono" type="number" id="fld-ORGANIZATION_ORDER_C" [value]="val('ORGANIZATION_ORDER_C')"
                    (input)="set('ORGANIZATION_ORDER_C', $any($event.target).value)">
           </div>
 
           @if (!isNew()) {
             <div class="field-group">
-              <label class="field-label">Created</label>
-              <input class="field-input mono" [value]="val('CREATION_DATE') || '—'" disabled>
+              <label class="field-label" for="fld-CREATION_DATE">Created</label>
+              <input class="field-input mono" id="fld-CREATION_DATE" [value]="val('CREATION_DATE') || '—'" disabled>
             </div>
           }
 
@@ -157,74 +171,92 @@
           <button mat-flat-button color="primary" (click)="saveBasic()" [disabled]="saving()">
             <mat-icon>save</mat-icon> {{ isNew() ? 'Create Project' : 'Save Basic Info' }}
           </button>
-          @if (isDirty()) { <span class="dirty-hint">Unsaved changes</span> }
+          @if (basicDirty()) { <span class="dirty-hint">Unsaved changes</span> }
         </div>
       </div>
     </mat-tab>
 
     <!-- ── Predefined Amounts ─────────────────────────────────────────── -->
-    <mat-tab label="Amounts ({{ amounts().length }})">
+    <mat-tab label="Amounts ({{ amounts().length }}){{ amountsDirty() ? ' •' : '' }}">
       <div class="tab-body">
         @if (isNew()) {
           <div class="tab-notice">Save Basic Info first before editing amounts.</div>
+        } @else if (amountsState() === 'error') {
+          <div class="tab-error">
+            <mat-icon>error_outline</mat-icon> Could not load amounts
+            <button mat-stroked-button (click)="reloadAmounts()">Retry</button>
+          </div>
         } @else {
-          <table class="sub-table">
-            <thead><tr><th>#</th><th>Amount *</th><th></th></tr></thead>
-            <tbody>
-              @for (a of amounts(); track $index; let i = $index) {
-                <tr>
-                  <td class="mono">{{ i + 1 }}</td>
-                  <td><input class="field-input mono" type="number" min="1" [(ngModel)]="a.AMOUNT" placeholder="0"></td>
-                  <td>
-                    <button mat-icon-button class="btn-remove" (click)="removeAmount(i)">
-                      <mat-icon>delete_outline</mat-icon>
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+          <div class="sub-table-wrap">
+            <table class="sub-table">
+              <thead><tr><th>#</th><th>Amount *</th><th></th></tr></thead>
+              <tbody>
+                @for (a of amounts(); track a._k; let i = $index) {
+                  <tr>
+                    <td class="mono">{{ i + 1 }}</td>
+                    <td><input class="field-input mono" type="number" min="1"
+                               [id]="'amount-' + i"
+                               [attr.aria-label]="'Amount row ' + (i + 1)"
+                               [class.field-invalid]="amountErrors().has(i)"
+                               [(ngModel)]="a.AMOUNT" (input)="clearAmountError()"
+                               placeholder="0.00"></td>
+                    <td>
+                      <button mat-icon-button class="btn-remove" matTooltip="Remove amount" (click)="removeAmount(i)">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
           @if (amounts().length === 0) { <div class="tab-empty">No predefined amounts</div> }
           <div class="tab-actions">
             <button mat-stroked-button (click)="addAmount()"><mat-icon>add</mat-icon> Add Amount</button>
             <button mat-flat-button color="primary" (click)="saveAmounts()" [disabled]="saving()">
               <mat-icon>save</mat-icon> Save Amounts
             </button>
+            @if (amountsDirty()) { <span class="dirty-hint">Unsaved changes</span> }
           </div>
         }
       </div>
     </mat-tab>
 
     <!-- ── Details ───────────────────────────────────────────────────── -->
-    <mat-tab label="Details ({{ details().length }})">
+    <mat-tab label="Details ({{ details().length }}){{ detailsDirty() ? ' •' : '' }}">
       <div class="tab-body">
         @if (isNew()) {
           <div class="tab-notice">Save Basic Info first before editing details.</div>
+        } @else if (detailsState() === 'error') {
+          <div class="tab-error">
+            <mat-icon>error_outline</mat-icon> Could not load details
+            <button mat-stroked-button (click)="reloadDetails()">Retry</button>
+          </div>
         } @else {
-          @for (d of details(); track $index; let i = $index) {
+          @for (d of details(); track d._k; let i = $index) {
             <div class="detail-card">
               <div class="detail-card-header">
                 <span class="mono">Section {{ i + 1 }}</span>
-                <button mat-icon-button class="btn-remove" (click)="removeDetail(i)">
+                <button mat-icon-button class="btn-remove" matTooltip="Remove section" (click)="removeDetail(i)">
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
               <div class="form-grid">
                 <div class="field-group">
-                  <label class="field-label">Label (EN)</label>
-                  <input class="field-input" [(ngModel)]="d.LABEL_EN">
+                  <label class="field-label" [for]="'detail-label-en-' + i">Label (EN)</label>
+                  <input class="field-input" [id]="'detail-label-en-' + i" [(ngModel)]="d.LABEL_EN">
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Label (AR)</label>
-                  <input class="field-input rtl" [(ngModel)]="d.LABEL_AR">
+                  <label class="field-label" [for]="'detail-label-ar-' + i">Label (AR)</label>
+                  <input class="field-input rtl" [id]="'detail-label-ar-' + i" [(ngModel)]="d.LABEL_AR">
                 </div>
                 <div class="field-group span-2">
-                  <label class="field-label">Description (EN)</label>
-                  <textarea class="field-textarea" rows="3" [(ngModel)]="d.DESC_EN"></textarea>
+                  <label class="field-label" [for]="'detail-desc-en-' + i">Description (EN)</label>
+                  <textarea class="field-textarea" rows="3" [id]="'detail-desc-en-' + i" [(ngModel)]="d.DESC_EN"></textarea>
                 </div>
                 <div class="field-group span-2">
-                  <label class="field-label">Description (AR)</label>
-                  <textarea class="field-textarea rtl" rows="3" [(ngModel)]="d.DESC_AR"></textarea>
+                  <label class="field-label" [for]="'detail-desc-ar-' + i">Description (AR)</label>
+                  <textarea class="field-textarea rtl" rows="3" [id]="'detail-desc-ar-' + i" [(ngModel)]="d.DESC_AR"></textarea>
                 </div>
               </div>
             </div>
@@ -235,6 +267,7 @@
             <button mat-flat-button color="primary" (click)="saveDetails()" [disabled]="saving()">
               <mat-icon>save</mat-icon> Save Details
             </button>
+            @if (detailsDirty()) { <span class="dirty-hint">Unsaved changes</span> }
           </div>
         }
       </div>
