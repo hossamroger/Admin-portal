@@ -21,7 +21,7 @@ import { AuthService } from '../../core/auth.service';
 import { SchemaStateService } from '../../core/schema-state.service';
 import { NotifyService } from '../../core/notify.service';
 import { DbObject, ObjectType } from '../../core/models';
-import { NAV_ENTITIES } from '../manage/entity-configs';
+import { ENTITY_CONFIGS, NAV_ENTITIES } from '../manage/entity-configs';
 
 interface Group { type: ObjectType; label: string; icon: string; }
 
@@ -101,7 +101,7 @@ export class ShellComponent implements OnDestroy {
     if (url.startsWith('/admin/users')) return 'User Management';
     if (url.startsWith('/manage/')) {
       const entity = url.split('/manage/')[1].split('/')[0].split('?')[0];
-      return NAV_ENTITIES.find(e => e.name === entity)?.title ?? '';
+      return ENTITY_CONFIGS[entity]?.title ?? '';
     }
     return '';
   }
