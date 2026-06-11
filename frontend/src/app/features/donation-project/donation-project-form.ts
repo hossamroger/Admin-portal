@@ -15,8 +15,9 @@ import { Dirtyable } from '../../core/guards';
 import { CrudRow, LookupItem } from '../../core/models';
 import { ENTITY_CONFIGS } from '../manage/entity-configs';
 
-interface AmountRow { AMOUNT: string; }
+interface AmountRow { _k: number; AMOUNT: string; }
 interface DetailRow {
+  _k: number;
   REC_ID?: unknown;
   LABEL_AR: string; LABEL_EN: string;
   DESC_AR: string;  DESC_EN: string;
@@ -48,8 +49,23 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   readonly details  = signal<DetailRow[]>([]);
   readonly orgs     = signal<LookupItem[]>([]);
   readonly cats     = signal<LookupItem[]>([]);
+  /** lookup name -> 'loading' | 'ready' | 'error' */
+  readonly lookupState = signal<Record<string, string>>({});
+  /** col -> validation message (set on save attempt). */
+  readonly errors = signal<Record<string, string>>({});
+  /** Indexes of invalid amount rows (set on save attempt). */
+  readonly amountErrors = signal<Set<number>>(new Set());
+  readonly amountsState = signal<'loading' | 'ready' | 'error'>('ready');
+  readonly detailsState = signal<'loading' | 'ready' | 'error'>('ready');
 
-  private savedSnapshot = '';
+  /** Per-tab snapshots taken after load/save; anything different means unsaved changes. */
+  private basicSnapshot   = '';
+  private amountsSnapshot = '';
+  private detailsSnapshot = '';
+
+  /** Monotonic key generator so @for tracking survives row removal/reorder. */
+  private keySeq = 0;
+  private nextKey(): number { return ++this.keySeq; }
 
   readonly title = computed(() => {
     const id = this.projectId();
@@ -63,8 +79,10 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     this.isNew.set(id === 'new');
     this.loadLookups();
     if (this.isNew()) {
-      this.dto.set(this.normalizeFlags({ LIMITED: 'N', HAS_PRE_DEFINED_AMOUNT: 'N' }));
-      this.takeSnapshot();
+      this.dto.set(this.normalizeFlags({ LIMITED: 'N', HAS_PRE_DEFINED_AMOUNT: 'N', STATUS: 'A' }));
+      this.takeBasicSnapshot();
+      this.takeAmountsSnapshot();
+      this.takeDetailsSnapshot();
     } else {
       this.projectId.set(id);
       this.loadProject(id!);
@@ -72,8 +90,16 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   }
 
   private loadLookups(): void {
-    this.api.crudLookup('donation-project', 'orgs').subscribe({ next: v => this.orgs.set(v), error: () => {} });
-    this.api.crudLookup('donation-project', 'cats').subscribe({ next: v => this.cats.set(v), error: () => {} });
+    for (const name of ['orgs', 'cats'] as const) {
+      this.lookupState.update(m => ({ ...m, [name]: 'loading' }));
+      this.api.crudLookup('donation-project', name).subscribe({
+        next: v => {
+          (name === 'orgs' ? this.orgs : this.cats).set(v);
+          this.lookupState.update(m => ({ ...m, [name]: 'ready' }));
+        },
+        error: () => this.lookupState.update(m => ({ ...m, [name]: 'error' })),
+      });
+    }
   }
 
   private loadProject(id: string): void {
@@ -82,31 +108,47 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
       next: row => {
         this.dto.set(this.normalizeFlags(row));
         this.loading.set(false);
-        this.takeSnapshot();
+        this.takeBasicSnapshot();
       },
       error: err => { this.loading.set(false); this.notify.error(err, 'Failed to load project'); },
     });
+    this.fetchAmounts(id);
+    this.fetchDetails(id);
+  }
+
+  private fetchAmounts(id: string): void {
+    this.amountsState.set('loading');
     this.api.donationAmounts(id).subscribe({
       next: v => {
-        this.amounts.set(v.map(r => ({ AMOUNT: String(r['AMOUNT'] ?? '') })));
-        this.takeSnapshot();
+        this.amounts.set(v.map(r => ({ _k: this.nextKey(), AMOUNT: String(r['AMOUNT'] ?? '') })));
+        this.amountsState.set('ready');
+        this.takeAmountsSnapshot();
       },
-      error: () => {},
+      error: () => this.amountsState.set('error'),
     });
+  }
+
+  private fetchDetails(id: string): void {
+    this.detailsState.set('loading');
     this.api.donationDetails(id).subscribe({
       next: v => {
         this.details.set(v.map(r => ({
+          _k: this.nextKey(),
           REC_ID: r['REC_ID'],
           LABEL_AR: String(r['LABEL_AR'] ?? ''),
           LABEL_EN: String(r['LABEL_EN'] ?? ''),
           DESC_AR:  String(r['DESC_AR']  ?? ''),
           DESC_EN:  String(r['DESC_EN']  ?? ''),
         })));
-        this.takeSnapshot();
+        this.detailsState.set('ready');
+        this.takeDetailsSnapshot();
       },
-      error: () => {},
+      error: () => this.detailsState.set('error'),
     });
   }
+
+  reloadAmounts(): void { this.fetchAmounts(this.projectId()!); }
+  reloadDetails(): void { this.fetchDetails(this.projectId()!); }
 
   /**
    * Make flag columns canonical: legacy/loose truthy values ('t', 'Y', '1'…)
@@ -123,14 +165,24 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     return out;
   }
 
-  private snapshot(): string {
-    return JSON.stringify({ d: this.dto(), a: this.amounts(), x: this.details() });
+  // ── Dirty tracking (per tab) ─────────────────────────────────────────────
+  private takeBasicSnapshot(): void   { this.basicSnapshot   = JSON.stringify(this.dto()); }
+  private takeAmountsSnapshot(): void { this.amountsSnapshot = JSON.stringify(this.amounts()); }
+  private takeDetailsSnapshot(): void { this.detailsSnapshot = JSON.stringify(this.details()); }
+
+  basicDirty(): boolean   { return JSON.stringify(this.dto())     !== this.basicSnapshot; }
+  amountsDirty(): boolean { return JSON.stringify(this.amounts()) !== this.amountsSnapshot; }
+  detailsDirty(): boolean { return JSON.stringify(this.details()) !== this.detailsSnapshot; }
+
+  isDirty(): boolean {
+    return !this.saving() && (this.basicDirty() || this.amountsDirty() || this.detailsDirty());
   }
-  private takeSnapshot(): void { this.savedSnapshot = this.snapshot(); }
-  isDirty(): boolean { return !this.saving() && this.snapshot() !== this.savedSnapshot; }
 
   set(col: string, v: string): void {
     this.dto.update(d => ({ ...d, [col]: v === '' ? null : v }));
+    if (this.errors()[col]) {
+      this.errors.update(e => { const { [col]: _, ...rest } = e; return rest; });
+    }
   }
 
   val(col: string): string {
@@ -146,29 +198,73 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   }
 
   // ── Amounts ─────────────────────────────────────────────────────────────
-  addAmount(): void { this.amounts.update(a => [...a, { AMOUNT: '' }]); }
-  removeAmount(i: number): void { this.amounts.update(a => a.filter((_, idx) => idx !== i)); }
+  addAmount(): void { this.amounts.update(a => [...a, { _k: this.nextKey(), AMOUNT: '' }]); }
+
+  removeAmount(i: number): void {
+    const row = this.amounts()[i];
+    if (row && String(row.AMOUNT ?? '').trim() !== '' &&
+        !confirm('Remove this amount? It will be permanently deleted when you save.')) return;
+    this.amounts.update(a => a.filter((_, idx) => idx !== i));
+    this.amountErrors.set(new Set());
+  }
+
+  clearAmountError(): void {
+    if (this.amountErrors().size) this.amountErrors.set(new Set());
+  }
 
   // ── Details ─────────────────────────────────────────────────────────────
-  addDetail(): void { this.details.update(d => [...d, { LABEL_AR: '', LABEL_EN: '', DESC_AR: '', DESC_EN: '' }]); }
-  removeDetail(i: number): void { this.details.update(d => d.filter((_, idx) => idx !== i)); }
+  addDetail(): void {
+    this.details.update(d => [...d, {
+      _k: this.nextKey(), LABEL_AR: '', LABEL_EN: '', DESC_AR: '', DESC_EN: '',
+    }]);
+  }
+
+  removeDetail(i: number): void {
+    const row = this.details()[i];
+    const hasData = !!row && (row.REC_ID != null ||
+      [row.LABEL_AR, row.LABEL_EN, row.DESC_AR, row.DESC_EN].some(v => String(v ?? '').trim() !== ''));
+    if (hasData &&
+        !confirm('Remove this detail section? It will be permanently deleted when you save.')) return;
+    this.details.update(d => d.filter((_, idx) => idx !== i));
+  }
+
+  // ── Validation ──────────────────────────────────────────────────────────
+  private validateBasic(): boolean {
+    const errs: Record<string, string> = {};
+    const d = this.dto();
+    for (const [col, label] of [['NAME_EN', 'Name (EN)'], ['NAME_AR', 'Name (AR)']] as const) {
+      const s = String(d[col] ?? '');
+      if (!s.trim()) errs[col] = `${label} is required`;
+      else if (s.length > 400) errs[col] = 'Maximum 400 characters';
+    }
+    this.errors.set(errs);
+    if (Object.keys(errs).length) {
+      this.notify.warn('Please fix the highlighted fields');
+      // bring the first invalid field into view
+      setTimeout(() => document.querySelector('.field-invalid')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      return false;
+    }
+    return true;
+  }
 
   // ── Save ─────────────────────────────────────────────────────────────────
   saveBasic(): void {
-    const d = this.dto();
-    if (!String(d['NAME_EN'] ?? '').trim()) { this.notify.warn('Name (EN) is required'); return; }
-    if (!String(d['NAME_AR'] ?? '').trim()) { this.notify.warn('Name (AR) is required'); return; }
     if (this.saving()) return;
+    if (!this.validateBasic()) return;
     this.saving.set(true);
     const wasNew = this.isNew();
+    const d = this.dto();
     const call = wasNew
       ? this.api.crudCreate('donation-project', d)
       : this.api.crudUpdate('donation-project', this.projectId()!, d);
     call.subscribe({
       next: (res: any) => {
         this.saving.set(false);
-        this.notify.success(wasNew ? 'Project created' : 'Project saved');
-        this.takeSnapshot();
+        this.notify.success(wasNew
+          ? 'Project created — you can now add Amounts and Details'
+          : 'Project saved');
+        this.takeBasicSnapshot();
         if (wasNew) {
           const id = String(res?.id ?? '');
           this.projectId.set(id);
@@ -182,13 +278,20 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
 
   saveAmounts(): void {
     if (this.saving()) return;
-    const bad = this.amounts().some(a =>
-      !String(a.AMOUNT ?? '').trim() || isNaN(Number(a.AMOUNT)) || Number(a.AMOUNT) <= 0);
-    if (bad) { this.notify.warn('All amounts must be numbers greater than zero'); return; }
+    const bad = new Set<number>();
+    this.amounts().forEach((a, i) => {
+      if (!String(a.AMOUNT ?? '').trim() || isNaN(Number(a.AMOUNT)) || Number(a.AMOUNT) <= 0) bad.add(i);
+    });
+    if (bad.size) {
+      this.amountErrors.set(bad);
+      this.notify.warn(`Row(s) ${[...bad].map(i => i + 1).join(', ')}: amount must be a number greater than zero`);
+      return;
+    }
+    this.amountErrors.set(new Set());
     this.saving.set(true);
     const rows = this.amounts().map(a => ({ AMOUNT: a.AMOUNT }));
     this.api.saveDonationAmounts(this.projectId()!, rows).subscribe({
-      next: () => { this.saving.set(false); this.notify.success('Amounts saved'); this.takeSnapshot(); },
+      next: () => { this.saving.set(false); this.notify.success('Amounts saved'); this.takeAmountsSnapshot(); },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
     });
   }
@@ -196,8 +299,9 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   saveDetails(): void {
     if (this.saving()) return;
     this.saving.set(true);
-    this.api.saveDonationDetails(this.projectId()!, this.details() as any).subscribe({
-      next: () => { this.saving.set(false); this.notify.success('Details saved'); this.takeSnapshot(); },
+    const rows = this.details().map(({ _k, ...rest }) => rest);
+    this.api.saveDonationDetails(this.projectId()!, rows as any).subscribe({
+      next: () => { this.saving.set(false); this.notify.success('Details saved'); this.takeDetailsSnapshot(); },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
     });
   }

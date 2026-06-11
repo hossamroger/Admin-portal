@@ -49,7 +49,7 @@
         <thead>
           <tr>
             @for (col of c.listColumns; track col.col) {
-              <th [class.sortable]="!col.noSort" (click)="toggleSort(col)">
+              <th [class.sortable]="!col.noSort" [class.num]="col.align === 'right'" (click)="toggleSort(col)">
                 <span class="th-inner">
                   {{ col.label }}
                   @if (sortIcon(col)) { <mat-icon class="sort-icon">{{ sortIcon(col) }}</mat-icon> }
@@ -64,11 +64,19 @@
             <tr class="dl-row" tabindex="0" role="button"
                 (click)="edit(row)" (keydown.enter)="edit(row)">
               @for (col of c.listColumns; track col.col) {
-                <td [class.mono]="col.mono" [class.rtl]="col.rtl">
+                <td [class.mono]="col.mono" [class.rtl]="col.rtl" [class.num]="col.align === 'right'">
                   @if (col.badge01) {
                     <span class="dl-badge" [class.active]="row[col.col] === 1">
                       {{ row[col.col] === 1 ? 'Active' : 'Inactive' }}
                     </span>
+                  } @else if (col.badgeMap) {
+                    @if (badgeFor(row, col); as b) {
+                      <span class="dl-badge"
+                            [class.active]="b.kind === 'ok'"
+                            [class.warn]="b.kind === 'warn'">{{ b.label }}</span>
+                    } @else {
+                      {{ cellValue(row, col) }}
+                    }
                   } @else {
                     {{ cellValue(row, col) }}
                   }

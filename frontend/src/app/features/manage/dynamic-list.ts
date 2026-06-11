@@ -143,7 +143,8 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   deleteRow(row: CrudRow): void {
     const cfg = this.cfg()!;
     const id = row[cfg.pk];
-    if (!confirm(`Delete this ${cfg.titleSingular}? This cannot be undone.`)) return;
+    const name = cfg.nameCol ? String(row[cfg.nameCol] ?? '').trim() : '';
+    if (!confirm(`Delete ${cfg.titleSingular} #${id}${name ? ` "${name}"` : ''}? This cannot be undone.`)) return;
     this.deleting.update(s => new Set([...s, id]));
     this.api.crudDelete(cfg.name, String(id)).subscribe({
       next: () => {
@@ -168,6 +169,16 @@ export class DynamicListComponent implements OnInit, OnDestroy {
     const v = row[col.col];
     if (v == null || v === '') return '—';
     const s = String(v);
+    if (col.numberFormat && s.trim() !== '' && !isNaN(Number(s))) {
+      return Number(s).toLocaleString('en-US');
+    }
     return col.truncate ? s.slice(0, col.truncate) : s;
+  }
+
+  /** Badge for a badgeMap column; CHAR columns may be space-padded, so trim. */
+  badgeFor(row: CrudRow, col: ListColDef): { label: string; kind: 'ok' | 'warn' | 'muted' } | null {
+    if (!col.badgeMap) return null;
+    const raw = String(row[col.col] ?? '').trim();
+    return col.badgeMap[raw] ?? null;
   }
 }

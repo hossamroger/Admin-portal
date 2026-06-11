@@ -45,6 +45,12 @@ export interface ListColDef {
   rtl?: boolean;
   /** Render as Active/Inactive badge driven by NUMBER 1/0. */
   badge01?: boolean;
+  /** Render as a badge mapping raw (trimmed) values to labels/kinds. */
+  badgeMap?: Record<string, { label: string; kind: 'ok' | 'warn' | 'muted' }>;
+  /** Right-align the column (numeric columns). */
+  align?: 'right';
+  /** Format numeric values with thousands separators. */
+  numberFormat?: boolean;
   /** For temporal columns: chars of the ISO string to keep (10 = date only). */
   truncate?: number;
   /** Disable click-to-sort for this column. */
@@ -57,6 +63,8 @@ export interface EntityConfig {
   titleSingular: string;   // "New X" button / form heading
   icon: string;            // material icon for the nav link
   pk: string;              // PK column name
+  /** Column whose value names the record in delete confirmations. */
+  nameCol?: string;
   canDelete?: boolean;
   searchPlaceholder: string;
   listColumns: ListColDef[];
@@ -146,6 +154,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     titleSingular: 'Category',
     icon: 'category',
     pk: 'CAT_ID',
+    nameCol: 'LABEL_EN',
     canDelete: true,
     searchPlaceholder: 'Search by label…',
     listColumns: [
@@ -167,6 +176,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     titleSingular: 'Organization',
     icon: 'apartment',
     pk: 'ORG_ID',
+    nameCol: 'LABEL_EN',
     canDelete: true,
     searchPlaceholder: 'Search by name…',
     listColumns: [
@@ -189,27 +199,32 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     titleSingular: 'Project',
     icon: 'volunteer_activism',
     pk: 'PRJ_ID',
+    nameCol: 'NAME_EN',
     canDelete: true,
     searchPlaceholder: 'Search by name…',
     listColumns: [
       { col: 'PRJ_ID',   label: 'ID',         mono: true },
       { col: 'NAME_EN',  label: 'Name (EN)' },
       { col: 'NAME_AR',  label: 'Name (AR)',   rtl: true },
-      { col: 'STATUS',   label: 'Status',      mono: true },
-      { col: 'TOTAL_AMOUNT', label: 'Target',  mono: true },
-      { col: 'PAID_AMOUNT',  label: 'Paid',    mono: true },
+      { col: 'STATUS',   label: 'Status', badgeMap: {
+          A: { label: 'Active',   kind: 'ok' },
+          I: { label: 'Inactive', kind: 'muted' },
+          C: { label: 'Closed',   kind: 'warn' },
+        } },
+      { col: 'TOTAL_AMOUNT', label: 'Target',  mono: true, align: 'right', numberFormat: true },
+      { col: 'PAID_AMOUNT',  label: 'Paid',    mono: true, align: 'right', numberFormat: true },
       { col: 'START_DATE',   label: 'Start',   mono: true, truncate: 10 },
       { col: 'ORDER_C',  label: 'Order',       mono: true },
     ],
     fields: [
       { col: 'NAME_EN',  label: 'Name (EN)', type: 'text', required: true, maxLength: 400, section: 'Basic' },
       { col: 'NAME_AR',  label: 'Name (AR)', type: 'text', rtl: true, required: true, maxLength: 400, section: 'Basic' },
-      { col: 'STATUS',   label: 'Status',    type: 'select', options: ['A','I','C'], section: 'Basic' },
+      { col: 'STATUS',   label: 'Status',    type: 'select', options: ['A','I','C'], default: 'A', section: 'Basic' },
       { col: 'ICON_URL', label: 'Icon URL',  type: 'text', span2: true, placeholder: 'https://…', section: 'Basic' },
       { col: 'ORGANIZATION_ID', label: 'Organization', type: 'lookup', lookup: 'orgs', section: 'Classification' },
       { col: 'CATEGORY_ID',     label: 'Category',     type: 'lookup', lookup: 'cats', section: 'Classification' },
       { col: 'ORDER_C',              label: 'Display Order',     type: 'number', mono: true, placeholder: 'auto', section: 'Classification' },
-      { col: 'ORGANIZATION_ORDER_C', label: 'Org. Display Order', type: 'number', mono: true, section: 'Classification' },
+      { col: 'ORGANIZATION_ORDER_C', label: 'Order within Organization', type: 'number', mono: true, section: 'Classification' },
       { col: 'MIN_AMOUNT',   label: 'Min Amount',    type: 'number', mono: true, section: 'Amounts' },
       { col: 'TOTAL_AMOUNT', label: 'Target Amount', type: 'number', mono: true, section: 'Amounts' },
       { col: 'PAID_AMOUNT',  label: 'Paid Amount',   type: 'number', mono: true, section: 'Amounts' },
