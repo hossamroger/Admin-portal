@@ -100,7 +100,13 @@ export class ShellComponent implements OnDestroy {
     if (url.startsWith('/source/')) { const p = url.split('/'); return decodeURIComponent(p[p.length - 1]); }
     if (url.startsWith('/admin/users')) return 'User Management';
     if (url.startsWith('/manage/')) {
-      const entity = url.split('/manage/')[1].split('/')[0].split('?')[0];
+      const [path, qs] = url.split('?');
+      const entity = path.split('/manage/')[1].split('/')[0];
+      if (entity === 'donation-project' && qs) {
+        const tab = new URLSearchParams(qs).get('tab');
+        if (tab === 'categories')    return ENTITY_CONFIGS['donation-category']?.title    ?? '';
+        if (tab === 'organizations') return ENTITY_CONFIGS['donation-organization']?.title ?? '';
+      }
       return ENTITY_CONFIGS[entity]?.title ?? '';
     }
     return '';
