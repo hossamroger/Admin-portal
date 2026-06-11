@@ -11,6 +11,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final org.slf4j.Logger log =
+        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Map<String, Object>> handleSecurity(SecurityException ex) {
         Map<String, Object> body = new HashMap<>();
@@ -44,11 +47,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
+    // Unexpected failures: log the full detail server-side, but never leak raw
+    // exception messages (ORA- codes, table/column names) to the client.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAll(Exception ex) {
+        log.error("Unhandled exception", ex);
         Map<String, Object> body = new HashMap<>();
-        body.put("error", ex.getMessage());
-        body.put("type", ex.getClass().getSimpleName());
+        body.put("error", "Internal server error — please contact an administrator");
+        body.put("type", "InternalError");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }

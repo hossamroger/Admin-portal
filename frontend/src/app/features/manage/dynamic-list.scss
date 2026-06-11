@@ -33,8 +33,16 @@
   width: 100%; border-collapse: collapse; font-size: 14px;
   thead tr { background: var(--app-surface); border-bottom: 1px solid var(--app-line); position: sticky; top: 0; z-index: 1; }
   th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; color: var(--app-muted); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+  th.sortable { cursor: pointer; user-select: none; &:hover { color: var(--app-accent); } }
+  .th-inner { display: inline-flex; align-items: center; gap: 3px; }
+  .sort-icon { font-size: 14px; height: 14px; width: 14px; color: var(--app-accent); }
   .th-actions { width: 60px; }
-  .dl-row { border-bottom: 1px solid var(--app-line); cursor: pointer; &:last-child { border-bottom: none; } &:hover td { background: var(--app-bg); } }
+  .dl-row {
+    border-bottom: 1px solid var(--app-line); cursor: pointer;
+    &:last-child { border-bottom: none; }
+    &:hover td { background: var(--app-bg); }
+    &:focus-visible { outline: 2px solid var(--app-accent); outline-offset: -2px; }
+  }
   td { padding: 10px 14px; color: var(--app-fg); white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
   .mono { font-family: var(--app-mono); font-size: 13px; }
   .rtl  { direction: rtl; text-align: right; }

@@ -10,6 +10,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
+import { Dirtyable } from '../../core/guards';
 import { CrudRow, LookupItem } from '../../core/models';
 import { ENTITY_CONFIGS, EntityConfig, FieldDef } from './entity-configs';
 
@@ -19,6 +20,14 @@ const CHECKBOX_VALUES: Record<string, [unknown, unknown]> = {
   checkboxYN: ['Y', 'N'],
 };
 
+/** Values legacy data may use for "on" — normalized to the canonical pair on load. */
+const TRUTHY = new Set<unknown>([1, '1', 'T', 't', 'Y', 'y', true, 'true', 'TRUE']);
+
+interface FormSection {
+  name: string;
+  fields: FieldDef[];
+}
+
 /** Generic create/edit form for any entity registered in ENTITY_CONFIGS. */
 @Component({
   selector: 'app-dynamic-form',
@@ -27,7 +36,7 @@ const CHECKBOX_VALUES: Record<string, [unknown, unknown]> = {
   templateUrl: './dynamic-form.html',
   styleUrl:    './dynamic-form.scss',
 })
-export class DynamicFormComponent implements OnInit {
+export class DynamicFormComponent implements OnInit, Dirtyable {
   private readonly api    = inject(ApiService);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
@@ -41,6 +50,13 @@ export class DynamicFormComponent implements OnInit {
 
   readonly dto     = signal<CrudRow>({});
   readonly lookups = signal<Record<string, LookupItem[]>>({});
+  /** lookup name -> 'loading' | 'ready' | 'error' */
+  readonly lookupState = signal<Record<string, string>>({});
+  /** col -> validation message (set on save attempt). */
+  readonly errors = signal<Record<string, string>>({});
+
+  /** Snapshot taken after load/save; anything different means unsaved changes. */
+  private savedSnapshot = '';
 
   readonly title = computed(() => {
     const c = this.cfg();
@@ -48,12 +64,20 @@ export class DynamicFormComponent implements OnInit {
     return this.isNew() ? `New ${c.titleSingular}` : `${c.titleSingular} #${this.dto()[c.pk] ?? ''}`;
   });
 
-  /** Non-checkbox fields, in declared order (readonly hidden on create). */
-  readonly gridFields = computed(() => {
+  /** Non-checkbox fields grouped by section, in declared order (readonly hidden on create). */
+  readonly sections = computed<FormSection[]>(() => {
     const c = this.cfg();
     if (!c) return [];
-    return c.fields.filter(f =>
+    const visible = c.fields.filter(f =>
       !CHECKBOX_VALUES[f.type] && (f.type !== 'readonly' || !this.isNew()));
+    const out: FormSection[] = [];
+    for (const f of visible) {
+      const name = f.section ?? '';
+      const last = out[out.length - 1];
+      if (last && last.name === name) last.fields.push(f);
+      else out.push({ name, fields: [f] });
+    }
+    return out;
   });
 
   /** Checkbox fields rendered together as a flag row. */
@@ -75,39 +99,135 @@ export class DynamicFormComponent implements OnInit {
       for (const f of cfg.fields) {
         if (f.default !== undefined) initial[f.col] = f.default;
       }
-      this.dto.set(initial);
+      this.dto.set(this.normalizeFlags(cfg, initial));
+      this.takeSnapshot();
     } else {
       this.loading.set(true);
       this.api.crudGet(cfg.name, id!).subscribe({
-        next: row => { this.dto.set(row); this.loading.set(false); },
+        next: row => {
+          this.dto.set(this.normalizeFlags(cfg, row));
+          this.loading.set(false);
+          this.takeSnapshot();
+        },
         error: err => { this.loading.set(false); this.notify.error(err, 'Failed to load record'); },
       });
     }
   }
 
+  /**
+   * Make flag columns canonical: legacy/loose truthy values ('t', 'Y', '1'…)
+   * become the configured "on" value, anything else (including NULL) the "off"
+   * value — so an untouched save persists an explicit off instead of NULL.
+   */
+  private normalizeFlags(cfg: EntityConfig, row: CrudRow): CrudRow {
+    const out = { ...row };
+    for (const f of cfg.fields) {
+      const pair = CHECKBOX_VALUES[f.type];
+      if (!pair) continue;
+      out[f.col] = TRUTHY.has(out[f.col]) ? pair[0] : pair[1];
+    }
+    return out;
+  }
+
+  private takeSnapshot(): void {
+    this.savedSnapshot = JSON.stringify(this.dto());
+  }
+
+  isDirty(): boolean {
+    return !this.saving() && JSON.stringify(this.dto()) !== this.savedSnapshot;
+  }
+
   private loadLookups(cfg: EntityConfig): void {
     const names = [...new Set(cfg.fields.map(f => f.lookup).filter((n): n is string => !!n))];
     for (const name of names) {
+      this.lookupState.update(m => ({ ...m, [name]: 'loading' }));
       this.api.crudLookup(cfg.name, name).subscribe({
-        next: v => this.lookups.update(m => ({ ...m, [name]: v })),
-        error: () => {},
+        next: v => {
+          this.lookups.update(m => ({ ...m, [name]: v }));
+          this.lookupState.update(m => ({ ...m, [name]: 'ready' }));
+        },
+        error: () => this.lookupState.update(m => ({ ...m, [name]: 'error' })),
       });
     }
   }
 
-  save(): void {
+  // ── Validation ─────────────────────────────────────────────────────────────
+
+  private validate(cfg: EntityConfig): boolean {
+    const errs: Record<string, string> = {};
+    const d = this.dto();
+    for (const f of cfg.fields) {
+      const v = d[f.col];
+      const empty = v == null || String(v).trim() === '';
+      if (f.required && empty) { errs[f.col] = `${f.label} is required`; continue; }
+      if (empty) continue;
+      const s = String(v);
+      if (f.maxLength && s.length > f.maxLength) {
+        errs[f.col] = `Maximum ${f.maxLength} characters`; continue;
+      }
+      if (f.pattern && !new RegExp(`^(?:${f.pattern})$`).test(s)) {
+        errs[f.col] = f.patternMsg ?? 'Invalid format'; continue;
+      }
+      if (f.notBefore) {
+        const other = d[f.notBefore];
+        if (other != null && String(other) !== '' && s < String(other)) {
+          const otherLabel = cfg.fields.find(x => x.col === f.notBefore)?.label ?? f.notBefore;
+          errs[f.col] = `Must not be before ${otherLabel}`;
+        }
+      }
+    }
+    this.errors.set(errs);
+    if (Object.keys(errs).length) {
+      this.notify.warn('Please fix the highlighted fields');
+      // bring the first invalid field into view
+      setTimeout(() => document.querySelector('.field-invalid')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      return false;
+    }
+    return true;
+  }
+
+  errorFor(f: FieldDef): string {
+    return this.errors()[f.col] ?? '';
+  }
+
+  // ── Save ───────────────────────────────────────────────────────────────────
+
+  save(stay = false): void {
     const cfg = this.cfg()!;
+    if (this.saving()) return;
+    if (!this.validate(cfg)) return;
     this.saving.set(true);
-    const call = this.isNew()
+    const wasNew = this.isNew();
+    const call = wasNew
       ? this.api.crudCreate(cfg.name, this.dto())
       : this.api.crudUpdate(cfg.name, String(this.dto()[cfg.pk]), this.dto());
     call.subscribe({
-      next: () => {
+      next: (res: any) => {
+        this.notify.success(wasNew ? `${cfg.titleSingular} created` : `${cfg.titleSingular} updated`);
+        this.takeSnapshot();
+        if (!stay) {
+          this.router.navigate(['/manage', cfg.name]);
+          return;
+        }
         this.saving.set(false);
-        this.notify.success(this.isNew() ? `${cfg.titleSingular} created` : `${cfg.titleSingular} updated`);
-        this.router.navigate(['/manage', cfg.name]);
+        // continue editing: a create becomes an edit of the new record
+        const id = wasNew ? res?.id : this.dto()[cfg.pk];
+        if (id != null) {
+          this.router.navigate(['/manage', cfg.name, id])
+            .then(() => this.reloadAfterStay(cfg, String(id)));
+        }
       },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
+    });
+  }
+
+  /** Refresh server-generated values (id, audit cols) after Save & Continue. */
+  private reloadAfterStay(cfg: EntityConfig, id: string): void {
+    this.isNew.set(false);
+    this.api.crudGet(cfg.name, id).subscribe({
+      next: row => { this.dto.set(this.normalizeFlags(cfg, row)); this.takeSnapshot(); },
+      error: () => {},
     });
   }
 
@@ -128,6 +248,9 @@ export class DynamicFormComponent implements OnInit {
 
   set(f: FieldDef, raw: string): void {
     this.dto.update(d => ({ ...d, [f.col]: raw === '' ? null : raw }));
+    if (this.errors()[f.col]) {
+      this.errors.update(e => { const { [f.col]: _, ...rest } = e; return rest; });
+    }
   }
 
   isChecked(f: FieldDef): boolean {
@@ -143,7 +266,18 @@ export class DynamicFormComponent implements OnInit {
     return this.lookups()[f.lookup ?? ''] ?? [];
   }
 
+  lookupStateFor(f: FieldDef): string {
+    return this.lookupState()[f.lookup ?? ''] ?? 'loading';
+  }
+
   isSelected(f: FieldDef, o: LookupItem): boolean {
     return String(o.id) === this.value(f);
+  }
+
+  /** Static select: include the stored value even when it isn't a known option. */
+  selectOptions(f: FieldDef): string[] {
+    const opts = f.options ?? [];
+    const cur = this.value(f);
+    return cur && !opts.includes(cur) ? [cur, ...opts] : opts;
   }
 }

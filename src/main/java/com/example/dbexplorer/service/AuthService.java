@@ -29,12 +29,36 @@ public class AuthService {
         return props.getAuth().isEnabled();
     }
 
+    // ---- brute-force throttling: 5 failures locks the account name for 60s ----
+    private static final int  MAX_FAILED_ATTEMPTS = 5;
+    private static final long LOCK_MS = 60_000L;
+    private static final class Attempts { int count; long lockedUntil; }
+    private final java.util.concurrent.ConcurrentHashMap<String, Attempts> failedLogins =
+        new java.util.concurrent.ConcurrentHashMap<>();
+
     /** Verify credentials. Returns the user on success. */
     public Optional<User> authenticate(String username, String password) {
         if (username == null || password == null) return Optional.empty();
-        User u = loadUserFromDb(username.trim().toLowerCase());
-        if (u == null) return Optional.empty();
-        return passwordMatches(password, u.getPassword()) ? Optional.of(u) : Optional.empty();
+        String key = username.trim().toLowerCase();
+
+        Attempts a = failedLogins.computeIfAbsent(key, k -> new Attempts());
+        synchronized (a) {
+            if (a.lockedUntil > System.currentTimeMillis()) {
+                throw new SecurityException("Too many failed attempts — try again in a minute.");
+            }
+        }
+
+        User u = loadUserFromDb(key);
+        boolean ok = u != null && passwordMatches(password, u.getPassword());
+        synchronized (a) {
+            if (ok) {
+                failedLogins.remove(key);
+            } else if (++a.count >= MAX_FAILED_ATTEMPTS) {
+                a.count = 0;
+                a.lockedUntil = System.currentTimeMillis() + LOCK_MS;
+            }
+        }
+        return ok ? Optional.of(u) : Optional.empty();
     }
 
     /** Cache the full User object in the HTTP session. */

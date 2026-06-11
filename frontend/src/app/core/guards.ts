@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, CanDeactivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -22,3 +22,13 @@ export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
   return auth.isAdmin() ? true : router.createUrlTree(['/']);
 };
+
+/** Components that can hold unsaved edits implement this. */
+export interface Dirtyable {
+  isDirty(): boolean;
+}
+
+/** Confirm before navigating away from a form with unsaved changes. */
+export const dirtyGuard: CanDeactivateFn<Dirtyable> = (component) =>
+  !component?.isDirty?.() ||
+  confirm('You have unsaved changes. Leave this page and discard them?');
