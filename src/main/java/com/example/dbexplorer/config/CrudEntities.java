@@ -58,6 +58,38 @@ public class CrudEntities {
             "EXTENSION_TYPE", "ACTION_TYPE", "ACTION_CODE", "ACTION_URL", "CATALOG_ID",
             "IS_ACTIVE", "HAS_ACTION", "IS_HEADLINE", "IS_DARK_MODE"));
         REGISTRY.put(hb.name, hb);
+
+        // Donation Categories
+        CrudEntity dc = new CrudEntity("donation-category", "DA_DONATION_CATEGORIES", "CAT_ID");
+        dc.searchCols = Arrays.asList("LABEL_AR", "LABEL_EN");
+        dc.orderCol = "ORDER_C";
+        dc.defaultOrderBy = "ORDER_C NULLS LAST, CAT_ID";
+        dc.ops = new HashSet<>(Arrays.asList("SELECT","INSERT","UPDATE","DELETE"));
+        dc.writableCols = new HashSet<>(Arrays.asList("LABEL_AR","LABEL_EN","ORDER_C"));
+        REGISTRY.put(dc.name, dc);
+
+        // Donation Organizations
+        CrudEntity dorg = new CrudEntity("donation-organization", "DA_DONATION_ORGANIZATIONS", "ORG_ID");
+        dorg.searchCols = Arrays.asList("LABEL_AR","LABEL_EN");
+        dorg.orderCol = "ORDER_C";
+        dorg.defaultOrderBy = "ORDER_C NULLS LAST, ORG_ID";
+        dorg.ops = new HashSet<>(Arrays.asList("SELECT","INSERT","UPDATE","DELETE"));
+        dorg.writableCols = new HashSet<>(Arrays.asList("LABEL_AR","LABEL_EN","ORDER_C","ICON_URL"));
+        REGISTRY.put(dorg.name, dorg);
+
+        // Donation Projects
+        CrudEntity dp = new CrudEntity("donation-project", "DA_DONATION_PROJECTS", "PRJ_ID");
+        dp.searchCols = Arrays.asList("NAME_AR","NAME_EN");
+        dp.orderCol = "ORDER_C";
+        dp.defaultOrderBy = "ORDER_C NULLS LAST, PRJ_ID";
+        dp.ops = new HashSet<>(Arrays.asList("SELECT","INSERT","UPDATE","DELETE"));
+        dp.lookups.put("orgs", new LookupDef("DA_DONATION_ORGANIZATIONS","ORG_ID","LABEL_EN","ORDER_C NULLS LAST, ORG_ID"));
+        dp.lookups.put("cats", new LookupDef("DA_DONATION_CATEGORIES","CAT_ID","LABEL_EN","ORDER_C NULLS LAST, CAT_ID"));
+        dp.writableCols = new HashSet<>(Arrays.asList(
+            "NAME_AR","NAME_EN","MIN_AMOUNT","LIMITED","TOTAL_AMOUNT","REST_NUMBER_OF_DAYS",
+            "START_DATE","HAS_PRE_DEFINED_AMOUNT","ORGANIZATION_ID","CATEGORY_ID","REST_OF_AMOUNT",
+            "PERCENTAGE","ORDER_C","PAID_AMOUNT","STATUS","ORGANIZATION_ORDER_C","ICON_URL"));
+        REGISTRY.put(dp.name, dp);
     }
 
     public static CrudEntity get(String name) {

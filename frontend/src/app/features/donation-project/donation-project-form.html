@@ -1,0 +1,244 @@
+<div class="dpf-page">
+
+  <div class="dpf-header">
+    <button type="button" mat-icon-button (click)="back()" matTooltip="Back to list">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="dpf-title">{{ title() }}</h1>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+  <mat-tab-group animationDuration="0" class="dpf-tabs">
+
+    <!-- ── Basic Info ─────────────────────────────────────────────────── -->
+    <mat-tab label="Basic Info">
+      <div class="tab-body">
+        <div class="form-grid">
+
+          <div class="field-group">
+            <label class="field-label">Name (EN) <span class="req-mark">*</span></label>
+            <input class="field-input" [value]="val('NAME_EN')"
+                   (input)="set('NAME_EN', $any($event.target).value)">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Name (AR) <span class="req-mark">*</span></label>
+            <input class="field-input rtl" [value]="val('NAME_AR')"
+                   (input)="set('NAME_AR', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Status</label>
+            <select class="field-select" [value]="val('STATUS')"
+                    (change)="set('STATUS', $any($event.target).value)">
+              <option value="">— none —</option>
+              <option value="A">A — Active</option>
+              <option value="I">I — Inactive</option>
+              <option value="C">C — Closed</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Display Order</label>
+            <input class="field-input mono" type="number" [value]="val('ORDER_C')"
+                   (input)="set('ORDER_C', $any($event.target).value)" placeholder="auto">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Organization</label>
+            <select class="field-select" [value]="val('ORGANIZATION_ID')"
+                    (change)="set('ORGANIZATION_ID', $any($event.target).value)">
+              <option value="">— none —</option>
+              @for (o of orgs(); track o.id) {
+                <option [value]="o.id" [selected]="val('ORGANIZATION_ID') === String(o.id)">
+                  {{ o.label || '#' + o.id }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Category</label>
+            <select class="field-select" [value]="val('CATEGORY_ID')"
+                    (change)="set('CATEGORY_ID', $any($event.target).value)">
+              <option value="">— none —</option>
+              @for (o of cats(); track o.id) {
+                <option [value]="o.id" [selected]="val('CATEGORY_ID') === String(o.id)">
+                  {{ o.label || '#' + o.id }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="field-group span-2">
+            <label class="field-label">Icon URL</label>
+            <input class="field-input" [value]="val('ICON_URL')" placeholder="https://…"
+                   (input)="set('ICON_URL', $any($event.target).value)">
+          </div>
+
+          <h2 class="section-header span-2">Amounts</h2>
+
+          <div class="field-group">
+            <label class="field-label">Min Amount</label>
+            <input class="field-input mono" type="number" [value]="val('MIN_AMOUNT')"
+                   (input)="set('MIN_AMOUNT', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Target Amount</label>
+            <input class="field-input mono" type="number" [value]="val('TOTAL_AMOUNT')"
+                   (input)="set('TOTAL_AMOUNT', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Paid Amount</label>
+            <input class="field-input mono" type="number" [value]="val('PAID_AMOUNT')"
+                   (input)="set('PAID_AMOUNT', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Remaining Amount</label>
+            <input class="field-input mono" type="number" [value]="val('REST_OF_AMOUNT')"
+                   (input)="set('REST_OF_AMOUNT', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Percentage %</label>
+            <input class="field-input mono" type="number" [value]="val('PERCENTAGE')"
+                   (input)="set('PERCENTAGE', $any($event.target).value)">
+          </div>
+
+          <h2 class="section-header span-2">Schedule</h2>
+
+          <div class="field-group">
+            <label class="field-label">Start Date</label>
+            <input class="field-input mono" type="date" [value]="val('START_DATE')"
+                   (input)="set('START_DATE', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Days Remaining</label>
+            <input class="field-input mono" type="number" [value]="val('REST_NUMBER_OF_DAYS')"
+                   (input)="set('REST_NUMBER_OF_DAYS', $any($event.target).value)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Org. Display Order</label>
+            <input class="field-input mono" type="number" [value]="val('ORGANIZATION_ORDER_C')"
+                   (input)="set('ORGANIZATION_ORDER_C', $any($event.target).value)">
+          </div>
+
+          @if (!isNew()) {
+            <div class="field-group">
+              <label class="field-label">Created</label>
+              <input class="field-input mono" [value]="val('CREATION_DATE') || '—'" disabled>
+            </div>
+          }
+
+          <!-- Flags -->
+          <div class="field-group span-2">
+            <label class="field-label">Flags</label>
+            <div class="flag-row">
+              <label class="flag-item">
+                <input type="checkbox" [checked]="isChecked('LIMITED')"
+                       (change)="setChecked('LIMITED', $any($event.target).checked)">
+                <span>Limited</span>
+              </label>
+              <label class="flag-item">
+                <input type="checkbox" [checked]="isChecked('HAS_PRE_DEFINED_AMOUNT')"
+                       (change)="setChecked('HAS_PRE_DEFINED_AMOUNT', $any($event.target).checked)">
+                <span>Has Predefined Amounts</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-actions">
+          <button mat-flat-button color="primary" (click)="saveBasic()" [disabled]="saving()">
+            <mat-icon>save</mat-icon> {{ isNew() ? 'Create Project' : 'Save Basic Info' }}
+          </button>
+          @if (isDirty()) { <span class="dirty-hint">Unsaved changes</span> }
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ── Predefined Amounts ─────────────────────────────────────────── -->
+    <mat-tab label="Amounts ({{ amounts().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing amounts.</div>
+        } @else {
+          <table class="sub-table">
+            <thead><tr><th>#</th><th>Amount *</th><th></th></tr></thead>
+            <tbody>
+              @for (a of amounts(); track $index; let i = $index) {
+                <tr>
+                  <td class="mono">{{ i + 1 }}</td>
+                  <td><input class="field-input mono" type="number" [(ngModel)]="a.AMOUNT" placeholder="0"></td>
+                  <td>
+                    <button mat-icon-button class="btn-remove" (click)="removeAmount(i)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (amounts().length === 0) { <div class="tab-empty">No predefined amounts</div> }
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addAmount()"><mat-icon>add</mat-icon> Add Amount</button>
+            <button mat-flat-button color="primary" (click)="saveAmounts()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Amounts
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- ── Details ───────────────────────────────────────────────────── -->
+    <mat-tab label="Details ({{ details().length }})">
+      <div class="tab-body">
+        @if (isNew()) {
+          <div class="tab-notice">Save Basic Info first before editing details.</div>
+        } @else {
+          @for (d of details(); track $index; let i = $index) {
+            <div class="detail-card">
+              <div class="detail-card-header">
+                <span class="mono">Section {{ i + 1 }}</span>
+                <button mat-icon-button class="btn-remove" (click)="removeDetail(i)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+              <div class="form-grid">
+                <div class="field-group">
+                  <label class="field-label">Label (EN)</label>
+                  <input class="field-input" [(ngModel)]="d.LABEL_EN">
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Label (AR)</label>
+                  <input class="field-input rtl" [(ngModel)]="d.LABEL_AR">
+                </div>
+                <div class="field-group span-2">
+                  <label class="field-label">Description (EN)</label>
+                  <textarea class="field-textarea" rows="3" [(ngModel)]="d.DESC_EN"></textarea>
+                </div>
+                <div class="field-group span-2">
+                  <label class="field-label">Description (AR)</label>
+                  <textarea class="field-textarea rtl" rows="3" [(ngModel)]="d.DESC_AR"></textarea>
+                </div>
+              </div>
+            </div>
+          }
+          @if (details().length === 0) { <div class="tab-empty">No detail sections</div> }
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="addDetail()"><mat-icon>add</mat-icon> Add Section</button>
+            <button mat-flat-button color="primary" (click)="saveDetails()" [disabled]="saving()">
+              <mat-icon>save</mat-icon> Save Details
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

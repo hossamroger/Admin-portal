@@ -38,6 +38,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/manage/dynamic-list').then(m => m.DynamicListComponent),
       },
       {
+        path: 'manage/donation-project/:id',
+        canDeactivate: [dirtyGuard],
+        loadComponent: () => import('./features/donation-project/donation-project-form')
+          .then(m => m.DonationProjectFormComponent),
+      },
+      {
         path: 'manage/:entity/:id',
         canDeactivate: [dirtyGuard],
         loadComponent: () => import('./features/manage/dynamic-form').then(m => m.DynamicFormComponent),

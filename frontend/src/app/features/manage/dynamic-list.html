@@ -78,6 +78,13 @@
                 <button mat-icon-button matTooltip="Edit" (click)="edit(row)">
                   <mat-icon>edit</mat-icon>
                 </button>
+                @if (cfg()!.canDelete) {
+                  <button mat-icon-button color="warn" matTooltip="Delete"
+                          [disabled]="deleting().has(row[cfg()!.pk])"
+                          (click)="deleteRow(row)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                }
               </td>
             </tr>
           }

@@ -1,0 +1,55 @@
+/* Donation Project Form */
+.dpf-page { padding: 24px; max-width: 900px; margin: 0 auto; }
+.dpf-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.dpf-title { font-size: 22px; font-weight: 500; margin: 0; }
+.dpf-tabs { margin-top: 8px; }
+.tab-body { padding: 24px 0; }
+.tab-notice { color: var(--mat-sys-on-surface-variant); font-style: italic; padding: 24px 0; }
+.tab-empty { color: var(--mat-sys-on-surface-variant); padding: 32px; text-align: center; }
+.tab-actions { display: flex; align-items: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.dirty-hint { color: var(--mat-sys-on-surface-variant); font-style: italic; font-size: 13px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group.span-2 { grid-column: 1 / -1; }
+.field-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--mat-sys-primary); }
+.req-mark { color: var(--mat-sys-error); margin-left: 2px; }
+.field-input, .field-select, .field-textarea {
+  padding: 8px 10px; border: 1px solid var(--mat-sys-outline);
+  border-radius: 4px; font-size: 14px; background: transparent;
+  color: inherit; font-family: inherit; box-sizing: border-box; width: 100%;
+  &:focus { outline: none; border-color: var(--mat-sys-primary); }
+}
+.field-textarea { resize: vertical; min-height: 72px; }
+.rtl { direction: rtl; text-align: right; }
+.mono { font-family: monospace; }
+.flag-row { display: flex; flex-wrap: wrap; gap: 16px; }
+.flag-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.section-header {
+  grid-column: 1 / -1; font-size: 14px; font-weight: 600; margin: 8px 0 0;
+  color: var(--mat-sys-primary); border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding-bottom: 4px;
+}
+
+.sub-table { width: 100%; border-collapse: collapse; font-size: 14px;
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--mat-sys-on-surface-variant); }
+}
+.btn-remove { color: var(--mat-sys-error) !important; }
+
+.detail-card {
+  border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px;
+  margin-bottom: 16px; overflow: hidden;
+}
+.detail-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; background: var(--mat-sys-surface-variant);
+  font-size: 13px; font-weight: 500;
+}
+.detail-card .form-grid { padding: 16px; }
