@@ -202,7 +202,7 @@ public class ServiceConfigService {
 
     public List<String> listDistinctTypes() {
         return jdbc.queryForList(
-            "SELECT DISTINCT PROCESS_TYPE FROM BPM_PROCESSES_INFO WHERE PROCESS_TYPE IS NOT NULL ORDER BY PROCESS_TYPE",
+            "SELECT DISTINCT PROCESS_TYPE FROM BPM_PROCESSES_INFO WHERE PROCESS_TYPE IS NOT NULL AND UPPER(PROCESS_TYPE) != 'USER LEVEL' ORDER BY PROCESS_TYPE",
             String.class);
     }
 
