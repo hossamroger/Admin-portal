@@ -172,6 +172,26 @@ class GenericCrudServiceTest {
         assertFalse(sql.getValue().contains("SECRET"));
     }
 
+    @Test
+    void createRejectsAbsentNotNullColumn() {
+        // NAME is NOT NULL; leaving it out of the payload entirely must be a 400,
+        // not a raw DB constraint violation (500)
+        Map<String, Object> vals = new HashMap<>();
+        vals.put("NOTE", "x");
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.create(entity, vals));
+        assertTrue(ex.getMessage().contains("NAME is required"));
+    }
+
+    @Test
+    void updateAllowsAbsentNotNullColumn() {
+        // Partial updates may omit NOT NULL columns — only INSERT requires them
+        when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
+        Map<String, Object> vals = new HashMap<>();
+        vals.put("NOTE", "x");
+        svc.update(entity, "1", vals, null); // must not throw
+    }
+
     // ── create: retry on duplicate key ────────────────────────────────────────
 
     @Test
