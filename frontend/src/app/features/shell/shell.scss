@@ -200,7 +200,7 @@
   }
 }
 
-.content { background: var(--app-bg); overflow: hidden; }
+.content { background: var(--app-bg); overflow-y: auto; }
 
 .hide-handset { margin-left: 0; }
 
