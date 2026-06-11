@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { authGuard, adminGuard, dirtyGuard } from './core/guards';
 
 export const routes: Routes = [
@@ -33,6 +34,13 @@ export const routes: Routes = [
         canDeactivate: [dirtyGuard],
         loadComponent: () => import('./features/service-config/service-config-form').then(m => m.ServiceConfigFormComponent),
       },
+      {
+        path: 'manage/donation-project',
+        loadComponent: () => import('./features/donation-hub/donation-hub').then(m => m.DonationHubComponent),
+      },
+      // Categories and Organizations live inside the Donations hub as tabs
+      { path: 'manage/donation-category',     redirectTo: () => inject(Router).parseUrl('/manage/donation-project?tab=categories') },
+      { path: 'manage/donation-organization', redirectTo: () => inject(Router).parseUrl('/manage/donation-project?tab=organizations') },
       {
         path: 'manage/:entity',
         loadComponent: () => import('./features/manage/dynamic-list').then(m => m.DynamicListComponent),

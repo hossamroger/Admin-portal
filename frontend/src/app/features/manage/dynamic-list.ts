@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, inject, signal, OnDestroy, OnInit,
+  ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -30,6 +30,10 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
 
+  /** When embedded (e.g. inside the Donations hub) the host names the entity
+   *  directly instead of the :entity route param. */
+  readonly entity = input<string>();
+
   readonly cfg = signal<EntityConfig | null>(null);
 
   readonly loading   = signal(false);
@@ -52,6 +56,14 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   private reqSeq = 0;
 
   ngOnInit(): void {
+    const fixed = this.entity();
+    if (fixed) {
+      const cfg = ENTITY_CONFIGS[fixed];
+      if (!cfg) { this.router.navigate(['/']); return; }
+      this.cfg.set(cfg);
+      this.load(true);
+      return;
+    }
     this.routeSub = this.route.paramMap.subscribe(params => {
       const cfg = ENTITY_CONFIGS[params.get('entity') ?? ''];
       if (!cfg) { this.router.navigate(['/']); return; }

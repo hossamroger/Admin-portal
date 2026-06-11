@@ -1,0 +1,21 @@
+<div class="dh-page">
+  <mat-tab-group animationDuration="0" class="dh-tabs"
+                 [selectedIndex]="selectedIndex()"
+                 (selectedIndexChange)="onTabChange($event)">
+    <mat-tab label="Projects">
+      <ng-template matTabContent>
+        <app-dynamic-list entity="donation-project" />
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Categories">
+      <ng-template matTabContent>
+        <app-dynamic-list entity="donation-category" />
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Organizations">
+      <ng-template matTabContent>
+        <app-dynamic-list entity="donation-organization" />
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</div>

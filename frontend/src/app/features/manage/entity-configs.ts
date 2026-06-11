@@ -242,7 +242,5 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
 export const NAV_ENTITIES: EntityConfig[] = [
   ENTITY_CONFIGS['process-status'],
   ENTITY_CONFIGS['home-banner'],
-  ENTITY_CONFIGS['donation-category'],
-  ENTITY_CONFIGS['donation-organization'],
   ENTITY_CONFIGS['donation-project'],
 ];
