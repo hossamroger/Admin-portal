@@ -118,7 +118,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { col: 'URL',    label: 'URL',         type: 'text', span2: true, placeholder: 'https://…', required: true, section: 'Content' },
       { col: 'URL_SM', label: 'URL (Small)', type: 'text', span2: true, placeholder: 'https://… (small variant)', section: 'Content' },
       { col: 'EXTENSION_TYPE', label: 'Extension Type', type: 'text', section: 'Content' },
-      { col: 'PLATFORM',     label: 'Platform',     type: 'select', options: ['IOS', 'ANDROID', 'WEB', 'ALL'], section: 'Targeting' },
+      { col: 'PLATFORM',     label: 'Platform',     type: 'select', options: ['IOS', 'ANDROID', 'WEB'], required: true, section: 'Targeting' },
       { col: 'LANGUAGE',     label: 'Language',     type: 'select', options: ['AR', 'EN'], section: 'Targeting' },
       { col: 'MIN_VERSION',  label: 'Min Version',  type: 'text', mono: true, placeholder: 'e.g. 2.0.0', pattern: VERSION_PATTERN, patternMsg: VERSION_MSG, section: 'Targeting' },
       { col: 'BANNER_ORDER', label: 'Banner Order', type: 'number', mono: true, placeholder: 'auto (MAX+1)', section: 'Targeting' },
