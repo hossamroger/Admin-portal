@@ -248,7 +248,14 @@ public class GenericCrudService {
             ColMeta m = en.getValue();
             if (col.equals(e.pk) || col.equals(e.createdAtCol) || col.equals(e.updatedAtCol)
                 || col.equals(e.orderCol)) continue;
-            if (!row.containsKey(col)) continue;
+            if (!row.containsKey(col)) {
+                // On INSERT a NOT NULL column simply left out of the payload would
+                // otherwise surface as a raw DB constraint error (500). Only enforce
+                // for columns the API can actually write.
+                boolean writable = e.writableCols.isEmpty() || e.writableCols.contains(col);
+                if (insert && !m.nullable && writable) problems.add(col + " is required");
+                continue;
+            }
             Object v = row.get(col);
             boolean blank = v == null || v.toString().trim().isEmpty();
             if (!m.nullable && blank) {
