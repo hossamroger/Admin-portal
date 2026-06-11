@@ -174,7 +174,7 @@
               @for (a of amounts(); track $index; let i = $index) {
                 <tr>
                   <td class="mono">{{ i + 1 }}</td>
-                  <td><input class="field-input mono" type="number" [(ngModel)]="a.AMOUNT" placeholder="0"></td>
+                  <td><input class="field-input mono" type="number" min="1" [(ngModel)]="a.AMOUNT" placeholder="0"></td>
                   <td>
                     <button mat-icon-button class="btn-remove" (click)="removeAmount(i)">
                       <mat-icon>delete_outline</mat-icon>

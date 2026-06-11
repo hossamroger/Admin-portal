@@ -147,6 +147,7 @@ export class DynamicListComponent implements OnInit, OnDestroy {
     this.deleting.update(s => new Set([...s, id]));
     this.api.crudDelete(cfg.name, String(id)).subscribe({
       next: () => {
+        this.reqSeq++; // discard any in-flight list response as stale
         this.items.update(arr => arr.filter(r => r[cfg.pk] !== id));
         this.total.update(t => Math.max(t - 1, 0));
         this.deleting.update(s => { const n = new Set(s); n.delete(id); return n; });
