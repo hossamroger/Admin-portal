@@ -63,7 +63,7 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     this.isNew.set(id === 'new');
     this.loadLookups();
     if (this.isNew()) {
-      this.dto.set({ LIMITED: 'N', HAS_PRE_DEFINED_AMOUNT: 'N' });
+      this.dto.set(this.normalizeFlags({ LIMITED: 'N', HAS_PRE_DEFINED_AMOUNT: 'N' }));
       this.takeSnapshot();
     } else {
       this.projectId.set(id);
@@ -80,24 +80,54 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     this.loading.set(true);
     this.api.crudGet('donation-project', id).subscribe({
       next: row => {
-        this.dto.set(row);
+        this.dto.set(this.normalizeFlags(row));
         this.loading.set(false);
         this.takeSnapshot();
       },
       error: err => { this.loading.set(false); this.notify.error(err, 'Failed to load project'); },
     });
-    this.api.donationAmounts(id).subscribe({ next: v => this.amounts.set(v.map(r => ({ AMOUNT: String(r['AMOUNT'] ?? '') }))), error: () => {} });
-    this.api.donationDetails(id).subscribe({ next: v => this.details.set(v.map(r => ({
-      REC_ID: r['REC_ID'],
-      LABEL_AR: String(r['LABEL_AR'] ?? ''),
-      LABEL_EN: String(r['LABEL_EN'] ?? ''),
-      DESC_AR:  String(r['DESC_AR']  ?? ''),
-      DESC_EN:  String(r['DESC_EN']  ?? ''),
-    }))), error: () => {} });
+    this.api.donationAmounts(id).subscribe({
+      next: v => {
+        this.amounts.set(v.map(r => ({ AMOUNT: String(r['AMOUNT'] ?? '') })));
+        this.takeSnapshot();
+      },
+      error: () => {},
+    });
+    this.api.donationDetails(id).subscribe({
+      next: v => {
+        this.details.set(v.map(r => ({
+          REC_ID: r['REC_ID'],
+          LABEL_AR: String(r['LABEL_AR'] ?? ''),
+          LABEL_EN: String(r['LABEL_EN'] ?? ''),
+          DESC_AR:  String(r['DESC_AR']  ?? ''),
+          DESC_EN:  String(r['DESC_EN']  ?? ''),
+        })));
+        this.takeSnapshot();
+      },
+      error: () => {},
+    });
   }
 
-  private takeSnapshot(): void { this.savedSnapshot = JSON.stringify(this.dto()); }
-  isDirty(): boolean { return !this.saving() && JSON.stringify(this.dto()) !== this.savedSnapshot; }
+  /**
+   * Make flag columns canonical: legacy/loose truthy values ('t', 'Y', '1'…)
+   * become 'Y', anything else (including NULL) 'N' — so an untouched save
+   * persists an explicit 'N' instead of NULL.
+   */
+  private normalizeFlags(row: CrudRow): CrudRow {
+    const out = { ...row };
+    for (const col of ['LIMITED', 'HAS_PRE_DEFINED_AMOUNT']) {
+      const v = out[col];
+      const s = String(v ?? '').trim().toUpperCase();
+      out[col] = (v === true || v === 1 || s.startsWith('Y') || s === 'T' || s === '1' || s === 'TRUE') ? 'Y' : 'N';
+    }
+    return out;
+  }
+
+  private snapshot(): string {
+    return JSON.stringify({ d: this.dto(), a: this.amounts(), x: this.details() });
+  }
+  private takeSnapshot(): void { this.savedSnapshot = this.snapshot(); }
+  isDirty(): boolean { return !this.saving() && this.snapshot() !== this.savedSnapshot; }
 
   set(col: string, v: string): void {
     this.dto.update(d => ({ ...d, [col]: v === '' ? null : v }));
@@ -152,10 +182,13 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
 
   saveAmounts(): void {
     if (this.saving()) return;
+    const bad = this.amounts().some(a =>
+      !String(a.AMOUNT ?? '').trim() || isNaN(Number(a.AMOUNT)) || Number(a.AMOUNT) <= 0);
+    if (bad) { this.notify.warn('All amounts must be numbers greater than zero'); return; }
     this.saving.set(true);
     const rows = this.amounts().map(a => ({ AMOUNT: a.AMOUNT }));
     this.api.saveDonationAmounts(this.projectId()!, rows).subscribe({
-      next: () => { this.saving.set(false); this.notify.success('Amounts saved'); },
+      next: () => { this.saving.set(false); this.notify.success('Amounts saved'); this.takeSnapshot(); },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
     });
   }
@@ -164,7 +197,7 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     if (this.saving()) return;
     this.saving.set(true);
     this.api.saveDonationDetails(this.projectId()!, this.details() as any).subscribe({
-      next: () => { this.saving.set(false); this.notify.success('Details saved'); },
+      next: () => { this.saving.set(false); this.notify.success('Details saved'); this.takeSnapshot(); },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
     });
   }

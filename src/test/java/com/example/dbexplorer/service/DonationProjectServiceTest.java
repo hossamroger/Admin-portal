@@ -31,12 +31,21 @@ class DonationProjectServiceTest {
         return m;
     }
 
+    /** Stub the requireProject existence check. */
+    private void projectExists(long projectId, boolean exists) {
+        when(jdbc.queryForObject(
+            eq("SELECT COUNT(*) FROM DA_DONATION_PROJECTS WHERE PRJ_ID = ?"),
+            eq(Long.class), eq(projectId)))
+            .thenReturn(exists ? 1L : 0L);
+    }
+
     // ── saveAmounts ───────────────────────────────────────────────────────────
 
     @Test
-    void saveAmountsDeletesThenInsertsWithSequentialMaxPlusOneIds() {
-        when(jdbc.queryForObject(startsWith("SELECT NVL(MAX(ID),0)+1"), eq(Long.class)))
-            .thenReturn(5L, 6L);
+    void saveAmountsValidatesThenDeletesThenInsertsWithBasePlusN() {
+        projectExists(9L, true);
+        when(jdbc.queryForObject(startsWith("SELECT NVL(MAX(ID),0)"), eq(Long.class)))
+            .thenReturn(4L);
         when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
 
         svc.saveAmounts(9L, Arrays.asList(row("AMOUNT", "100"), row("AMOUNT", 250)));
@@ -52,7 +61,8 @@ class DonationProjectServiceTest {
         assertTrue(sql.getAllValues().get(1).startsWith("INSERT INTO DA_DONATION_PROJECTS_AMOUNT"));
         assertTrue(sql.getAllValues().get(2).startsWith("INSERT INTO DA_DONATION_PROJECTS_AMOUNT"));
 
-        // sequential MAX+1 ids: bound args of the two insert calls
+        // single MAX query, ids are base+1..base+n
+        verify(jdbc, times(1)).queryForObject(startsWith("SELECT NVL(MAX(ID),0)"), eq(Long.class));
         verify(jdbc).update(startsWith("INSERT INTO DA_DONATION_PROJECTS_AMOUNT"),
             eq(5L), eq(9L), eq(new BigDecimal("100")));
         verify(jdbc).update(startsWith("INSERT INTO DA_DONATION_PROJECTS_AMOUNT"),
@@ -60,33 +70,63 @@ class DonationProjectServiceTest {
     }
 
     @Test
-    void saveAmountsSkipsNullAmounts() {
-        when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
+    void saveAmountsRejectsNonNumericBeforeDelete() {
+        projectExists(9L, true);
 
-        svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", null)));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", "abc"))));
+        assertEquals("Invalid amount: abc", ex.getMessage());
 
-        // only the delete happens, no insert and no MAX+1 query
-        verify(jdbc, times(1)).update(anyString(), ArgumentMatchers.<Object[]>any());
-        verify(jdbc, never()).queryForObject(anyString(), eq(Long.class));
+        // validation fails before any row is touched — no delete, no insert
+        verify(jdbc, never()).update(anyString(), ArgumentMatchers.<Object[]>any());
     }
 
     @Test
-    void saveAmountsRejectsNonNumeric() {
-        when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
+    void saveAmountsRejectsNullOrBlankAmount() {
+        projectExists(9L, true);
 
-        assertThrows(IllegalArgumentException.class,
-            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", "abc"))));
-        // delete already happened before the validation failure (no transaction!)
-        verify(jdbc).update(eq("DELETE FROM DA_DONATION_PROJECTS_AMOUNT WHERE PROJECT_ID = ?"),
-            ArgumentMatchers.<Object[]>any());
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", null))));
+        assertEquals("Amount is required", ex.getMessage());
+
+        ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", "  "))));
+        assertEquals("Amount is required", ex.getMessage());
+
+        verify(jdbc, never()).update(anyString(), ArgumentMatchers.<Object[]>any());
+    }
+
+    @Test
+    void saveAmountsRejectsNonPositiveAmount() {
+        projectExists(9L, true);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", "-5"))));
+        assertEquals("Amount must be greater than zero", ex.getMessage());
+
+        ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", "0"))));
+        assertEquals("Amount must be greater than zero", ex.getMessage());
+
+        verify(jdbc, never()).update(anyString(), ArgumentMatchers.<Object[]>any());
+    }
+
+    @Test
+    void saveAmountsThrowsForUnknownProject() {
+        projectExists(9L, false);
+
+        assertThrows(NoSuchElementException.class,
+            () -> svc.saveAmounts(9L, Collections.singletonList(row("AMOUNT", "100"))));
+        verify(jdbc, never()).update(anyString(), ArgumentMatchers.<Object[]>any());
     }
 
     // ── saveDetails ───────────────────────────────────────────────────────────
 
     @Test
     void saveDetailsDeletesThenInsertsWithOrderOneToN() {
-        when(jdbc.queryForObject(startsWith("SELECT NVL(MAX(REC_ID),0)+1"), eq(Long.class)))
-            .thenReturn(11L, 12L);
+        projectExists(7L, true);
+        when(jdbc.queryForObject(startsWith("SELECT NVL(MAX(REC_ID),0)"), eq(Long.class)))
+            .thenReturn(10L);
         when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
 
         Map<String, Object> d1 = new HashMap<>();
@@ -102,16 +142,42 @@ class DonationProjectServiceTest {
             eq("DELETE FROM DA_DONATION_PROJECTS_DETAILS WHERE PRJ_ID = ?"),
             ArgumentMatchers.<Object[]>any());
 
+        // single MAX query, REC_IDs are base+1..base+n
+        verify(jdbc, times(1)).queryForObject(startsWith("SELECT NVL(MAX(REC_ID),0)"), eq(Long.class));
         verify(jdbc).update(startsWith("INSERT INTO DA_DONATION_PROJECTS_DETAILS"),
             eq(11L), eq(7L), eq("ع1"), eq("e1"), eq("دع1"), eq("de1"), eq(1));
         verify(jdbc).update(startsWith("INSERT INTO DA_DONATION_PROJECTS_DETAILS"),
             eq(12L), eq(7L), isNull(), eq("e2"), isNull(), isNull(), eq(2));
     }
 
+    @Test
+    void saveDetailsRejectsOversizedLabelBeforeDelete() {
+        projectExists(7L, true);
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1601; i++) sb.append('x');
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> svc.saveDetails(7L, Collections.singletonList(row("LABEL_AR", sb.toString()))));
+        assertEquals("LABEL_AR exceeds maximum length of 1600", ex.getMessage());
+
+        verify(jdbc, never()).update(anyString(), ArgumentMatchers.<Object[]>any());
+    }
+
+    @Test
+    void saveDetailsThrowsForUnknownProject() {
+        projectExists(7L, false);
+
+        assertThrows(NoSuchElementException.class,
+            () -> svc.saveDetails(7L, Collections.emptyList()));
+        verify(jdbc, never()).update(anyString(), ArgumentMatchers.<Object[]>any());
+    }
+
     // ── list delegation ───────────────────────────────────────────────────────
 
     @Test
     void listAmountsDelegatesCorrectSql() {
+        projectExists(3L, true);
         List<Map<String, Object>> rows = Collections.singletonList(row("AMOUNT", 5));
         when(jdbc.queryForList(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(rows);
 
@@ -125,7 +191,18 @@ class DonationProjectServiceTest {
     }
 
     @Test
+    void listAmountsThrowsForUnknownProject() {
+        projectExists(3L, false);
+
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class,
+            () -> svc.listAmounts(3L));
+        assertEquals("Project not found: 3", ex.getMessage());
+        verify(jdbc, never()).queryForList(anyString(), ArgumentMatchers.<Object[]>any());
+    }
+
+    @Test
     void listDetailsDelegatesCorrectSql() {
+        projectExists(3L, true);
         List<Map<String, Object>> rows = Collections.singletonList(row("LABEL_EN", "x"));
         when(jdbc.queryForList(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(rows);
 
@@ -137,5 +214,13 @@ class DonationProjectServiceTest {
             "SELECT REC_ID, LABEL_AR, LABEL_EN, DESC_AR, DESC_EN, ORDER_C " +
             "FROM DA_DONATION_PROJECTS_DETAILS WHERE PRJ_ID = ? ORDER BY ORDER_C NULLS LAST, REC_ID",
             sql.getValue());
+    }
+
+    @Test
+    void listDetailsThrowsForUnknownProject() {
+        projectExists(3L, false);
+
+        assertThrows(NoSuchElementException.class, () -> svc.listDetails(3L));
+        verify(jdbc, never()).queryForList(anyString(), ArgumentMatchers.<Object[]>any());
     }
 }

@@ -124,6 +124,11 @@ public class AuthFilter extends OncePerRequestFilter {
                      : "DELETE".equals(method) ? "DELETE_ROW" : method;
             return new String[]{a, dec(last)};
         }
+        if (path.startsWith("/api/donation-project/") && "PUT".equals(method)) {
+            String a = path.endsWith("/amounts") ? "SAVE_DONATION_AMOUNTS"
+                     : path.endsWith("/details") ? "SAVE_DONATION_DETAILS" : method;
+            return new String[]{a, p.length > 3 ? dec(p[3]) : null};
+        }
         if (path.startsWith("/api/attachments/upload")) return new String[]{"UPLOAD_FILE", null};
         if (path.equals("/api/schema")) return new String[]{"VIEW_OVERVIEW", null};
         if (path.startsWith("/api/schema/objects")) return new String[]{"LIST_OBJECTS", req.getParameter("type")};
