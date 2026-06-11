@@ -42,6 +42,7 @@ export class DynamicListComponent implements OnInit, OnDestroy {
 
   readonly sortCol = signal<string | null>(null);
   readonly sortDir = signal<'ASC' | 'DESC'>('ASC');
+  readonly deleting = signal<Set<unknown>>(new Set());
 
   readonly hasMore = computed(() => this.items().length < this.total());
 
@@ -136,6 +137,27 @@ export class DynamicListComponent implements OnInit, OnDestroy {
 
   create(): void { this.router.navigate(['/manage', this.cfg()!.name, 'new']); }
   edit(row: CrudRow): void { this.router.navigate(['/manage', this.cfg()!.name, row[this.cfg()!.pk]]); }
+
+  canDelete(cfg: EntityConfig): boolean { return cfg.canDelete ?? false; }
+
+  deleteRow(row: CrudRow): void {
+    const cfg = this.cfg()!;
+    const id = row[cfg.pk];
+    if (!confirm(`Delete this ${cfg.titleSingular}? This cannot be undone.`)) return;
+    this.deleting.update(s => new Set([...s, id]));
+    this.api.crudDelete(cfg.name, String(id)).subscribe({
+      next: () => {
+        this.items.update(arr => arr.filter(r => r[cfg.pk] !== id));
+        this.total.update(t => Math.max(t - 1, 0));
+        this.deleting.update(s => { const n = new Set(s); n.delete(id); return n; });
+        this.notify.success(`${cfg.titleSingular} deleted`);
+      },
+      error: err => {
+        this.deleting.update(s => { const n = new Set(s); n.delete(id); return n; });
+        this.notify.error(err, 'Delete failed');
+      },
+    });
+  }
 
   trackId(row: CrudRow): unknown {
     return row[this.cfg()?.pk ?? 'ID'];

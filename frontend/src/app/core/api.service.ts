@@ -144,6 +144,23 @@ export class ApiService {
   crudLookup(entity: string, name: string): Observable<LookupItem[]> {
     return this.http.get<LookupItem[]>(`/api/crud/${entity}/lookup/${encodeURIComponent(name)}`);
   }
+  crudDelete(entity: string, id: string): Observable<unknown> {
+    return this.http.delete(`/api/crud/${entity}/${encodeURIComponent(id)}`);
+  }
+
+  // ---- donation project sub-tables ----
+  donationAmounts(id: number | string): Observable<Record<string,unknown>[]> {
+    return this.http.get<Record<string,unknown>[]>(`/api/donation-project/${id}/amounts`);
+  }
+  saveDonationAmounts(id: number | string, rows: Record<string,unknown>[]): Observable<unknown> {
+    return this.http.put(`/api/donation-project/${id}/amounts`, rows);
+  }
+  donationDetails(id: number | string): Observable<Record<string,unknown>[]> {
+    return this.http.get<Record<string,unknown>[]>(`/api/donation-project/${id}/details`);
+  }
+  saveDonationDetails(id: number | string, rows: Record<string,unknown>[]): Observable<unknown> {
+    return this.http.put(`/api/donation-project/${id}/details`, rows);
+  }
 
   // ---- attachments ----
   uploadAttachment(file: File, folder: string, documentName: string): Observable<HttpEvent<UploadResult>> {

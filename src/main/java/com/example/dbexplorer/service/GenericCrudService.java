@@ -206,6 +206,17 @@ public class GenericCrudService {
         if (updated == 0) throw new NoSuchElementException("Record not found: " + id);
     }
 
+    // ── Delete ────────────────────────────────────────────────────────────────
+
+    public void delete(CrudEntity e, String id, String rowFilter) {
+        String where = " WHERE " + e.pk + " = ?";
+        if (rowFilter != null && !rowFilter.trim().isEmpty()) where += " AND (" + rowFilter + ")";
+        int deleted = jdbc.update(
+            "DELETE FROM " + e.table + where,
+            coerce(e.table, e.pk, id));
+        if (deleted == 0) throw new NoSuchElementException("Record not found: " + id);
+    }
+
     // ── Lookup (dropdown data) ────────────────────────────────────────────────
 
     public List<Map<String, Object>> lookup(CrudEntity e, String name) {

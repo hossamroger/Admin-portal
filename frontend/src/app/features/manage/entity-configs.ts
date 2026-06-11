@@ -57,6 +57,7 @@ export interface EntityConfig {
   titleSingular: string;   // "New X" button / form heading
   icon: string;            // material icon for the nav link
   pk: string;              // PK column name
+  canDelete?: boolean;
   searchPlaceholder: string;
   listColumns: ListColDef[];
   fields: FieldDef[];
@@ -139,10 +140,95 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { col: 'UPDATED_AT', label: 'Updated At', type: 'readonly', mono: true, section: 'Audit' },
     ],
   },
+  'donation-category': {
+    name: 'donation-category',
+    title: 'Donation Categories',
+    titleSingular: 'Category',
+    icon: 'category',
+    pk: 'CAT_ID',
+    canDelete: true,
+    searchPlaceholder: 'Search by label…',
+    listColumns: [
+      { col: 'CAT_ID',   label: 'ID',       mono: true },
+      { col: 'LABEL_EN', label: 'Label (EN)' },
+      { col: 'LABEL_AR', label: 'Label (AR)', rtl: true },
+      { col: 'ORDER_C',  label: 'Order',    mono: true },
+    ],
+    fields: [
+      { col: 'LABEL_EN', label: 'Label (EN)', type: 'text', required: true, maxLength: 400 },
+      { col: 'LABEL_AR', label: 'Label (AR)', type: 'text', rtl: true, required: true, maxLength: 400 },
+      { col: 'ORDER_C',  label: 'Display Order', type: 'number', mono: true, placeholder: 'auto' },
+    ],
+  },
+
+  'donation-organization': {
+    name: 'donation-organization',
+    title: 'Donation Organizations',
+    titleSingular: 'Organization',
+    icon: 'apartment',
+    pk: 'ORG_ID',
+    canDelete: true,
+    searchPlaceholder: 'Search by name…',
+    listColumns: [
+      { col: 'ORG_ID',   label: 'ID',       mono: true },
+      { col: 'LABEL_EN', label: 'Name (EN)' },
+      { col: 'LABEL_AR', label: 'Name (AR)', rtl: true },
+      { col: 'ORDER_C',  label: 'Order',    mono: true },
+    ],
+    fields: [
+      { col: 'LABEL_EN', label: 'Name (EN)', type: 'text', required: true, maxLength: 400 },
+      { col: 'LABEL_AR', label: 'Name (AR)', type: 'text', rtl: true, required: true, maxLength: 400 },
+      { col: 'ORDER_C',  label: 'Display Order', type: 'number', mono: true, placeholder: 'auto' },
+      { col: 'ICON_URL', label: 'Icon URL', type: 'text', span2: true, placeholder: 'https://…', maxLength: 500 },
+    ],
+  },
+
+  'donation-project': {
+    name: 'donation-project',
+    title: 'Donation Projects',
+    titleSingular: 'Project',
+    icon: 'volunteer_activism',
+    pk: 'PRJ_ID',
+    canDelete: true,
+    searchPlaceholder: 'Search by name…',
+    listColumns: [
+      { col: 'PRJ_ID',   label: 'ID',         mono: true },
+      { col: 'NAME_EN',  label: 'Name (EN)' },
+      { col: 'NAME_AR',  label: 'Name (AR)',   rtl: true },
+      { col: 'STATUS',   label: 'Status',      mono: true },
+      { col: 'TOTAL_AMOUNT', label: 'Target',  mono: true },
+      { col: 'PAID_AMOUNT',  label: 'Paid',    mono: true },
+      { col: 'START_DATE',   label: 'Start',   mono: true, truncate: 10 },
+      { col: 'ORDER_C',  label: 'Order',       mono: true },
+    ],
+    fields: [
+      { col: 'NAME_EN',  label: 'Name (EN)', type: 'text', required: true, maxLength: 400, section: 'Basic' },
+      { col: 'NAME_AR',  label: 'Name (AR)', type: 'text', rtl: true, required: true, maxLength: 400, section: 'Basic' },
+      { col: 'STATUS',   label: 'Status',    type: 'select', options: ['A','I','C'], section: 'Basic' },
+      { col: 'ICON_URL', label: 'Icon URL',  type: 'text', span2: true, placeholder: 'https://…', section: 'Basic' },
+      { col: 'ORGANIZATION_ID', label: 'Organization', type: 'lookup', lookup: 'orgs', section: 'Classification' },
+      { col: 'CATEGORY_ID',     label: 'Category',     type: 'lookup', lookup: 'cats', section: 'Classification' },
+      { col: 'ORDER_C',              label: 'Display Order',     type: 'number', mono: true, placeholder: 'auto', section: 'Classification' },
+      { col: 'ORGANIZATION_ORDER_C', label: 'Org. Display Order', type: 'number', mono: true, section: 'Classification' },
+      { col: 'MIN_AMOUNT',   label: 'Min Amount',    type: 'number', mono: true, section: 'Amounts' },
+      { col: 'TOTAL_AMOUNT', label: 'Target Amount', type: 'number', mono: true, section: 'Amounts' },
+      { col: 'PAID_AMOUNT',  label: 'Paid Amount',   type: 'number', mono: true, section: 'Amounts' },
+      { col: 'REST_OF_AMOUNT', label: 'Remaining Amount', type: 'number', mono: true, section: 'Amounts' },
+      { col: 'PERCENTAGE',   label: 'Percentage %',  type: 'number', mono: true, section: 'Amounts' },
+      { col: 'START_DATE',          label: 'Start Date',    type: 'date', mono: true, section: 'Schedule' },
+      { col: 'REST_NUMBER_OF_DAYS', label: 'Days Remaining', type: 'number', mono: true, section: 'Schedule' },
+      { col: 'LIMITED',              label: 'Limited',              type: 'checkboxYN', default: 'N' },
+      { col: 'HAS_PRE_DEFINED_AMOUNT', label: 'Has Predefined Amounts', type: 'checkboxYN', default: 'N' },
+      { col: 'CREATION_DATE', label: 'Created', type: 'readonly', mono: true, section: 'Audit' },
+    ],
+  },
 };
 
 /** Entities surfaced as sidebar links, in display order. */
 export const NAV_ENTITIES: EntityConfig[] = [
   ENTITY_CONFIGS['process-status'],
   ENTITY_CONFIGS['home-banner'],
+  ENTITY_CONFIGS['donation-category'],
+  ENTITY_CONFIGS['donation-organization'],
+  ENTITY_CONFIGS['donation-project'],
 ];

@@ -85,6 +85,16 @@ public class GenericCrudController {
         return ResponseEntity.ok(r);
     }
 
+    @DeleteMapping("/{entity}/{id}")
+    public ResponseEntity<Map<String,Object>> delete(
+            @PathVariable String entity, @PathVariable String id, HttpServletRequest http) {
+        Access a = resolve(entity, "DELETE", http);
+        svc.delete(a.entity, id, a.rowFilter);
+        Map<String,Object> r = new HashMap<>();
+        r.put("message","Deleted");
+        return ResponseEntity.ok(r);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static final class Access {
