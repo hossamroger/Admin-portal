@@ -37,7 +37,7 @@ public class DonationProjectController {
             HttpServletRequest http) {
         authorize(http, "UPDATE", AMOUNTS_TABLE);
         svc.saveAmounts(id, body);
-        return ResponseEntity.ok(Map.of("message","Saved"));
+        return ResponseEntity.ok(saved());
     }
 
     @GetMapping("/{id}/details")
@@ -52,7 +52,13 @@ public class DonationProjectController {
             HttpServletRequest http) {
         authorize(http, "UPDATE", DETAILS_TABLE);
         svc.saveDetails(id, body);
-        return ResponseEntity.ok(Map.of("message","Saved"));
+        return ResponseEntity.ok(saved());
+    }
+
+    private static Map<String, Object> saved() {
+        Map<String, Object> r = new HashMap<>();
+        r.put("message", "Saved");
+        return r;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
