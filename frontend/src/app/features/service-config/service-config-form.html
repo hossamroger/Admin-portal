@@ -54,7 +54,7 @@
             <label class="field-label">Type</label>
             <select class="field-select" [value]="info().processType || ''"
                     (change)="setInfo('processType', $any($event.target).value)">
-              <option value="">— none —</option>
+              <option value="" disabled hidden>Select…</option>
               @for (t of types(); track t) { <option [value]="t">{{ t }}</option> }
             </select>
           </div>
@@ -438,7 +438,7 @@
                   <td><input class="field-input" [(ngModel)]="aud.targetAudienceDescEn"></td>
                   <td>
                     <select class="field-select" [(ngModel)]="aud.mainTargetAudienceSeq">
-                      <option [ngValue]="null">— none —</option>
+                      <option [ngValue]="null" disabled hidden>Select…</option>
                       @for (a of audienceLookup(); track a.seq) {
                         <option [ngValue]="a.seq">{{ a.descEn }}</option>
                       }
@@ -484,7 +484,7 @@
                 <div class="field-group">
                   <label class="field-label">Screen Info</label>
                   <select class="field-select" [(ngModel)]="cfg.dsConfirmationScreenInfoId">
-                    <option [ngValue]="null">— none —</option>
+                    <option [ngValue]="null" disabled hidden>Select…</option>
                     @for (s of screenLookup(); track s.id) {
                       <option [ngValue]="s.id">{{ s.headerEn }}</option>
                     }
