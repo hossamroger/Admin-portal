@@ -51,7 +51,7 @@
               @switch (lookupState()['orgs']) {
                 @case ('loading') { <option value="" [selected]="true">Loading…</option> }
                 @case ('error')   { <option value="" [selected]="true">Failed to load options</option> }
-                @default          { <option value="" [selected]="val('ORGANIZATION_ID') === ''">— none —</option> }
+                @default          { <option value="" disabled hidden [selected]="val('ORGANIZATION_ID') === ''">Select…</option> }
               }
               @for (o of orgs(); track o.id) {
                 <option [value]="o.id" [selected]="val('ORGANIZATION_ID') === String(o.id)">
@@ -68,7 +68,7 @@
               @switch (lookupState()['cats']) {
                 @case ('loading') { <option value="" [selected]="true">Loading…</option> }
                 @case ('error')   { <option value="" [selected]="true">Failed to load options</option> }
-                @default          { <option value="" [selected]="val('CATEGORY_ID') === ''">— none —</option> }
+                @default          { <option value="" disabled hidden [selected]="val('CATEGORY_ID') === ''">Select…</option> }
               }
               @for (o of cats(); track o.id) {
                 <option [value]="o.id" [selected]="val('CATEGORY_ID') === String(o.id)">

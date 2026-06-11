@@ -34,7 +34,7 @@
                 @switch (lookupStateFor(f)) {
                   @case ('loading') { <option value="" [selected]="true">Loading…</option> }
                   @case ('error')   { <option value="" [selected]="true">Failed to load options</option> }
-                  @default          { <option value="" [selected]="value(f) === ''">— none —</option> }
+                  @default          { <option value="" disabled hidden [selected]="value(f) === ''">Select…</option> }
                 }
                 @for (o of optionsFor(f); track o.id) {
                   <!-- [selected] re-applies after async options arrive; [value] alone would not -->
@@ -46,7 +46,7 @@
               <select class="field-select" [id]="'fld-' + f.col"
                       [value]="value(f)"
                       (change)="set(f, $any($event.target).value)">
-                <option value="" [selected]="value(f) === ''">— none —</option>
+                <option value="" disabled hidden [selected]="value(f) === ''">Select…</option>
                 @for (o of selectOptions(f); track o) {
                   <option [value]="o" [selected]="o === value(f)">{{ o }}</option>
                 }
