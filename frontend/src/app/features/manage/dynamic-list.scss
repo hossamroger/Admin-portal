@@ -27,7 +27,7 @@
   span { font-size: 14px; }
 }
 
-.dl-table-wrap { border: 1px solid var(--app-line); border-radius: 8px; overflow: auto; max-height: calc(100vh - 230px); }
+.dl-table-wrap { border: 1px solid var(--app-line); border-radius: 8px; overflow: auto; max-height: calc(100vh - var(--dl-table-offset, 230px)); }
 
 .dl-table {
   width: 100%; border-collapse: collapse; font-size: 14px;
