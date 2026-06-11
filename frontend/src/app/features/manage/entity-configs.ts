@@ -209,7 +209,6 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
       { col: 'STATUS',   label: 'Status', badgeMap: {
           A: { label: 'Active',   kind: 'ok' },
           I: { label: 'Inactive', kind: 'muted' },
-          C: { label: 'Closed',   kind: 'warn' },
         } },
       { col: 'TOTAL_AMOUNT', label: 'Target',  mono: true, align: 'right', numberFormat: true },
       { col: 'PAID_AMOUNT',  label: 'Paid',    mono: true, align: 'right', numberFormat: true },
@@ -219,7 +218,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     fields: [
       { col: 'NAME_EN',  label: 'Name (EN)', type: 'text', required: true, maxLength: 400, section: 'Basic' },
       { col: 'NAME_AR',  label: 'Name (AR)', type: 'text', rtl: true, required: true, maxLength: 400, section: 'Basic' },
-      { col: 'STATUS',   label: 'Status',    type: 'select', options: ['A','I','C'], default: 'A', section: 'Basic' },
+      { col: 'STATUS',   label: 'Status',    type: 'select', options: ['A','I'], default: 'A', section: 'Basic' },
       { col: 'ICON_URL', label: 'Icon URL',  type: 'text', span2: true, placeholder: 'https://…', section: 'Basic' },
       { col: 'ORGANIZATION_ID', label: 'Organization', type: 'lookup', lookup: 'orgs', section: 'Classification' },
       { col: 'CATEGORY_ID',     label: 'Category',     type: 'lookup', lookup: 'cats', section: 'Classification' },

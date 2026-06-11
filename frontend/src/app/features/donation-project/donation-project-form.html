@@ -33,10 +33,8 @@
             <label class="field-label" for="fld-STATUS">Status</label>
             <select class="field-select" id="fld-STATUS" [value]="val('STATUS')"
                     (change)="set('STATUS', $any($event.target).value)">
-              <option value="">— none —</option>
               <option value="A">Active</option>
               <option value="I">Inactive</option>
-              <option value="C">Closed</option>
             </select>
           </div>
 
