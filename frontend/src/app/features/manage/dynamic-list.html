@@ -23,10 +23,23 @@
     </div>
   </div>
 
-  @if (total() === 0 && !loading()) {
+  @if (loadError() && items().length === 0) {
+    <div class="dl-empty">
+      <mat-icon>error_outline</mat-icon>
+      <span>Could not load data</span>
+      <button mat-stroked-button (click)="load(true)">
+        <mat-icon>refresh</mat-icon> Retry
+      </button>
+    </div>
+  } @else if (total() === 0 && !loading()) {
     <div class="dl-empty">
       <mat-icon>manage_search</mat-icon>
-      <span>No records found</span>
+      @if (search()) {
+        <span>No results for “{{ search() }}”</span>
+        <button mat-stroked-button (click)="clearSearch()">Clear search</button>
+      } @else {
+        <span>No records yet — create the first one</span>
+      }
     </div>
   } @else {
     <!-- (scroll) binding survives this branch being destroyed/re-created,
@@ -36,14 +49,20 @@
         <thead>
           <tr>
             @for (col of c.listColumns; track col.col) {
-              <th>{{ col.label }}</th>
+              <th [class.sortable]="!col.noSort" (click)="toggleSort(col)">
+                <span class="th-inner">
+                  {{ col.label }}
+                  @if (sortIcon(col)) { <mat-icon class="sort-icon">{{ sortIcon(col) }}</mat-icon> }
+                </span>
+              </th>
             }
             <th class="th-actions"></th>
           </tr>
         </thead>
         <tbody>
           @for (row of items(); track trackId(row)) {
-            <tr class="dl-row" (click)="edit(row)">
+            <tr class="dl-row" tabindex="0" role="button"
+                (click)="edit(row)" (keydown.enter)="edit(row)">
               @for (col of c.listColumns; track col.col) {
                 <td [class.mono]="col.mono" [class.rtl]="col.rtl">
                   @if (col.badge01) {

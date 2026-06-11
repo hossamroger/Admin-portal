@@ -2,8 +2,11 @@ package com.example.dbexplorer.service;
 
 import com.example.dbexplorer.config.CrudEntities.CrudEntity;
 import com.example.dbexplorer.config.CrudEntities.LookupDef;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
@@ -14,16 +17,32 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Table-agnostic CRUD backed by the CrudEntities whitelist.
- * Column types are discovered once from JDBC metadata, so no per-table DTOs
- * or SQL are needed — rows travel as Map&lt;COLUMN_NAME, value&gt;.
+ * Column types are discovered from JDBC metadata (cached with a TTL so
+ * ALTER TABLE is picked up without a restart) — rows travel as
+ * Map&lt;COLUMN_NAME, value&gt;.
  */
 @Service
 public class GenericCrudService {
 
+    private static final long META_TTL_MS = 5 * 60_000L;
+    private static final int  CREATE_RETRIES = 3;
+    private static final int  LOOKUP_MAX_ROWS = 1000;
+
     private final JdbcTemplate jdbc;
 
-    /** table -> (COLUMN_NAME -> java.sql.Types constant), discovered lazily. */
-    private final Map<String, Map<String, Integer>> typeCache = new ConcurrentHashMap<>();
+    /** Per-column metadata discovered from the driver. */
+    static final class ColMeta {
+        final int type; final boolean nullable; final int size;
+        ColMeta(int type, boolean nullable, int size) {
+            this.type = type; this.nullable = nullable; this.size = size;
+        }
+    }
+    private static final class TableMeta {
+        final Map<String, ColMeta> cols; final long loadedAt;
+        TableMeta(Map<String, ColMeta> cols) { this.cols = cols; this.loadedAt = System.currentTimeMillis(); }
+    }
+
+    private final Map<String, TableMeta> metaCache = new ConcurrentHashMap<>();
 
     public GenericCrudService(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
@@ -31,20 +50,40 @@ public class GenericCrudService {
 
     // ── List / search ─────────────────────────────────────────────────────────
 
-    public Map<String, Object> list(CrudEntity e, String search, int page, int pageSize) {
-        boolean searching = search != null && !search.trim().isEmpty() && !e.searchCols.isEmpty();
-        String where = "";
-        Object[] whereArgs = new Object[0];
-        if (searching) {
-            List<String> conds = new ArrayList<>();
-            List<Object> args = new ArrayList<>();
-            String q = "%" + search.trim().toUpperCase() + "%";
+    /**
+     * @param rowFilter optional per-user row-level filter condition (from
+     *                  DBX_USER_TABLE_FILTERS), ANDed into the WHERE clause.
+     * @param sort      optional sort column — validated against real columns.
+     */
+    public Map<String, Object> list(CrudEntity e, String search, int page, int pageSize,
+                                    String rowFilter, String sort, String dir) {
+        List<String> conds = new ArrayList<>();
+        List<Object> args  = new ArrayList<>();
+
+        if (rowFilter != null && !rowFilter.trim().isEmpty()) {
+            conds.add("(" + rowFilter + ")");
+        }
+        if (search != null && !search.trim().isEmpty() && !e.searchCols.isEmpty()) {
+            // escape LIKE wildcards so "%"/"_" are searched literally
+            String esc = search.trim().toUpperCase()
+                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+            String q = "%" + esc + "%";
+            List<String> like = new ArrayList<>();
             for (String col : e.searchCols) {
-                conds.add("UPPER(TO_CHAR(" + col + ")) LIKE ?");
+                like.add("UPPER(TO_CHAR(" + col + ")) LIKE ? ESCAPE '\\'");
                 args.add(q);
             }
-            where = " WHERE (" + String.join(" OR ", conds) + ")";
-            whereArgs = args.toArray();
+            conds.add("(" + String.join(" OR ", like) + ")");
+        }
+        String where = conds.isEmpty() ? "" : " WHERE " + String.join(" AND ", conds);
+        Object[] whereArgs = args.toArray();
+
+        String orderBy = e.defaultOrderBy;
+        if (sort != null && !sort.trim().isEmpty()) {
+            String col = sort.trim().toUpperCase();
+            if (!columnMeta(e.table).containsKey(col))
+                throw new IllegalArgumentException("Unknown sort column: " + sort);
+            orderBy = col + ("DESC".equalsIgnoreCase(dir) ? " DESC" : " ASC") + ", " + e.pk;
         }
 
         long total = Optional.ofNullable(
@@ -54,9 +93,9 @@ public class GenericCrudService {
         String sql =
             "SELECT * FROM (" +
             "  SELECT a.*, ROWNUM rnum_ FROM (" +
-            "    SELECT * FROM " + e.table + where + " ORDER BY " + e.defaultOrderBy +
-            "  ) a WHERE ROWNUM <= " + ((page + 1) * pageSize) +
-            ") WHERE rnum_ > " + (page * pageSize);
+            "    SELECT * FROM " + e.table + where + " ORDER BY " + orderBy +
+            "  ) a WHERE ROWNUM <= " + ((page + 1L) * pageSize) +
+            ") WHERE rnum_ > " + ((long) page * pageSize);
 
         List<Map<String, Object>> items = jdbc.query(sql, (rs, i) -> mapRow(rs), whereArgs);
 
@@ -70,9 +109,11 @@ public class GenericCrudService {
 
     // ── Get one ───────────────────────────────────────────────────────────────
 
-    public Map<String, Object> get(CrudEntity e, String id) {
+    public Map<String, Object> get(CrudEntity e, String id, String rowFilter) {
+        String where = " WHERE " + e.pk + " = ?";
+        if (rowFilter != null && !rowFilter.trim().isEmpty()) where += " AND (" + rowFilter + ")";
         List<Map<String, Object>> rows = jdbc.query(
-            "SELECT * FROM " + e.table + " WHERE " + e.pk + " = ?",
+            "SELECT * FROM " + e.table + where,
             (rs, i) -> mapRow(rs), coerce(e.table, e.pk, id));
         return rows.isEmpty() ? null : rows.get(0);
     }
@@ -80,21 +121,39 @@ public class GenericCrudService {
     // ── Create ────────────────────────────────────────────────────────────────
 
     public Object create(CrudEntity e, Map<String, Object> values) {
-        Map<String, Integer> types = columnTypes(e.table);
-        Map<String, Object> row = filterColumns(values, types);
-
-        long newId = nextValue(e.table, e.pk);
-        row.put(e.pk, newId);
-        if (e.orderCol != null && row.get(e.orderCol) == null) {
-            row.put(e.orderCol, nextValue(e.table, e.orderCol));
-        }
+        Map<String, ColMeta> meta = columnMeta(e.table);
+        Map<String, Object> row = filterColumns(e, values, meta);
+        row.remove(e.pk);
         row.remove(e.createdAtCol);
         row.remove(e.updatedAtCol);
+        validate(e, row, meta, true);
 
-        List<String> cols = new ArrayList<>(row.keySet());
+        // MAX+1 can race with a concurrent insert — retry with a fresh id on collision
+        DuplicateKeyException last = null;
+        for (int attempt = 0; attempt < CREATE_RETRIES; attempt++) {
+            long newId = nextValue(e.table, e.pk);
+            try {
+                insertRow(e, row, newId);
+                return newId;
+            } catch (DuplicateKeyException dup) {
+                last = dup;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+            "Could not allocate a unique ID — please retry", last);
+    }
+
+    private void insertRow(CrudEntity e, Map<String, Object> row, long newId) {
+        Map<String, Object> r = new LinkedHashMap<>(row);
+        r.put(e.pk, newId);
+        if (e.orderCol != null && r.get(e.orderCol) == null) {
+            r.put(e.orderCol, nextValue(e.table, e.orderCol));
+        }
+
+        List<String> cols = new ArrayList<>(r.keySet());
         List<String> placeholders = new ArrayList<>(Collections.nCopies(cols.size(), "?"));
         List<Object> args = new ArrayList<>();
-        for (String c : cols) args.add(coerce(e.table, c, row.get(c)));
+        for (String c : cols) args.add(coerce(e.table, c, r.get(c)));
 
         if (e.createdAtCol != null) { cols.add(e.createdAtCol); placeholders.add("SYSTIMESTAMP"); }
         if (e.updatedAtCol != null) { cols.add(e.updatedAtCol); placeholders.add("SYSTIMESTAMP"); }
@@ -103,17 +162,30 @@ public class GenericCrudService {
             "INSERT INTO " + e.table + " (" + String.join(", ", cols) + ") VALUES (" +
             String.join(", ", placeholders) + ")",
             args.toArray());
-        return newId;
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
 
-    public void update(CrudEntity e, String id, Map<String, Object> values) {
-        Map<String, Integer> types = columnTypes(e.table);
-        Map<String, Object> row = filterColumns(values, types);
+    public void update(CrudEntity e, String id, Map<String, Object> values, String rowFilter) {
+        Map<String, ColMeta> meta = columnMeta(e.table);
+
+        // Optimistic locking: if the client echoes the audit timestamp it loaded,
+        // reject the save when someone else updated the row in the meantime.
+        if (e.updatedAtCol != null && values != null && values.get(e.updatedAtCol) != null) {
+            Map<String, Object> current = get(e, id, rowFilter);
+            if (current == null) throw new NoSuchElementException("Record not found: " + id);
+            Object dbVal = current.get(e.updatedAtCol);
+            if (dbVal != null && !String.valueOf(dbVal).equals(String.valueOf(values.get(e.updatedAtCol)))) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "This record was modified by someone else — reload and try again");
+            }
+        }
+
+        Map<String, Object> row = filterColumns(e, values, meta);
         row.remove(e.pk);
         row.remove(e.createdAtCol);
         row.remove(e.updatedAtCol);
+        validate(e, row, meta, false);
 
         List<String> sets = new ArrayList<>();
         List<Object> args = new ArrayList<>();
@@ -125,10 +197,13 @@ public class GenericCrudService {
         if (sets.isEmpty()) return;
         args.add(coerce(e.table, e.pk, id));
 
-        jdbc.update(
-            "UPDATE " + e.table + " SET " + String.join(", ", sets) +
-            " WHERE " + e.pk + " = ?",
+        String where = " WHERE " + e.pk + " = ?";
+        if (rowFilter != null && !rowFilter.trim().isEmpty()) where += " AND (" + rowFilter + ")";
+
+        int updated = jdbc.update(
+            "UPDATE " + e.table + " SET " + String.join(", ", sets) + where,
             args.toArray());
+        if (updated == 0) throw new NoSuchElementException("Record not found: " + id);
     }
 
     // ── Lookup (dropdown data) ────────────────────────────────────────────────
@@ -137,14 +212,50 @@ public class GenericCrudService {
         LookupDef def = e.lookups.get(name);
         if (def == null) throw new IllegalArgumentException("Unknown lookup: " + name);
         return jdbc.query(
-            "SELECT " + def.idCol + " AS id, " + def.labelCol + " AS label FROM " +
-            def.table + " ORDER BY " + def.orderBy,
+            "SELECT * FROM (SELECT " + def.idCol + " AS id, " + def.labelCol + " AS label FROM " +
+            def.table + " ORDER BY " + def.orderBy + ") WHERE ROWNUM <= " + LOOKUP_MAX_ROWS,
             (rs, i) -> {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("id", rs.getObject("id"));
                 m.put("label", rs.getString("label"));
                 return m;
             });
+    }
+
+    // ── Validation ────────────────────────────────────────────────────────────
+
+    /**
+     * Driver-metadata validation: explicitly blank values on NOT NULL columns are
+     * rejected (missing columns are left to the DB — they may have defaults), and
+     * character values must fit the column size. Produces a 400 with a per-column
+     * message instead of a raw ORA- error.
+     */
+    private void validate(CrudEntity e, Map<String, Object> row, Map<String, ColMeta> meta, boolean insert) {
+        List<String> problems = new ArrayList<>();
+        for (Map.Entry<String, ColMeta> en : meta.entrySet()) {
+            String col = en.getKey();
+            ColMeta m = en.getValue();
+            if (col.equals(e.pk) || col.equals(e.createdAtCol) || col.equals(e.updatedAtCol)
+                || col.equals(e.orderCol)) continue;
+            if (!row.containsKey(col)) continue;
+            Object v = row.get(col);
+            boolean blank = v == null || v.toString().trim().isEmpty();
+            if (!m.nullable && blank) {
+                problems.add(col + " is required");
+                continue;
+            }
+            if (!blank && isCharType(m.type) && m.size > 0 && v.toString().length() > m.size) {
+                problems.add(col + " exceeds maximum length of " + m.size);
+            }
+        }
+        if (!problems.isEmpty()) {
+            throw new IllegalArgumentException("Validation failed: " + String.join("; ", problems));
+        }
+    }
+
+    private static boolean isCharType(int t) {
+        return t == Types.VARCHAR || t == Types.CHAR || t == Types.NVARCHAR
+            || t == Types.NCHAR || t == Types.LONGVARCHAR;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -155,55 +266,80 @@ public class GenericCrudService {
         return v == null ? 1L : v;
     }
 
-    /** Only keep keys that are real columns of the table (case-insensitive). */
-    private Map<String, Object> filterColumns(Map<String, Object> values, Map<String, Integer> types) {
+    /**
+     * Keep only keys that are real columns (case-insensitive) AND, when the
+     * entity declares writableCols, only the columns it explicitly exposes —
+     * blocks mass-assignment of unexposed columns.
+     */
+    private Map<String, Object> filterColumns(CrudEntity e, Map<String, Object> values,
+                                              Map<String, ColMeta> meta) {
         Map<String, Object> out = new LinkedHashMap<>();
         if (values == null) return out;
         for (Map.Entry<String, Object> en : values.entrySet()) {
             String col = en.getKey() == null ? null : en.getKey().toUpperCase();
-            if (col != null && types.containsKey(col)) out.put(col, en.getValue());
+            if (col == null || !meta.containsKey(col)) continue;
+            if (!e.writableCols.isEmpty() && !e.writableCols.contains(col)
+                && !col.equals(e.pk) && !col.equals(e.createdAtCol) && !col.equals(e.updatedAtCol)) continue;
+            out.put(col, en.getValue());
         }
         return out;
     }
 
-    private Map<String, Integer> columnTypes(String table) {
-        return typeCache.computeIfAbsent(table, t ->
-            jdbc.query("SELECT * FROM " + t + " WHERE 1 = 0", rs -> {
-                Map<String, Integer> m = new LinkedHashMap<>();
-                ResultSetMetaData md = rs.getMetaData();
-                for (int i = 1; i <= md.getColumnCount(); i++) {
-                    m.put(md.getColumnName(i).toUpperCase(), md.getColumnType(i));
-                }
-                return m;
-            }));
+    private Map<String, ColMeta> columnMeta(String table) {
+        TableMeta cached = metaCache.get(table);
+        if (cached != null && System.currentTimeMillis() - cached.loadedAt < META_TTL_MS) {
+            return cached.cols;
+        }
+        Map<String, ColMeta> cols = jdbc.query("SELECT * FROM " + table + " WHERE 1 = 0", rs -> {
+            Map<String, ColMeta> m = new LinkedHashMap<>();
+            ResultSetMetaData md = rs.getMetaData();
+            for (int i = 1; i <= md.getColumnCount(); i++) {
+                m.put(md.getColumnName(i).toUpperCase(), new ColMeta(
+                    md.getColumnType(i),
+                    md.isNullable(i) != ResultSetMetaData.columnNoNulls,
+                    md.getPrecision(i)));
+            }
+            return m;
+        });
+        metaCache.put(table, new TableMeta(cols));
+        return cols;
     }
 
-    /** Convert a JSON value to the JDBC type the column expects. */
-    private Object coerce(String table, String column, Object value) {
+    /** Convert a JSON value to the JDBC type the column expects. Bad input → 400. */
+    Object coerce(String table, String column, Object value) {
         if (value == null) return null;
-        Integer type = columnTypes(table).get(column.toUpperCase());
-        if (type == null) return value;
+        ColMeta m = columnMeta(table).get(column.toUpperCase());
+        if (m == null) return value;
         String s = value.toString().trim();
         if (s.isEmpty()) return null;
-        switch (type) {
+        switch (m.type) {
             case Types.NUMERIC: case Types.DECIMAL: case Types.INTEGER:
             case Types.BIGINT: case Types.SMALLINT: case Types.DOUBLE: case Types.FLOAT:
                 if (value instanceof Number) return value;
-                return new java.math.BigDecimal(s);
+                try { return new java.math.BigDecimal(s); }
+                catch (NumberFormatException ex) {
+                    throw new IllegalArgumentException("Invalid number for " + column + ": " + s);
+                }
             case Types.DATE: case Types.TIMESTAMP: case Types.TIME:
-                return parseTemporal(s);
+                return parseTemporal(column, s);
             default:
                 return value.toString();
         }
     }
 
-    private Timestamp parseTemporal(String s) {
+    /** Strict (non-lenient) date parsing — garbage and rolled-over dates → 400. */
+    static Timestamp parseTemporal(String column, String s) {
         String[] patterns = {"yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"};
         for (String p : patterns) {
-            try { return new Timestamp(new SimpleDateFormat(p).parse(s).getTime()); }
-            catch (Exception ignored) {}
+            try {
+                SimpleDateFormat f = new SimpleDateFormat(p);
+                f.setLenient(false);
+                java.text.ParsePosition pos = new java.text.ParsePosition(0);
+                java.util.Date d = f.parse(s, pos);
+                if (d != null && pos.getIndex() == s.length()) return new Timestamp(d.getTime());
+            } catch (Exception ignored) {}
         }
-        return null;
+        throw new IllegalArgumentException("Invalid date/time for " + column + ": " + s);
     }
 
     /** Row → map keyed by COLUMN_NAME; temporal values formatted as ISO strings. */

@@ -32,17 +32,23 @@ export class DynamicListComponent implements OnInit, OnDestroy {
 
   readonly cfg = signal<EntityConfig | null>(null);
 
-  readonly loading  = signal(false);
-  readonly items    = signal<CrudRow[]>([]);
-  readonly total    = signal(0);
-  readonly page     = signal(0);
-  readonly pageSize = 50;
-  readonly search   = signal('');
+  readonly loading   = signal(false);
+  readonly loadError = signal(false);
+  readonly items     = signal<CrudRow[]>([]);
+  readonly total     = signal(0);
+  readonly page      = signal(0);
+  readonly pageSize  = 50;
+  readonly search    = signal('');
+
+  readonly sortCol = signal<string | null>(null);
+  readonly sortDir = signal<'ASC' | 'DESC'>('ASC');
 
   readonly hasMore = computed(() => this.items().length < this.total());
 
   private routeSub?: Subscription;
   private searchTimer?: ReturnType<typeof setTimeout>;
+  /** Monotonic id so out-of-order/overlapping responses are ignored. */
+  private reqSeq = 0;
 
   ngOnInit(): void {
     this.routeSub = this.route.paramMap.subscribe(params => {
@@ -50,6 +56,7 @@ export class DynamicListComponent implements OnInit, OnDestroy {
       if (!cfg) { this.router.navigate(['/']); return; }
       this.cfg.set(cfg);
       this.search.set('');
+      this.sortCol.set(null);
       this.load(true);
     });
   }
@@ -64,20 +71,31 @@ export class DynamicListComponent implements OnInit, OnDestroy {
     if (!cfg) return;
     if (reset) { this.page.set(0); this.items.set([]); }
     this.loading.set(true);
-    const requestedEntity = cfg.name;
+    this.loadError.set(false);
+    const seq = ++this.reqSeq;
     this.api.crudList(cfg.name, {
       search: this.search() || undefined,
       page: this.page(),
       pageSize: this.pageSize,
+      sort: this.sortCol() || undefined,
+      dir: this.sortCol() ? this.sortDir() : undefined,
     }).subscribe({
       next: r => {
-        // Ignore responses that arrive after navigating to a different entity
-        if (this.cfg()?.name !== requestedEntity) return;
-        this.items.update(arr => [...arr, ...r.items]);
+        if (seq !== this.reqSeq) return; // a newer request superseded this one
+        // dedupe by pk: ROWNUM windows can drift when rows are inserted between pages
+        this.items.update(arr => {
+          const seen = new Set(arr.map(x => x[cfg.pk]));
+          return [...arr, ...r.items.filter(x => !seen.has(x[cfg.pk]))];
+        });
         this.total.set(r.total);
         this.loading.set(false);
       },
-      error: err => { this.loading.set(false); this.notify.error(err, 'Failed to load data'); },
+      error: err => {
+        if (seq !== this.reqSeq) return;
+        this.loading.set(false);
+        this.loadError.set(true);
+        this.notify.error(err, 'Failed to load data');
+      },
     });
   }
 
@@ -93,7 +111,28 @@ export class DynamicListComponent implements OnInit, OnDestroy {
     }
   }
 
-  clearSearch(): void { this.search.set(''); this.load(true); }
+  clearSearch(): void {
+    clearTimeout(this.searchTimer); // cancel a pending debounce so it can't double-load
+    this.search.set('');
+    this.load(true);
+  }
+
+  toggleSort(col: ListColDef): void {
+    if (col.noSort) return;
+    if (this.sortCol() === col.col) {
+      if (this.sortDir() === 'ASC') this.sortDir.set('DESC');
+      else { this.sortCol.set(null); this.sortDir.set('ASC'); } // third click resets
+    } else {
+      this.sortCol.set(col.col);
+      this.sortDir.set('ASC');
+    }
+    this.load(true);
+  }
+
+  sortIcon(col: ListColDef): string {
+    if (this.sortCol() !== col.col) return '';
+    return this.sortDir() === 'ASC' ? 'arrow_upward' : 'arrow_downward';
+  }
 
   create(): void { this.router.navigate(['/manage', this.cfg()!.name, 'new']); }
   edit(row: CrudRow): void { this.router.navigate(['/manage', this.cfg()!.name, row[this.cfg()!.pk]]); }

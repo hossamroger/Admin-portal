@@ -25,6 +25,8 @@ public class CrudEntities {
         public String defaultOrderBy;             // ORDER BY clause for the list
         public Set<String> ops = new HashSet<>(Arrays.asList("SELECT", "INSERT", "UPDATE"));
         public Map<String, LookupDef> lookups = new HashMap<>();
+        /** Columns the API may write. Empty = any real column (legacy). */
+        public Set<String> writableCols = Collections.emptySet();
 
         public CrudEntity(String name, String table, String pk) {
             this.name = name; this.table = table; this.pk = pk;
@@ -38,6 +40,10 @@ public class CrudEntities {
         CrudEntity ps = new CrudEntity("process-status", "BPM_PROCESS_STATUS", "ID");
         ps.searchCols = Arrays.asList("PROCESS_NAME", "PROCESS_CODE");
         ps.lookups.put("msgs", new LookupDef("BPM_PROCESS_STATUS_MSG", "ID", "MESSAGE_EN", "ID"));
+        ps.writableCols = new HashSet<>(Arrays.asList(
+            "PROCESS_CODE", "PROCESS_NAME", "STATUS_CODE", "STATUS_ON_WEB", "STATUS_ON_IOS",
+            "STATUS_ON_ANDROID", "IOS_VERSION", "ANDROID_VERSION", "TIME_TO_BE_AVAILABLE",
+            "MSG_AR", "MSG_EN"));
         REGISTRY.put(ps.name, ps);
 
         CrudEntity hb = new CrudEntity("home-banner", "DS_HOME_BANNER_CONFIG", "ID");
@@ -46,6 +52,11 @@ public class CrudEntities {
         hb.createdAtCol = "CREATED_AT";
         hb.updatedAtCol = "UPDATED_AT";
         hb.defaultOrderBy = "BANNER_ORDER NULLS LAST, ID";
+        hb.writableCols = new HashSet<>(Arrays.asList(
+            "URL", "URL_SM", "PLATFORM", "LANGUAGE", "MIN_VERSION", "BANNER_ORDER",
+            "START_DT", "EXPIRY_DT", "FORE_COLOR", "BG_COLOR", "MAIN_TITLE_COLOR",
+            "EXTENSION_TYPE", "ACTION_TYPE", "ACTION_CODE", "ACTION_URL", "CATALOG_ID",
+            "IS_ACTIVE", "HAS_ACTION", "IS_HEADLINE", "IS_DARK_MODE"));
         REGISTRY.put(hb.name, hb);
     }
 

@@ -123,11 +123,13 @@ export class ApiService {
   lookupServiceTypes(): Observable<string[]>                  { return this.http.get<string[]>('/api/service-config/lookups/types'); }
 
   // ---- generic CRUD (dynamic entities) ----
-  crudList(entity: string, params: { search?: string; page?: number; pageSize?: number }): Observable<CrudListResponse> {
+  crudList(entity: string, params: { search?: string; page?: number; pageSize?: number; sort?: string; dir?: string }): Observable<CrudListResponse> {
     let p = new HttpParams();
     if (params.search)           p = p.set('search',   params.search);
     if (params.page != null)     p = p.set('page',     params.page);
     if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
+    if (params.sort)             p = p.set('sort',     params.sort);
+    if (params.dir)              p = p.set('dir',      params.dir);
     return this.http.get<CrudListResponse>(`/api/crud/${entity}`, { params: p });
   }
   crudGet(entity: string, id: string): Observable<CrudRow> {

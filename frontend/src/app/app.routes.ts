@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard } from './core/guards';
+import { authGuard, adminGuard, dirtyGuard } from './core/guards';
 
 export const routes: Routes = [
   {
@@ -30,6 +30,7 @@ export const routes: Routes = [
       },
       {
         path: 'service-config/:code',
+        canDeactivate: [dirtyGuard],
         loadComponent: () => import('./features/service-config/service-config-form').then(m => m.ServiceConfigFormComponent),
       },
       {
@@ -38,6 +39,7 @@ export const routes: Routes = [
       },
       {
         path: 'manage/:entity/:id',
+        canDeactivate: [dirtyGuard],
         loadComponent: () => import('./features/manage/dynamic-form').then(m => m.DynamicFormComponent),
       },
       // Legacy URLs from before the dynamic CRUD engine

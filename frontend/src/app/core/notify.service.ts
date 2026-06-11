@@ -23,12 +23,13 @@ export class NotifyService {
     } else if (err instanceof Error) {
       msg = err.message;
     }
-    this.open(msg, 'notify-warn');
+    // errors stay longer — Oracle/validation messages take time to read
+    this.open(msg, 'notify-warn', 8000);
   }
 
-  private open(message: string, panelClass: string): void {
+  private open(message: string, panelClass: string, duration = 3500): void {
     this.snack.open(message, 'Dismiss', {
-      duration: 3500,
+      duration,
       horizontalPosition: 'center',
       verticalPosition: 'bottom',
       panelClass: [panelClass],

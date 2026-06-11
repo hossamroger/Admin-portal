@@ -1,8 +1,8 @@
 @if (cfg(); as c) {
-<div class="df-page">
+<form class="df-page" (ngSubmit)="save()">
 
   <div class="df-header">
-    <button mat-icon-button (click)="back()" matTooltip="Back to list">
+    <button type="button" mat-icon-button (click)="back()" matTooltip="Back to list">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h1 class="df-title">{{ title() }}</h1>
@@ -10,81 +10,108 @@
 
   @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
-  <div class="form-grid">
+  @for (section of sections(); track section.name) {
+    @if (section.name) { <h2 class="df-section">{{ section.name }}</h2> }
 
-    @for (f of gridFields(); track f.col) {
-      <div class="field-group" [class.span-2]="f.span2">
-        <label class="field-label">{{ f.label }}</label>
+    <div class="form-grid">
+      @for (f of section.fields; track f.col) {
+        <div class="field-group" [class.span-2]="f.span2" [class.field-invalid]="errorFor(f)">
+          <label class="field-label" [for]="'fld-' + f.col">
+            {{ f.label }}@if (f.required) { <span class="req-mark">*</span> }
+          </label>
 
-        @switch (f.type) {
-          @case ('textarea') {
-            <textarea class="field-textarea" [class.rtl]="f.rtl" rows="3"
+          @switch (f.type) {
+            @case ('textarea') {
+              <textarea class="field-textarea" [class.rtl]="f.rtl" rows="3"
+                        [id]="'fld-' + f.col"
+                        [value]="value(f)"
+                        (input)="set(f, $any($event.target).value)"></textarea>
+            }
+            @case ('lookup') {
+              <select class="field-select" [id]="'fld-' + f.col"
                       [value]="value(f)"
-                      (input)="set(f, $any($event.target).value)"></textarea>
+                      (change)="set(f, $any($event.target).value)">
+                @switch (lookupStateFor(f)) {
+                  @case ('loading') { <option value="" [selected]="true">Loading…</option> }
+                  @case ('error')   { <option value="" [selected]="true">Failed to load options</option> }
+                  @default          { <option value="" [selected]="value(f) === ''">— none —</option> }
+                }
+                @for (o of optionsFor(f); track o.id) {
+                  <!-- [selected] re-applies after async options arrive; [value] alone would not -->
+                  <option [value]="o.id" [selected]="isSelected(f, o)">{{ o.label || '#' + o.id }}</option>
+                }
+              </select>
+            }
+            @case ('select') {
+              <select class="field-select" [id]="'fld-' + f.col"
+                      [value]="value(f)"
+                      (change)="set(f, $any($event.target).value)">
+                <option value="" [selected]="value(f) === ''">— none —</option>
+                @for (o of selectOptions(f); track o) {
+                  <option [value]="o" [selected]="o === value(f)">{{ o }}</option>
+                }
+              </select>
+            }
+            @case ('readonly') {
+              <input class="field-input" [class.mono]="f.mono" [id]="'fld-' + f.col"
+                     [value]="value(f) || '—'" disabled>
+            }
+            @case ('number') {
+              <input class="field-input" [class.mono]="f.mono" type="number" [id]="'fld-' + f.col"
+                     [value]="value(f)" [placeholder]="f.placeholder || ''"
+                     (input)="set(f, $any($event.target).value)">
+            }
+            @case ('date') {
+              <input class="field-input" [class.mono]="f.mono" type="date" [id]="'fld-' + f.col"
+                     [value]="value(f)" (input)="set(f, $any($event.target).value)">
+            }
+            @case ('datetime') {
+              <input class="field-input" [class.mono]="f.mono" type="datetime-local" [id]="'fld-' + f.col"
+                     [value]="value(f)" (input)="set(f, $any($event.target).value)">
+            }
+            @case ('color') {
+              <div class="color-field">
+                <input class="color-swatch" type="color" [id]="'fld-' + f.col"
+                       [value]="value(f) || '#000000'" (input)="set(f, $any($event.target).value)">
+                <span class="color-value mono">{{ value(f) || '— not set —' }}</span>
+              </div>
+            }
+            @default {
+              <input class="field-input" [class.mono]="f.mono" [class.rtl]="f.rtl" [id]="'fld-' + f.col"
+                     [value]="value(f)" [placeholder]="f.placeholder || ''"
+                     (input)="set(f, $any($event.target).value)">
+            }
           }
-          @case ('lookup') {
-            <select class="field-select"
-                    [value]="value(f)"
-                    (change)="set(f, $any($event.target).value)">
-              <option value="" [selected]="value(f) === ''">— none —</option>
-              @for (o of optionsFor(f); track o.id) {
-                <!-- [selected] re-applies after async options arrive; [value] alone would not -->
-                <option [value]="o.id" [selected]="isSelected(f, o)">{{ o.label || '#' + o.id }}</option>
-              }
-            </select>
-          }
-          @case ('readonly') {
-            <input class="field-input" [class.mono]="f.mono" [value]="value(f) || '—'" disabled>
-          }
-          @case ('number') {
-            <input class="field-input" [class.mono]="f.mono" type="number"
-                   [value]="value(f)" [placeholder]="f.placeholder || ''"
-                   (input)="set(f, $any($event.target).value)">
-          }
-          @case ('date') {
-            <input class="field-input" [class.mono]="f.mono" type="date"
-                   [value]="value(f)" (input)="set(f, $any($event.target).value)">
-          }
-          @case ('datetime') {
-            <input class="field-input" [class.mono]="f.mono" type="datetime-local"
-                   [value]="value(f)" (input)="set(f, $any($event.target).value)">
-          }
-          @case ('color') {
-            <input class="field-input mono" type="color"
-                   [value]="value(f) || '#000000'" (input)="set(f, $any($event.target).value)">
-          }
-          @default {
-            <input class="field-input" [class.mono]="f.mono" [class.rtl]="f.rtl"
-                   [value]="value(f)" [placeholder]="f.placeholder || ''"
-                   (input)="set(f, $any($event.target).value)">
-          }
-        }
-      </div>
-    }
 
-    @if (flagFields().length > 0) {
-      <div class="field-group span-2">
-        <label class="field-label">Flags</label>
-        <div class="flag-row">
-          @for (f of flagFields(); track f.col) {
-            <label class="flag-item">
-              <input type="checkbox" [checked]="isChecked(f)"
-                     (change)="setChecked(f, $any($event.target).checked)">
-              <span>{{ f.label }}</span>
-            </label>
-          }
+          @if (errorFor(f)) { <span class="field-error">{{ errorFor(f) }}</span> }
         </div>
-      </div>
-    }
+      }
+    </div>
+  }
 
-  </div>
+  @if (flagFields().length > 0) {
+    <h2 class="df-section">Flags</h2>
+    <div class="flag-row">
+      @for (f of flagFields(); track f.col) {
+        <label class="flag-item">
+          <input type="checkbox" [checked]="isChecked(f)"
+                 (change)="setChecked(f, $any($event.target).checked)">
+          <span>{{ f.label }}</span>
+        </label>
+      }
+    </div>
+  }
 
   <div class="form-actions">
-    <button mat-flat-button color="primary" (click)="save()" [disabled]="saving()">
+    <button type="submit" mat-flat-button color="primary" [disabled]="saving()">
       <mat-icon>save</mat-icon>
       {{ isNew() ? 'Create ' + c.titleSingular : 'Save ' + c.titleSingular }}
     </button>
+    <button type="button" mat-stroked-button (click)="save(true)" [disabled]="saving()">
+      Save & Continue Editing
+    </button>
+    @if (isDirty()) { <span class="dirty-hint">Unsaved changes</span> }
   </div>
 
-</div>
+</form>
 }

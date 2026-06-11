@@ -18,6 +18,8 @@ import java.util.Map;
 /**
  * Generic CRUD endpoint for whitelisted entities (see CrudEntities).
  * Each entity supports only the operations declared in its registry entry.
+ * Per-user table whitelists and row-level filters are enforced just like
+ * the rest of the app.
  */
 @RestController
 @RequestMapping("/api/crud")
@@ -37,23 +39,26 @@ public class GenericCrudController {
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0")  int page,
             @RequestParam(defaultValue = "50") int pageSize,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String dir,
             HttpServletRequest http) {
-        CrudEntity e = resolve(entity, "SELECT", http);
-        return svc.list(e, search, page, Math.min(Math.max(pageSize, 1), 500));
+        Access a = resolve(entity, "SELECT", http);
+        return svc.list(a.entity, search, Math.max(page, 0),
+            Math.min(Math.max(pageSize, 1), 500), a.rowFilter, sort, dir);
     }
 
     @GetMapping("/{entity}/lookup/{name}")
     public List<Map<String, Object>> lookup(
             @PathVariable String entity, @PathVariable String name, HttpServletRequest http) {
-        CrudEntity e = resolve(entity, "SELECT", http);
-        return svc.lookup(e, name);
+        Access a = resolve(entity, "SELECT", http);
+        return svc.lookup(a.entity, name);
     }
 
     @GetMapping("/{entity}/{id}")
     public ResponseEntity<Map<String, Object>> get(
             @PathVariable String entity, @PathVariable String id, HttpServletRequest http) {
-        CrudEntity e = resolve(entity, "SELECT", http);
-        Map<String, Object> row = svc.get(e, id);
+        Access a = resolve(entity, "SELECT", http);
+        Map<String, Object> row = svc.get(a.entity, id, a.rowFilter);
         return row == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(row);
     }
 
@@ -61,8 +66,8 @@ public class GenericCrudController {
     public ResponseEntity<Map<String, Object>> create(
             @PathVariable String entity, @RequestBody Map<String, Object> values,
             HttpServletRequest http) {
-        CrudEntity e = resolve(entity, "INSERT", http);
-        Object id = svc.create(e, values);
+        Access a = resolve(entity, "INSERT", http);
+        Object id = svc.create(a.entity, values);
         Map<String, Object> r = new HashMap<>();
         r.put("message", "Created");
         r.put("id", id);
@@ -73,8 +78,8 @@ public class GenericCrudController {
     public ResponseEntity<Map<String, Object>> update(
             @PathVariable String entity, @PathVariable String id,
             @RequestBody Map<String, Object> values, HttpServletRequest http) {
-        CrudEntity e = resolve(entity, "UPDATE", http);
-        svc.update(e, id, values);
+        Access a = resolve(entity, "UPDATE", http);
+        svc.update(a.entity, id, values, a.rowFilter);
         Map<String, Object> r = new HashMap<>();
         r.put("message", "Updated");
         return ResponseEntity.ok(r);
@@ -82,7 +87,12 @@ public class GenericCrudController {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private CrudEntity resolve(String entity, String op, HttpServletRequest http) {
+    private static final class Access {
+        final CrudEntity entity; final String rowFilter;
+        Access(CrudEntity entity, String rowFilter) { this.entity = entity; this.rowFilter = rowFilter; }
+    }
+
+    private Access resolve(String entity, String op, HttpServletRequest http) {
         CrudEntity e = CrudEntities.get(entity);
         if (e == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown entity: " + entity);
@@ -90,6 +100,8 @@ public class GenericCrudController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, op + " not allowed for " + entity);
         User u = auth.effectiveUser(http);
         auth.requirePrivilege(u, op);
-        return e;
+        auth.requireTableAccess(u, e.table);
+        String rowFilter = auth.getTableFilters(u).get(e.table.toUpperCase());
+        return new Access(e, rowFilter);
     }
 }
