@@ -39,8 +39,8 @@ export const routes: Routes = [
         loadComponent: () => import('./features/donation-hub/donation-hub').then(m => m.DonationHubComponent),
       },
       // Categories and Organizations live inside the Donations hub as tabs
-      { path: 'manage/donation-category',     redirectTo: () => inject(Router).parseUrl('/manage/donation-project?tab=categories') },
-      { path: 'manage/donation-organization', redirectTo: () => inject(Router).parseUrl('/manage/donation-project?tab=organizations') },
+      { path: 'manage/donation-category',     pathMatch: 'full', redirectTo: () => inject(Router).parseUrl('/manage/donation-project?tab=categories') },
+      { path: 'manage/donation-organization', pathMatch: 'full', redirectTo: () => inject(Router).parseUrl('/manage/donation-project?tab=organizations') },
       {
         path: 'manage/:entity',
         loadComponent: () => import('./features/manage/dynamic-list').then(m => m.DynamicListComponent),
