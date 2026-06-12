@@ -62,9 +62,11 @@
 // Sticky action bar: always reachable on long forms
 .form-actions {
   position: sticky; bottom: 0;
-  display: flex; gap: 12px; align-items: center;
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
   margin-top: 24px; padding: 12px 0;
   background: var(--app-bg);
   border-top: 1px solid var(--app-line);
+  /* keep controls clear of the floating chatbot button on narrow screens */
+  @media (max-width: 960px) { padding-right: 68px; }
 }
 .dirty-hint { font-size: 12px; color: var(--app-muted); font-style: italic; }
