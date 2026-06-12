@@ -50,6 +50,13 @@ public class GenericCrudController {
         return svc.lookup(a.entity, name);
     }
 
+    /** Entity schema for config-driven UI. More specific than /{entity}/{id}. */
+    @GetMapping("/{entity}/_meta")
+    public Map<String, Object> meta(@PathVariable String entity, HttpServletRequest http) {
+        Access a = access.resolveEntity(entity, "SELECT", http);
+        return svc.describe(a.entity);
+    }
+
     @GetMapping("/{entity}/{id}")
     public ResponseEntity<Map<String, Object>> get(
             @PathVariable String entity, @PathVariable String id, HttpServletRequest http) {
