@@ -9,10 +9,13 @@ server:
 
 spring:
   datasource:
-    # ===== EDIT THESE FOR YOUR ORACLE INSTANCE =====
-    url: jdbc:oracle:thin:@10.32.47.141:1521:shjstgdb1
-    username: BPM_DATA
-    password: BPM_DATA
+    # ===== Supply these three env vars before starting =====
+    #   DB_URL       e.g. jdbc:oracle:thin:@host:1521:sid
+    #   DB_USERNAME  e.g. BPM_DATA
+    #   DB_PASSWORD  your DB password
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
     hikari:
       maximum-pool-size: 10
@@ -37,7 +40,8 @@ dbexplorer:
     # Privileges: SELECT, INSERT, UPDATE, DELETE, EXECUTE_SQL
     # allowed-tables: whitelist of table/view names; leave empty = sees everything.
     # Users are now managed in the database (DBX_USERS table).
-    # Default admin/admin123 is created automatically on the first run.
+    # A default admin account is created on the first run with a randomly generated
+    # BCrypt-hashed password printed once to stdout. Change it after first login.
     users: []
 
   # Firebase / Google Cloud Storage — credentials are NEVER stored in this file.

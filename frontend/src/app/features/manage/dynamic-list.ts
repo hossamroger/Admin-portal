@@ -7,11 +7,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { CrudRow } from '../../core/models';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { ENTITY_CONFIGS, EntityConfig, ListColDef } from './entity-configs';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -29,6 +31,7 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
 
   /** When embedded (e.g. inside the Donations hub) the host names the entity
    *  directly instead of the :entity route param. */
@@ -156,7 +159,16 @@ export class DynamicListComponent implements OnInit, OnDestroy {
     const cfg = this.cfg()!;
     const id = row[cfg.pk];
     const name = cfg.nameCol ? String(row[cfg.nameCol] ?? '').trim() : '';
-    if (!confirm(`Delete ${cfg.titleSingular} #${id}${name ? ` "${name}"` : ''}? This cannot be undone.`)) return;
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { message: `Delete ${cfg.titleSingular} #${id}${name ? ` "${name}"` : ''}? This cannot be undone.` },
+      width: '480px',
+    }).afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.doDelete(cfg, id);
+    });
+  }
+
+  private doDelete(cfg: EntityConfig, id: unknown): void {
     this.deleting.update(s => new Set([...s, id]));
     this.api.crudDelete(cfg.name, String(id)).subscribe({
       next: () => {

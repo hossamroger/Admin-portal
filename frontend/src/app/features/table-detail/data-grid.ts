@@ -5,9 +5,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { ColumnFilter, FilterOperator } from '../../core/models';
 
 const PAGE_SIZE = 50;
@@ -44,6 +46,7 @@ export const FILTER_OPERATORS: { value: FilterOperator; label: string; needsValu
 export class DataGridComponent {
   private readonly api = inject(ApiService);
   private readonly notify = inject(NotifyService);
+  private readonly dialog = inject(MatDialog);
 
   readonly table = input.required<string>();
 
@@ -245,7 +248,13 @@ export class DataGridComponent {
     const colIndex = new Map(cols.map((c, i) => [c.toUpperCase(), i]));
     // Bulk delete confirmation
     if (this.deleted().size > 0) {
-      if (!window.confirm(`Delete ${this.deleted().size} row(s)? This cannot be undone.`)) return;
+      const confirmed = await firstValueFrom(
+        this.dialog.open(ConfirmDialogComponent, {
+          data: { message: `Delete ${this.deleted().size} row(s)? This cannot be undone.` },
+          width: '480px',
+        }).afterClosed(),
+      );
+      if (!confirmed) return;
     }
 
     interface OpMeta { label: string; promise: Promise<unknown>; }
