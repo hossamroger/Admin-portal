@@ -7,6 +7,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.dbexplorer.util.FilterConditionValidator;
+
 import java.util.List;
 import java.util.Map;
 
@@ -98,9 +100,13 @@ public class UserService {
             for (Map<String,String> f : filters) {
                 String tableName = f.get("TABLE_NAME");
                 if (tableName == null || tableName.trim().isEmpty()) continue;
+                String condition = f.get("FILTER_CONDITION");
+                // Defense-in-depth: these conditions are ANDed raw into query WHERE
+                // clauses, so reject anything that tries to do more than compare columns.
+                FilterConditionValidator.validate(condition);
                 jdbc.update(
                     "INSERT INTO DBX_USER_TABLE_FILTERS (USERNAME, TABLE_NAME, FILTER_CONDITION) VALUES (?, ?, ?)",
-                    username, tableName.toUpperCase(), f.get("FILTER_CONDITION"));
+                    username, tableName.toUpperCase(), condition);
             }
         }
         log.info("User '{}' saved by admin", username);
