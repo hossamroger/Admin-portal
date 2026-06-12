@@ -16,6 +16,8 @@
     font-size: 16px;
     color: var(--app-fg);
     flex-shrink: 0;
+    text-decoration: none;
+    &:hover { color: var(--app-accent); }
 
     .dot {
       width: 11px; height: 11px;
