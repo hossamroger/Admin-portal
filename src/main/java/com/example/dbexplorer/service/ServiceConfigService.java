@@ -14,10 +14,12 @@ public class ServiceConfigService {
 
     private final JdbcTemplate jdbc;
     private final NamedParameterJdbcTemplate namedJdbc;
+    private final SubResourceService subResources;
 
-    public ServiceConfigService(JdbcTemplate jdbc) {
+    public ServiceConfigService(JdbcTemplate jdbc, SubResourceService subResources) {
         this.jdbc = jdbc;
         this.namedJdbc = new NamedParameterJdbcTemplate(jdbc.getDataSource());
+        this.subResources = subResources;
     }
 
     // ── List / search ─────────────────────────────────────────────────────────
@@ -365,41 +367,47 @@ public class ServiceConfigService {
     // ── Replace (delete + insert) helpers ─────────────────────────────────────
 
     private void replaceSteps(String code, List<StepDto> steps) {
-        // Cascade-delete status links first
-        jdbc.update(
-            "DELETE FROM BPM_LKP_SERV_STEP_STATUS_LINKS WHERE REQUIRED_STEP_ID IN " +
-            "(SELECT REQUIRED_STEP_ID FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?)", code);
-        jdbc.update("DELETE FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?", code);
-        for (StepDto s : steps) insertStep(code, s);
+        // Cascade-delete status links first, then steps, then re-insert
+        subResources.replace(Arrays.asList(
+            new SubResourceService.DeleteStep(
+                "DELETE FROM BPM_LKP_SERV_STEP_STATUS_LINKS WHERE REQUIRED_STEP_ID IN " +
+                "(SELECT REQUIRED_STEP_ID FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?)", code),
+            new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?", code)),
+            steps, s -> insertStep(code, s));
     }
 
     private void replaceFees(String code, List<FeeDto> fees) {
-        jdbc.update("DELETE FROM BPM_LKP_FEES WHERE PROCESS_CODE = ?", code);
-        for (FeeDto f : fees) insertFee(code, f);
+        subResources.replace(Collections.singletonList(
+            new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_FEES WHERE PROCESS_CODE = ?", code)),
+            fees, f -> insertFee(code, f));
     }
 
     private void replaceDocs(String code, List<RequiredDocDto> docs) {
-        jdbc.update("DELETE FROM BPM_LKP_REQUIRED_DOCS WHERE PROCESS_CODE = ?", code);
-        for (RequiredDocDto d : docs) insertDoc(code, d);
+        subResources.replace(Collections.singletonList(
+            new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_REQUIRED_DOCS WHERE PROCESS_CODE = ?", code)),
+            docs, d -> insertDoc(code, d));
     }
 
     private void replaceDepts(String code, List<RelatedDeptDto> depts) {
-        jdbc.update("DELETE FROM BPM_LKP_RELATED_DEPTS WHERE PROCESS_CODE = ?", code);
-        for (RelatedDeptDto d : depts) insertDept(code, d);
+        subResources.replace(Collections.singletonList(
+            new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_RELATED_DEPTS WHERE PROCESS_CODE = ?", code)),
+            depts, d -> insertDept(code, d));
     }
 
     private void replaceAudiences(String code, List<TargetAudienceDto> audiences) {
-        jdbc.update("DELETE FROM BPM_LKP_TARGET_AUDIENCE WHERE PROCESS_CODE = ?", code);
-        for (TargetAudienceDto a : audiences) insertAudience(code, a);
+        subResources.replace(Collections.singletonList(
+            new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_TARGET_AUDIENCE WHERE PROCESS_CODE = ?", code)),
+            audiences, a -> insertAudience(code, a));
     }
 
     private void replaceConfirmationScreens(String code, List<ConfirmationScreenConfigDto> screens) {
-        // Delete components first (FK), then screens
-        jdbc.update(
-            "DELETE FROM DS_CONFIRMATION_SCREEN_COMPONENTS_CONFIG WHERE DS_CONFIRMATION_ID IN " +
-            "(SELECT DS_CONFIRMATION_ID FROM DS_CONFIRMATION_SCREEN_CONFIG WHERE SERVICE_CODE = ?)", code);
-        jdbc.update("DELETE FROM DS_CONFIRMATION_SCREEN_CONFIG WHERE SERVICE_CODE = ?", code);
-        for (ConfirmationScreenConfigDto c : screens) insertConfirmationScreen(code, c);
+        // Delete components first (FK), then screens, then re-insert
+        subResources.replace(Arrays.asList(
+            new SubResourceService.DeleteStep(
+                "DELETE FROM DS_CONFIRMATION_SCREEN_COMPONENTS_CONFIG WHERE DS_CONFIRMATION_ID IN " +
+                "(SELECT DS_CONFIRMATION_ID FROM DS_CONFIRMATION_SCREEN_CONFIG WHERE SERVICE_CODE = ?)", code),
+            new SubResourceService.DeleteStep("DELETE FROM DS_CONFIRMATION_SCREEN_CONFIG WHERE SERVICE_CODE = ?", code)),
+            screens, c -> insertConfirmationScreen(code, c));
     }
 
     // ── Insert helpers ────────────────────────────────────────────────────────
@@ -496,7 +504,7 @@ public class ServiceConfigService {
     }
 
     private void insertStep(String code, StepDto s) {
-        String seq = s.bpmProStepsSeq != null ? s.bpmProStepsSeq : java.util.UUID.randomUUID().toString();
+        Object seq = subResources.seqOrUuid(s.bpmProStepsSeq);
         jdbc.update(
             "INSERT INTO BPM_LKP_STEPS (BPM_PRO_STEPS_SEQ, PROCESS_CODE, REQUIRED_STEP_ID, " +
             "REQUIRED_STEP_DESC_AR, REQUIRED_STEP_DESC_EN, ORDER_C, STEP_TYPE, BPMN_PROCESS_NAME, " +
@@ -513,8 +521,8 @@ public class ServiceConfigService {
     }
 
     private void insertStepLink(String requiredStepId, StepLinkDto l) {
-        Object linkId = l.stepLinkId != null ? l.stepLinkId :
-            jdbc.queryForObject("SELECT NVL(MAX(STEP_LINK_ID),0)+1 FROM BPM_LKP_SERV_STEP_STATUS_LINKS", Long.class);
+        Object linkId = subResources.idOrMaxPlusOne(
+            l.stepLinkId, "BPM_LKP_SERV_STEP_STATUS_LINKS", "STEP_LINK_ID");
         jdbc.update(
             "INSERT INTO BPM_LKP_SERV_STEP_STATUS_LINKS (STEP_LINK_ID, REQUIRED_STATUS_CODE, REQUIRED_STEP_ID, " +
             "WEB_LINK_URL, MOB_LINK_FLAG, BPMN_PROCESS_NAME, ACTION_CODE, ICON_URL, " +
@@ -526,7 +534,7 @@ public class ServiceConfigService {
     }
 
     private void insertFee(String code, FeeDto f) {
-        String seq = f.bpmProcessesFeesSeq != null ? f.bpmProcessesFeesSeq : java.util.UUID.randomUUID().toString();
+        Object seq = subResources.seqOrUuid(f.bpmProcessesFeesSeq);
         jdbc.update(
             "INSERT INTO BPM_LKP_FEES (BPM_PROCESSES_FEES_SEQ, PROCESS_CODE, FEES_DESC_AR, FEES_DESC_EN, " +
             "FEES_AMOUNT, CURRENCY_AR, CURRENCY_EN, ORDER_C) VALUES (?,?,?,?,?,?,?,?)",
@@ -534,7 +542,7 @@ public class ServiceConfigService {
     }
 
     private void insertDoc(String code, RequiredDocDto d) {
-        String seq = d.bpmProRequiredDocsSeq != null ? d.bpmProRequiredDocsSeq : java.util.UUID.randomUUID().toString();
+        Object seq = subResources.seqOrUuid(d.bpmProRequiredDocsSeq);
         jdbc.update(
             "INSERT INTO BPM_LKP_REQUIRED_DOCS (BPM_PRO_REQUIRED_DOCS_SEQ, PROCESS_CODE, " +
             "REQUIRED_DOCS_DESC_AR, REQUIRED_DOCS_DESC_EN, ORDER_C) VALUES (?,?,?,?,?)",
@@ -542,7 +550,7 @@ public class ServiceConfigService {
     }
 
     private void insertDept(String code, RelatedDeptDto d) {
-        String seq = d.bpmProRelatedDeptsSeq != null ? d.bpmProRelatedDeptsSeq : java.util.UUID.randomUUID().toString();
+        Object seq = subResources.seqOrUuid(d.bpmProRelatedDeptsSeq);
         jdbc.update(
             "INSERT INTO BPM_LKP_RELATED_DEPTS (BPM_PRO_RELATED_DEPTS_SEQ, PROCESS_CODE, " +
             "RELATED_DEPARTMENTS_DESC_AR, RELATED_DEPARTMENTS_DESC_EN, ORDER_C, ENTITY_CODE, ENTITY_CODE_SRC) " +
@@ -552,7 +560,7 @@ public class ServiceConfigService {
     }
 
     private void insertAudience(String code, TargetAudienceDto a) {
-        String seq = a.bpmProTargetAudienceSeq != null ? a.bpmProTargetAudienceSeq : java.util.UUID.randomUUID().toString();
+        Object seq = subResources.seqOrUuid(a.bpmProTargetAudienceSeq);
         jdbc.update(
             "INSERT INTO BPM_LKP_TARGET_AUDIENCE (BPM_PRO_TARGET_AUDIENCE_SEQ, PROCESS_CODE, " +
             "TARGET_AUDIENCE_DESC_AR, TARGET_AUDIENCE_DESC_EN, ORDER_C, MAIN_TARGET_AUDIENCE_SEQ) VALUES (?,?,?,?,?,?)",
@@ -560,8 +568,8 @@ public class ServiceConfigService {
     }
 
     private void insertConfirmationScreen(String code, ConfirmationScreenConfigDto c) {
-        Object cfgId = c.dsConfirmationId != null ? c.dsConfirmationId :
-            jdbc.queryForObject("SELECT NVL(MAX(DS_CONFIRMATION_ID),0)+1 FROM DS_CONFIRMATION_SCREEN_CONFIG", Long.class);
+        Object cfgId = subResources.idOrMaxPlusOne(
+            c.dsConfirmationId, "DS_CONFIRMATION_SCREEN_CONFIG", "DS_CONFIRMATION_ID");
         jdbc.update(
             "INSERT INTO DS_CONFIRMATION_SCREEN_CONFIG (DS_CONFIRMATION_ID, DS_CONFIRMATION_SCREEN_INFO_ID, " +
             "REQUIRED_STEP_ID, REQUIRED_STATUS_CODE, HAS_PAYMENT, HAS_RT_RECORD, SERVICE_CODE, " +
@@ -571,8 +579,8 @@ public class ServiceConfigService {
 
         if (c.components != null) {
             for (ConfirmationComponentConfigDto cc : c.components) {
-                Object compCfgId = cc.dsConfirmationConfigId != null ? cc.dsConfirmationConfigId :
-                    jdbc.queryForObject("SELECT NVL(MAX(DS_CONFIRMATION_CONFIG_ID),0)+1 FROM DS_CONFIRMATION_SCREEN_COMPONENTS_CONFIG", Long.class);
+                Object compCfgId = subResources.idOrMaxPlusOne(
+                    cc.dsConfirmationConfigId, "DS_CONFIRMATION_SCREEN_COMPONENTS_CONFIG", "DS_CONFIRMATION_CONFIG_ID");
                 jdbc.update(
                     "INSERT INTO DS_CONFIRMATION_SCREEN_COMPONENTS_CONFIG " +
                     "(DS_CONFIRMATION_CONFIG_ID, DS_CONFIRMATION_COMPONENT_INFO_ID, DS_CONFIRMATION_ID) VALUES (?,?,?)",

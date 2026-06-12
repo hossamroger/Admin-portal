@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -95,5 +96,36 @@ public class SubResourceService {
                 args.toArray());
             order++;
         }
+    }
+
+    // ── Lower-level helpers for typed sub-resources (e.g. ServiceConfig DTOs) ────
+
+    /** A delete to run (in order) before re-inserting children — supports cascade FKs. */
+    public static final class DeleteStep {
+        final String sql;
+        final Object[] args;
+        public DeleteStep(String sql, Object... args) { this.sql = sql; this.args = args; }
+    }
+
+    /** Use the supplied sequence value, or mint a fresh UUID string when absent. */
+    public Object seqOrUuid(Object supplied) {
+        return supplied != null ? supplied : UUID.randomUUID().toString();
+    }
+
+    /** Use the supplied id, or allocate MAX(idColumn)+1 for the table when absent. */
+    public Object idOrMaxPlusOne(Object supplied, String table, String idColumn) {
+        if (supplied != null) return supplied;
+        return jdbc.queryForObject(
+            "SELECT NVL(MAX(" + idColumn + "),0)+1 FROM " + table, Long.class);
+    }
+
+    /**
+     * Run the (cascade-ordered) deletes, then insert each typed row. Lets callers keep
+     * their table-specific INSERT SQL while sharing the delete-then-reinsert orchestration
+     * and the id-allocation strategies above. Caller owns the transaction.
+     */
+    public <T> void replace(List<DeleteStep> deletes, List<T> rows, Consumer<T> insertOne) {
+        for (DeleteStep d : deletes) jdbc.update(d.sql, d.args);
+        if (rows != null) for (T row : rows) insertOne.accept(row);
     }
 }
