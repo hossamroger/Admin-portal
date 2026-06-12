@@ -11,8 +11,49 @@ import java.util.*;
 public class DonationProjectService {
 
     private final JdbcTemplate jdbc;
+    private final SubResourceService subResources;
 
-    public DonationProjectService(JdbcTemplate jdbc) { this.jdbc = jdbc; }
+    public DonationProjectService(JdbcTemplate jdbc, SubResourceService subResources) {
+        this.jdbc = jdbc;
+        this.subResources = subResources;
+    }
+
+    // ── Sub-resource specs (table/column mapping + validation as data) ─────────
+
+    private static final SubResourceService.SubResourceSpec AMOUNTS =
+        new SubResourceService.SubResourceSpec(
+            "DA_DONATION_PROJECTS_AMOUNT", "PROJECT_ID", "ID",
+            rows -> { for (Map<String,Object> a : rows) validateAmount(a); },
+            (input, id, order, parentKey) -> {
+                LinkedHashMap<String,Object> m = new LinkedHashMap<>();
+                m.put("ID", id);
+                m.put("PROJECT_ID", parentKey);
+                m.put("AMOUNT", new BigDecimal(input.get("AMOUNT").toString().trim()));
+                return m;
+            },
+            null);
+
+    private static final SubResourceService.SubResourceSpec DETAILS =
+        new SubResourceService.SubResourceSpec(
+            "DA_DONATION_PROJECTS_DETAILS", "PRJ_ID", "REC_ID",
+            rows -> { for (Map<String,Object> d : rows) {
+                checkLength(d.get("LABEL_AR"), "LABEL_AR", 1600);
+                checkLength(d.get("LABEL_EN"), "LABEL_EN", 1600);
+                checkLength(d.get("DESC_AR"),  "DESC_AR",  16000);
+                checkLength(d.get("DESC_EN"),  "DESC_EN",  16000);
+            } },
+            (input, id, order, parentKey) -> {
+                LinkedHashMap<String,Object> m = new LinkedHashMap<>();
+                m.put("REC_ID", id);
+                m.put("PRJ_ID", parentKey);
+                m.put("LABEL_AR", nvl(input.get("LABEL_AR")));
+                m.put("LABEL_EN", nvl(input.get("LABEL_EN")));
+                m.put("DESC_AR",  nvl(input.get("DESC_AR")));
+                m.put("DESC_EN",  nvl(input.get("DESC_EN")));
+                m.put("ORDER_C", order);
+                return m;
+            },
+            literal("CREATION_DATE", "SYSDATE"));
 
     // ── Amounts ──────────────────────────────────────────────────────────────
 
@@ -26,30 +67,7 @@ public class DonationProjectService {
     @Transactional
     public void saveAmounts(long projectId, List<Map<String,Object>> amounts) {
         requireProject(projectId);
-
-        // Validate the entire payload before touching any rows.
-        List<BigDecimal> parsed = new ArrayList<>(amounts.size());
-        for (Map<String,Object> a : amounts) {
-            Object rawAmount = a.get("AMOUNT");
-            if (rawAmount == null || rawAmount.toString().trim().isEmpty()) {
-                throw new IllegalArgumentException("Amount is required");
-            }
-            BigDecimal amount;
-            try { amount = new BigDecimal(rawAmount.toString().trim()); }
-            catch (NumberFormatException e) { throw new IllegalArgumentException("Invalid amount: " + rawAmount); }
-            if (amount.signum() <= 0) {
-                throw new IllegalArgumentException("Amount must be greater than zero");
-            }
-            parsed.add(amount);
-        }
-
-        jdbc.update("DELETE FROM DA_DONATION_PROJECTS_AMOUNT WHERE PROJECT_ID = ?", projectId);
-        long base = Optional.ofNullable(jdbc.queryForObject(
-            "SELECT NVL(MAX(ID),0) FROM DA_DONATION_PROJECTS_AMOUNT", Long.class)).orElse(0L);
-        for (int i = 0; i < parsed.size(); i++) {
-            jdbc.update("INSERT INTO DA_DONATION_PROJECTS_AMOUNT (ID, PROJECT_ID, AMOUNT) VALUES (?,?,?)",
-                base + i + 1, projectId, parsed.get(i));
-        }
+        subResources.replaceAll(AMOUNTS, projectId, amounts);
     }
 
     // ── Details ──────────────────────────────────────────────────────────────
@@ -65,32 +83,29 @@ public class DonationProjectService {
     @Transactional
     public void saveDetails(long projectId, List<Map<String,Object>> details) {
         requireProject(projectId);
-
-        // Validate the entire payload before touching any rows.
-        for (Map<String,Object> d : details) {
-            checkLength(d.get("LABEL_AR"), "LABEL_AR", 1600);
-            checkLength(d.get("LABEL_EN"), "LABEL_EN", 1600);
-            checkLength(d.get("DESC_AR"),  "DESC_AR",  16000);
-            checkLength(d.get("DESC_EN"),  "DESC_EN",  16000);
-        }
-
-        jdbc.update("DELETE FROM DA_DONATION_PROJECTS_DETAILS WHERE PRJ_ID = ?", projectId);
-        long base = Optional.ofNullable(jdbc.queryForObject(
-            "SELECT NVL(MAX(REC_ID),0) FROM DA_DONATION_PROJECTS_DETAILS", Long.class)).orElse(0L);
-        int order = 1;
-        for (Map<String,Object> d : details) {
-            jdbc.update(
-                "INSERT INTO DA_DONATION_PROJECTS_DETAILS " +
-                "(REC_ID, PRJ_ID, LABEL_AR, LABEL_EN, DESC_AR, DESC_EN, ORDER_C, CREATION_DATE) " +
-                "VALUES (?,?,?,?,?,?,?,SYSDATE)",
-                base + order, projectId,
-                nvl(d.get("LABEL_AR")), nvl(d.get("LABEL_EN")),
-                nvl(d.get("DESC_AR")),  nvl(d.get("DESC_EN")),
-                order++);
-        }
+        subResources.replaceAll(DETAILS, projectId, details);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static void validateAmount(Map<String,Object> a) {
+        Object rawAmount = a.get("AMOUNT");
+        if (rawAmount == null || rawAmount.toString().trim().isEmpty()) {
+            throw new IllegalArgumentException("Amount is required");
+        }
+        BigDecimal amount;
+        try { amount = new BigDecimal(rawAmount.toString().trim()); }
+        catch (NumberFormatException e) { throw new IllegalArgumentException("Invalid amount: " + rawAmount); }
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+    }
+
+    private static LinkedHashMap<String,String> literal(String col, String sql) {
+        LinkedHashMap<String,String> m = new LinkedHashMap<>();
+        m.put(col, sql);
+        return m;
+    }
 
     private void requireProject(long projectId) {
         Long count = jdbc.queryForObject(

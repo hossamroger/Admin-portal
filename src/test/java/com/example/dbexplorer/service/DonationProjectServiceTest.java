@@ -22,7 +22,9 @@ class DonationProjectServiceTest {
     @BeforeEach
     void setUp() {
         jdbc = mock(JdbcTemplate.class);
-        svc = new DonationProjectService(jdbc);
+        // the sub-resource engine shares the same JdbcTemplate mock, so all the
+        // existing verify(jdbc) assertions still observe the delete/insert calls
+        svc = new DonationProjectService(jdbc, new SubResourceService(jdbc));
     }
 
     private static Map<String, Object> row(String key, Object val) {
