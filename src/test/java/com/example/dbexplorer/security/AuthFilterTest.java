@@ -151,4 +151,28 @@ class AuthFilterTest {
         doFilter(req, res);
         verify(audit, never()).record(any(), any(), any(), any(), anyBoolean(), anyInt(), any(), anyLong());
     }
+
+    // ── Error envelope shape (matches GlobalExceptionHandler / ApiError) ─────────
+
+    @Test void rejectEmitsApiErrorEnvelope() throws Exception {
+        org.slf4j.MDC.put(RequestIdFilter.MDC_KEY, "req-123");
+        try {
+            when(auth.effectiveUser(any())).thenReturn(null);
+            MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/schema");
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            doFilter(req, res);
+
+            assertEquals(401, res.getStatus());
+            assertTrue(res.getContentType().startsWith("application/json"));
+
+            com.fasterxml.jackson.databind.JsonNode body =
+                new com.fasterxml.jackson.databind.ObjectMapper().readTree(res.getContentAsString());
+            assertEquals("Authentication required", body.get("error").asText());
+            assertEquals("Unauthorized", body.get("type").asText());
+            assertEquals(401, body.get("status").asInt());
+            assertEquals("req-123", body.get("requestId").asText());
+        } finally {
+            org.slf4j.MDC.remove(RequestIdFilter.MDC_KEY);
+        }
+    }
 }

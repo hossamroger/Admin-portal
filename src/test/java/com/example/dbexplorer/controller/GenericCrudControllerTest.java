@@ -1,6 +1,7 @@
 package com.example.dbexplorer.controller;
 
 import com.example.dbexplorer.config.AppProperties.User;
+import com.example.dbexplorer.security.AccessResolver;
 import com.example.dbexplorer.service.AuthService;
 import com.example.dbexplorer.service.GenericCrudService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +32,7 @@ class GenericCrudControllerTest {
     void setUp() {
         svc = mock(GenericCrudService.class);
         auth = mock(AuthService.class);
-        ctrl = new GenericCrudController(svc, auth);
+        ctrl = new GenericCrudController(svc, new AccessResolver(auth));
         when(auth.effectiveUser(any())).thenReturn(new User());
         when(auth.getTableFilters(any())).thenReturn(Collections.emptyMap());
     }
@@ -81,6 +82,15 @@ class GenericCrudControllerTest {
         verify(auth).requirePrivilege(any(), eq("SELECT"));
         verify(auth).requireTableAccess(any(), eq("DA_DONATION_PROJECTS"));
         verify(svc).list(any(), isNull(), eq(0), eq(50), eq("STATUS = 'A'"), isNull(), isNull());
+    }
+
+    @Test void createReturnsIdInEnvelope() {
+        when(svc.create(any(), any())).thenReturn(42L);
+        com.example.dbexplorer.dto.ApiResponse body =
+            ctrl.create("donation-project", new HashMap<>(), req()).getBody();
+        assertNotNull(body);
+        assertEquals("Created", body.getMessage());
+        assertEquals(42L, body.getData().get("id"));
     }
 
     @Test void pageSizeIsClampedToMax500() {

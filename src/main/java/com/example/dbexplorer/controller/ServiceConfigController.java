@@ -1,8 +1,8 @@
 package com.example.dbexplorer.controller;
 
-import com.example.dbexplorer.config.AppProperties.User;
+import com.example.dbexplorer.dto.ApiResponse;
 import com.example.dbexplorer.dto.ServiceConfigDtos.*;
-import com.example.dbexplorer.service.AuthService;
+import com.example.dbexplorer.security.AccessResolver;
 import com.example.dbexplorer.service.ServiceConfigService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +16,15 @@ import java.util.Map;
 @RequestMapping("/api/service-config")
 public class ServiceConfigController {
 
-    private final ServiceConfigService svc;
-    private final AuthService auth;
+    /** Backing table for service configuration; access is gated on it. */
+    private static final String SERVICE_TABLE = "BPM_PROCESSES_INFO";
 
-    public ServiceConfigController(ServiceConfigService svc, AuthService auth) {
-        this.svc  = svc;
-        this.auth = auth;
+    private final ServiceConfigService svc;
+    private final AccessResolver access;
+
+    public ServiceConfigController(ServiceConfigService svc, AccessResolver access) {
+        this.svc    = svc;
+        this.access = access;
     }
 
     // ── List ──────────────────────────────────────────────────────────────────
@@ -61,7 +64,7 @@ public class ServiceConfigController {
     // ── Create ────────────────────────────────────────────────────────────────
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> create(@RequestBody ServiceConfigRequest req, HttpServletRequest http) {
+    public ResponseEntity<ApiResponse> create(@RequestBody ServiceConfigRequest req, HttpServletRequest http) {
         requireInsert(http);
         svc.create(req);
         return ok("Service created");
@@ -70,7 +73,7 @@ public class ServiceConfigController {
     // ── Update (full) ─────────────────────────────────────────────────────────
 
     @PutMapping("/{code}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable String code,
+    public ResponseEntity<ApiResponse> update(@PathVariable String code,
                                                        @RequestBody ServiceConfigRequest req,
                                                        HttpServletRequest http) {
         requireUpdate(http);
@@ -81,7 +84,7 @@ public class ServiceConfigController {
     // ── Per-tab partial saves ─────────────────────────────────────────────────
 
     @PutMapping("/{code}/steps")
-    public ResponseEntity<Map<String, Object>> saveSteps(@PathVariable String code,
+    public ResponseEntity<ApiResponse> saveSteps(@PathVariable String code,
                                                           @RequestBody List<StepDto> steps,
                                                           HttpServletRequest http) {
         requireUpdate(http);
@@ -90,7 +93,7 @@ public class ServiceConfigController {
     }
 
     @PutMapping("/{code}/fees")
-    public ResponseEntity<Map<String, Object>> saveFees(@PathVariable String code,
+    public ResponseEntity<ApiResponse> saveFees(@PathVariable String code,
                                                          @RequestBody List<FeeDto> fees,
                                                          HttpServletRequest http) {
         requireUpdate(http);
@@ -99,7 +102,7 @@ public class ServiceConfigController {
     }
 
     @PutMapping("/{code}/docs")
-    public ResponseEntity<Map<String, Object>> saveDocs(@PathVariable String code,
+    public ResponseEntity<ApiResponse> saveDocs(@PathVariable String code,
                                                          @RequestBody List<RequiredDocDto> docs,
                                                          HttpServletRequest http) {
         requireUpdate(http);
@@ -108,7 +111,7 @@ public class ServiceConfigController {
     }
 
     @PutMapping("/{code}/depts")
-    public ResponseEntity<Map<String, Object>> saveDepts(@PathVariable String code,
+    public ResponseEntity<ApiResponse> saveDepts(@PathVariable String code,
                                                           @RequestBody List<RelatedDeptDto> depts,
                                                           HttpServletRequest http) {
         requireUpdate(http);
@@ -117,7 +120,7 @@ public class ServiceConfigController {
     }
 
     @PutMapping("/{code}/audience")
-    public ResponseEntity<Map<String, Object>> saveAudience(@PathVariable String code,
+    public ResponseEntity<ApiResponse> saveAudience(@PathVariable String code,
                                                              @RequestBody List<TargetAudienceDto> audiences,
                                                              HttpServletRequest http) {
         requireUpdate(http);
@@ -126,7 +129,7 @@ public class ServiceConfigController {
     }
 
     @PutMapping("/{code}/confirmation")
-    public ResponseEntity<Map<String, Object>> saveConfirmation(@PathVariable String code,
+    public ResponseEntity<ApiResponse> saveConfirmation(@PathVariable String code,
                                                                  @RequestBody List<ConfirmationScreenConfigDto> cfgs,
                                                                  HttpServletRequest http) {
         requireUpdate(http);
@@ -137,7 +140,7 @@ public class ServiceConfigController {
     // ── Delete ────────────────────────────────────────────────────────────────
 
     @DeleteMapping("/{code}")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable String code, HttpServletRequest http) {
+    public ResponseEntity<ApiResponse> delete(@PathVariable String code, HttpServletRequest http) {
         requireDelete(http);
         svc.delete(code);
         return ok("Service deleted");
@@ -178,28 +181,22 @@ public class ServiceConfigController {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void requireSelect(HttpServletRequest http) {
-        User u = auth.effectiveUser(http);
-        auth.requirePrivilege(u, "SELECT");
+        access.requireAccess(SERVICE_TABLE, "SELECT", http);
     }
 
     private void requireInsert(HttpServletRequest http) {
-        User u = auth.effectiveUser(http);
-        auth.requirePrivilege(u, "INSERT");
+        access.requireAccess(SERVICE_TABLE, "INSERT", http);
     }
 
     private void requireUpdate(HttpServletRequest http) {
-        User u = auth.effectiveUser(http);
-        auth.requirePrivilege(u, "UPDATE");
+        access.requireAccess(SERVICE_TABLE, "UPDATE", http);
     }
 
     private void requireDelete(HttpServletRequest http) {
-        User u = auth.effectiveUser(http);
-        auth.requirePrivilege(u, "DELETE");
+        access.requireAccess(SERVICE_TABLE, "DELETE", http);
     }
 
-    private ResponseEntity<Map<String, Object>> ok(String message) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("message", message);
-        return ResponseEntity.ok(m);
+    private ResponseEntity<ApiResponse> ok(String message) {
+        return ResponseEntity.ok(ApiResponse.ok(message));
     }
 }

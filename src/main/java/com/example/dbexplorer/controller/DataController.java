@@ -1,12 +1,13 @@
 package com.example.dbexplorer.controller;
 
 import com.example.dbexplorer.config.AppProperties.User;
+import com.example.dbexplorer.dto.ApiResponse;
 import com.example.dbexplorer.service.AuthService;
 import com.example.dbexplorer.service.DataService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -23,7 +24,7 @@ public class DataController {
 
     /** Insert a row. Body: { "values": { "COL": value, ... } } */
     @PostMapping("/{table}")
-    public Map<String, Object> insert(@PathVariable String table,
+    public ApiResponse insert(@PathVariable String table,
                                       @RequestBody Map<String, Object> body,
                                       HttpServletRequest http) {
         User u = auth.effectiveUser(http);
@@ -38,7 +39,7 @@ public class DataController {
 
     /** Update a row. Body: { "key": {pk...}, "values": {changed...} } */
     @PutMapping("/{table}")
-    public Map<String, Object> update(@PathVariable String table,
+    public ApiResponse update(@PathVariable String table,
                                       @RequestBody Map<String, Object> body,
                                       HttpServletRequest http) {
         User u = auth.effectiveUser(http);
@@ -55,7 +56,7 @@ public class DataController {
 
     /** Delete a row. Body: { "key": {pk...} } */
     @DeleteMapping("/{table}")
-    public Map<String, Object> delete(@PathVariable String table,
+    public ApiResponse delete(@PathVariable String table,
                                       @RequestBody Map<String, Object> body,
                                       HttpServletRequest http) {
         User u = auth.effectiveUser(http);
@@ -68,10 +69,11 @@ public class DataController {
         return result(n, "deleted");
     }
 
-    private Map<String, Object> result(int n, String action) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("affected", n);
-        m.put("action", action);
-        return m;
+    private ApiResponse result(int n, String action) {
+        // Preserve the legacy top-level {affected, action} fields for clients.
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("affected", n);
+        data.put("action", action);
+        return ApiResponse.ok(action, data);
     }
 }

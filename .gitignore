@@ -4,3 +4,6 @@ target/
 *.iml
 .vscode/
 *.log
+
+# Claude Code harness state (agent worktrees, local session data)
+.claude/

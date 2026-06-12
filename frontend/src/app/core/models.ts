@@ -1,5 +1,11 @@
 // Shared API types mirroring the Spring Boot DTOs.
 
+/** Generic write result returned by create/update/delete endpoints (`{message}` or `{message,id}`). */
+export interface WriteResult {
+  message: string;
+  id?: string | number;
+}
+
 // ── Service Configuration ─────────────────────────────────────────────────────
 
 export interface ServiceSummary {

@@ -2,9 +2,13 @@ package com.example.dbexplorer.security;
 
 import com.example.dbexplorer.config.AppProperties;
 import com.example.dbexplorer.config.AppProperties.User;
+import com.example.dbexplorer.dto.ApiError;
 import com.example.dbexplorer.service.AuditService;
 import com.example.dbexplorer.service.AuthService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -32,6 +36,7 @@ public class AuthFilter extends OncePerRequestFilter {
     private final AuthService auth;
     private final AuditService audit;
     private final AppProperties props;
+    private final ObjectMapper json = new ObjectMapper();
 
     public AuthFilter(AuthService auth, AuditService audit, AppProperties props) {
         this.auth = auth;
@@ -150,9 +155,12 @@ public class AuthFilter extends OncePerRequestFilter {
         return req.getHeader("X-Requested-With") == null;
     }
 
+    /** Emit the shared {@link ApiError} envelope, mirroring GlobalExceptionHandler. */
     private void reject(HttpServletResponse res, int status, String msg) throws IOException {
         res.setStatus(status);
         res.setContentType("application/json;charset=UTF-8");
-        res.getWriter().write("{\"error\":\"" + msg + "\",\"status\":" + status + "}");
+        String type = HttpStatus.valueOf(status).getReasonPhrase();
+        ApiError body = ApiError.of(msg, type, status, MDC.get(RequestIdFilter.MDC_KEY));
+        res.getWriter().write(json.writeValueAsString(body));
     }
 }

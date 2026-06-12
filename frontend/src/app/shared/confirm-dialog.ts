@@ -28,9 +28,9 @@ export interface ConfirmDialogData {
   `,
   styles: [`
     .confirm-wrap { padding: 8px 4px 0; }
-    .warn-icon { color: #c0392b; font-size: 32px; height: 32px; width: 32px; display: block; margin-bottom: 8px; }
+    .warn-icon { color: var(--app-error); font-size: 32px; height: 32px; width: 32px; display: block; margin-bottom: 8px; }
     h3 { margin: 0 0 4px; font-size: 16px; }
-    mat-dialog-content { color: #565E59; font-size: 14px; }
+    mat-dialog-content { color: var(--app-muted); font-size: 14px; }
     mat-dialog-actions { padding-top: 8px; }
   `],
 })
