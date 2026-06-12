@@ -50,6 +50,7 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   readonly sortCol = signal<string | null>(null);
   readonly sortDir = signal<'ASC' | 'DESC'>('ASC');
   readonly deleting = signal<Set<unknown>>(new Set());
+  readonly showScrollTop = signal(false);
 
   readonly hasMore = computed(() => this.items().length < this.total());
 
@@ -121,10 +122,16 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   }
 
   onScroll(el: HTMLElement): void {
+    this.showScrollTop.set(el.scrollTop > 400);
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120 && !this.loading() && this.hasMore()) {
       this.page.update(p => p + 1);
       this.load();
     }
+  }
+
+  scrollToTop(el: HTMLElement): void {
+    el.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showScrollTop.set(false);
   }
 
   clearSearch(): void {

@@ -59,5 +59,10 @@
   &.warn   { background: rgba(200,60,30,.12); color: #b3431f; }
 }
 
+.dl-scroll-top {
+  position: fixed; right: 24px; bottom: 88px; z-index: 999;
+  /* sits just above the chatbot FAB (52px + 24px margin) */
+}
+
 .dl-scroll-loading { padding: 0; }
 .dl-scroll-hint, .dl-scroll-end { padding: 12px; text-align: center; font-size: 12px; color: var(--app-faint); }
