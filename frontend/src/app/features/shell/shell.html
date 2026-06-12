@@ -5,10 +5,10 @@
     </button>
   }
 
-  <span class="brand">
+  <a class="brand" routerLink="/" matTooltip="Home" aria-label="Home — DS Admin Portal">
     <span class="dot"></span>
     <span class="brand-name">DS Admin Portal</span>
-  </span>
+  </a>
 
   @if (pageTitle()) {
     <span class="page-sep"></span>
@@ -55,6 +55,11 @@
                [mode]="isHandset() ? 'over' : 'side'"
                [opened]="!isHandset()">
     <nav class="tree">
+      <a class="pinned-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+         (click)="onObjectClick(drawer.close.bind(drawer))">
+        <mat-icon>home</mat-icon>
+        <span>Home</span>
+      </a>
       <a class="pinned-link" routerLink="/service-config" routerLinkActive="active"
          (click)="onObjectClick(drawer.close.bind(drawer))">
         <mat-icon>settings_applications</mat-icon>
