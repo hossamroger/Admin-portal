@@ -15,7 +15,7 @@
     <div class="sc-search-wrap">
       <mat-icon class="sc-search-icon">search</mat-icon>
       <input class="sc-search-input" placeholder="Search by code or name…"
-             [(ngModel)]="search" (ngModelChange)="load(true)"
+             [(ngModel)]="search" (ngModelChange)="onSearchChange()"
              (keydown.escape)="clearSearch()">
       @if (search()) {
         <button type="button" mat-icon-button class="sc-search-clear" aria-label="Clear search" matTooltip="Clear" (click)="clearSearch()">

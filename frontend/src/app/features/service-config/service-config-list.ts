@@ -50,6 +50,7 @@ export class ServiceConfigListComponent implements AfterViewInit, OnDestroy {
   readonly hasMore = computed(() => this.items().length < this.total());
 
   private scrollListener?: () => void;
+  private searchTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     this.loadFilters();
@@ -74,6 +75,7 @@ export class ServiceConfigListComponent implements AfterViewInit, OnDestroy {
     if (this.scrollListener) {
       this.tableWrap?.nativeElement.removeEventListener('scroll', this.scrollListener);
     }
+    clearTimeout(this.searchTimer);
   }
 
   private loadFilters(): void {
@@ -107,6 +109,11 @@ export class ServiceConfigListComponent implements AfterViewInit, OnDestroy {
     if (this.loading() || !this.hasMore()) return;
     this.page.update(p => p + 1);
     this.load();
+  }
+
+  onSearchChange(): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.load(true), 300);
   }
 
   clearSearch(): void { this.search.set(''); this.load(true); }
