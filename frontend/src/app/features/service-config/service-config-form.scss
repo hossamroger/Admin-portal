@@ -17,6 +17,15 @@
 .scf-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); flex: 1; }
 .btn-delete { margin-left: auto; }
 
+.scf-dirty-banner {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px 0 12px; padding: 8px 12px;
+  border: 1px solid #e0b400; border-radius: 8px;
+  background: rgba(255, 196, 0, 0.10); color: #7a5b00; font-size: 13px;
+  mat-icon { font-size: 18px; height: 18px; width: 18px; flex-shrink: 0; }
+  strong { font-weight: 600; }
+}
+
 .scf-tabs {
   flex: 1; min-height: 0;
 

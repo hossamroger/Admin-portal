@@ -14,6 +14,13 @@
 
   @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
+  @if (dirtyTabs().length > 0) {
+    <div class="scf-dirty-banner" role="status">
+      <mat-icon>info</mat-icon>
+      <span>Unsaved changes in: <strong>{{ dirtyTabs().join(', ') }}</strong>. Save each tab before leaving.</span>
+    </div>
+  }
+
   <mat-tab-group animationDuration="0" class="scf-tabs">
 
     <!-- ── Tab 1: Basic Info ───────────────────────────────────────────── -->

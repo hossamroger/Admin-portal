@@ -181,6 +181,15 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     return !this.saving() && (this.basicDirty() || this.amountsDirty() || this.detailsDirty());
   }
 
+  /** Labels of tabs with unsaved edits — drives the aggregate warning banner. */
+  dirtyTabs(): string[] {
+    const t: string[] = [];
+    if (this.basicDirty())   t.push('Basic Info');
+    if (this.amountsDirty()) t.push('Amounts');
+    if (this.detailsDirty()) t.push('Details');
+    return t;
+  }
+
   set(col: string, v: string): void {
     this.dto.update(d => ({ ...d, [col]: v === '' ? null : v }));
     if (this.errors()[col]) {
