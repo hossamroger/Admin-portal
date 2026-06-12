@@ -31,7 +31,9 @@ class ServiceConfigServiceTest {
         jdbc = mock(JdbcTemplate.class);
         // ServiceConfigService builds a NamedParameterJdbcTemplate from the DataSource
         when(jdbc.getDataSource()).thenReturn(mock(DataSource.class));
-        svc = new ServiceConfigService(jdbc);
+        // the sub-resource engine shares the same JdbcTemplate mock, so the
+        // delete/insert/MAX+1 assertions still observe every call
+        svc = new ServiceConfigService(jdbc, new SubResourceService(jdbc));
         when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
     }
 
