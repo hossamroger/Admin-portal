@@ -26,23 +26,19 @@
   </div>
 
   @if (loadError() && items().length === 0) {
-    <div class="dl-empty">
-      <mat-icon>error_outline</mat-icon>
-      <span>Could not load data</span>
+    <app-empty-state icon="error_outline" message="Could not load data">
       <button mat-stroked-button (click)="load(true)">
         <mat-icon>refresh</mat-icon> Retry
       </button>
-    </div>
+    </app-empty-state>
   } @else if (total() === 0 && !loading()) {
-    <div class="dl-empty">
-      <mat-icon>manage_search</mat-icon>
-      @if (search()) {
-        <span>No results for “{{ search() }}”</span>
+    @if (search()) {
+      <app-empty-state icon="manage_search" message="No results for “{{ search() }}”">
         <button mat-stroked-button (click)="clearSearch()">Clear search</button>
-      } @else {
-        <span>No records yet — create the first one</span>
-      }
-    </div>
+      </app-empty-state>
+    } @else {
+      <app-empty-state icon="manage_search" message="No records yet — create the first one" />
+    }
   } @else {
     <!-- (scroll) binding survives this branch being destroyed/re-created,
          unlike a manually attached listener -->

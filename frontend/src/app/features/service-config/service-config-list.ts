@@ -16,12 +16,13 @@ import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { ServiceSummary } from '../../core/models';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
+import { EmptyStateComponent } from '../../shared/empty-state';
 
 @Component({
   selector: 'app-service-config-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, LowerCasePipe, MatButtonModule, MatIconModule, MatTooltipModule,
-            MatSelectModule, MatProgressBarModule, MatDialogModule],
+            MatSelectModule, MatProgressBarModule, MatDialogModule, EmptyStateComponent],
   templateUrl: './service-config-list.html',
   styleUrl:    './service-config-list.scss',
 })

@@ -14,6 +14,7 @@ import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { CrudRow } from '../../core/models';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
+import { EmptyStateComponent } from '../../shared/empty-state';
 import { ENTITY_CONFIGS, EntityConfig, ListColDef } from './entity-configs';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -22,7 +23,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 @Component({
   selector: 'app-dynamic-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, MatButtonModule, MatIconModule, MatTooltipModule, MatProgressBarModule],
+  imports: [FormsModule, MatButtonModule, MatIconModule, MatTooltipModule, MatProgressBarModule, EmptyStateComponent],
   templateUrl: './dynamic-list.html',
   styleUrl:    './dynamic-list.scss',
 })
