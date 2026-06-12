@@ -34,6 +34,41 @@ html {
   --app-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+// ── Dark theme ────────────────────────────────────────────────────────────────
+// Toggled by ThemeService adding `.dark` on <html>. Re-runs the Material theme in
+// dark mode and overrides the --app-* design tokens with a dark neutral ramp.
+html.dark {
+  color-scheme: dark;
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$green-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+  --app-fg:             #E6E8E5;
+  --app-fg-secondary:   #B3B9B4;
+  --app-accent:         #3FB873;
+  --app-accent-teal:    #2BB3A4;
+  --app-accent-mint:    #28C79E;
+  --app-accent-lime:    #8FDC75;
+  --app-bg:             #161A18;
+  --app-surface:        #1E2320;
+  --app-surface-soft:   #262C28;
+  --app-surface-muted:  #333A36;
+  --app-surface-subtle: #212724;
+  --app-line:           #353B38;
+  --app-line-muted:     #424845;
+  --app-line-strong:    #5A615D;
+  --app-muted:          #9BA29D;
+  --app-faint:          #6E756F;
+  --app-success:        #5BB873;
+  --app-error:          #e57368;
+}
+
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 

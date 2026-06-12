@@ -43,6 +43,10 @@
           <mat-icon>manage_accounts</mat-icon> User Management
         </button>
       }
+      <button mat-menu-item (click)="toggleTheme(); $event.stopPropagation()">
+        <mat-icon>{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        {{ isDark() ? 'Light mode' : 'Dark mode' }}
+      </button>
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon> Sign out
       </button>
