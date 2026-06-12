@@ -20,7 +20,9 @@
             (input)="columnFilter.set($any($event.target).value)"
             (keydown.escape)="columnFilter.set('')">
           @if (columnFilter()) {
-            <mat-icon class="col-clear" (click)="columnFilter.set('')">close</mat-icon>
+            <button type="button" mat-icon-button class="col-clear" aria-label="Clear column filter" matTooltip="Clear" (click)="columnFilter.set('')">
+              <mat-icon>close</mat-icon>
+            </button>
           }
           <span class="col-count">{{ filteredColumns(d.columns).length }} / {{ d.columns.length }}</span>
         </div>

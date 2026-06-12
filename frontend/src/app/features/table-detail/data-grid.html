@@ -51,7 +51,7 @@
           } @else {
             <span class="filter-val-spacer"></span>
           }
-          <mat-icon class="filter-remove" matTooltip="Remove" (click)="removeFilter(i)">close</mat-icon>
+          <button type="button" mat-icon-button class="filter-remove" aria-label="Remove filter" matTooltip="Remove" (click)="removeFilter(i)"><mat-icon>close</mat-icon></button>
         </div>
       }
       <div class="filter-actions">
@@ -102,7 +102,7 @@
           <tr class="newrow">
             @if (showActions()) {
               <td class="rowact">
-                <mat-icon class="del" matTooltip="Discard" (click)="discardNew(k)">close</mat-icon>
+                <button type="button" mat-icon-button class="del" aria-label="Discard new row" matTooltip="Discard" (click)="discardNew(k)"><mat-icon>close</mat-icon></button>
               </td>
             }
             @for (c of columns(); track c) {
@@ -125,7 +125,7 @@
             @if (showActions()) {
               <td class="rowact">
                 @if (canDelete()) {
-                  <mat-icon class="del" matTooltip="Delete row" (click)="toggleDelete(ri)">delete</mat-icon>
+                  <button type="button" mat-icon-button class="del" aria-label="Delete row" matTooltip="Delete row" (click)="toggleDelete(ri)"><mat-icon>delete</mat-icon></button>
                 }
               </td>
             }
