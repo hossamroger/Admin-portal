@@ -23,6 +23,8 @@
   background: var(--mat-sys-surface);
   border-top: 1px solid var(--mat-sys-outline-variant);
   z-index: 2;
+  /* keep controls clear of the floating chatbot button on narrow screens */
+  @media (max-width: 960px) { padding-right: 68px; }
 }
 .dirty-hint { color: var(--mat-sys-on-surface-variant); font-style: italic; font-size: 13px; }
 .tab-error {
