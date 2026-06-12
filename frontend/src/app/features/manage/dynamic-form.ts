@@ -12,6 +12,8 @@ import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { Dirtyable } from '../../core/guards';
 import { CrudRow, LookupItem } from '../../core/models';
+import { LookupCacheService } from '../../core/lookup-cache.service';
+import { normalizeFlag, snapshot, isDirty } from '../../shared/form-utils';
 import { ENTITY_CONFIGS, EntityConfig, FieldDef } from './entity-configs';
 
 const CHECKBOX_VALUES: Record<string, [unknown, unknown]> = {
@@ -19,9 +21,6 @@ const CHECKBOX_VALUES: Record<string, [unknown, unknown]> = {
   checkboxTF: ['T', 'F'],
   checkboxYN: ['Y', 'N'],
 };
-
-/** Values legacy data may use for "on" — normalized to the canonical pair on load. */
-const TRUTHY = new Set<unknown>([1, '1', 'T', 't', 'Y', 'y', true, 'true', 'TRUE']);
 
 interface FormSection {
   name: string;
@@ -41,6 +40,7 @@ export class DynamicFormComponent implements OnInit, Dirtyable {
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
+  private readonly lookupCache = inject(LookupCacheService);
 
   readonly cfg = signal<EntityConfig | null>(null);
 
@@ -124,24 +124,24 @@ export class DynamicFormComponent implements OnInit, Dirtyable {
     for (const f of cfg.fields) {
       const pair = CHECKBOX_VALUES[f.type];
       if (!pair) continue;
-      out[f.col] = TRUTHY.has(out[f.col]) ? pair[0] : pair[1];
+      out[f.col] = normalizeFlag(out[f.col], pair[0], pair[1]);
     }
     return out;
   }
 
   private takeSnapshot(): void {
-    this.savedSnapshot = JSON.stringify(this.dto());
+    this.savedSnapshot = snapshot(this.dto());
   }
 
   isDirty(): boolean {
-    return !this.saving() && JSON.stringify(this.dto()) !== this.savedSnapshot;
+    return !this.saving() && isDirty(this.savedSnapshot, this.dto());
   }
 
   private loadLookups(cfg: EntityConfig): void {
     const names = [...new Set(cfg.fields.map(f => f.lookup).filter((n): n is string => !!n))];
     for (const name of names) {
       this.lookupState.update(m => ({ ...m, [name]: 'loading' }));
-      this.api.crudLookup(cfg.name, name).subscribe({
+      this.lookupCache.crudLookup(cfg.name, name).subscribe({
         next: v => {
           this.lookups.update(m => ({ ...m, [name]: v }));
           this.lookupState.update(m => ({ ...m, [name]: 'ready' }));

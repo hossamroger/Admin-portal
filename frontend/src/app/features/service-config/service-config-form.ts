@@ -20,6 +20,8 @@ import {
   ConfirmationScreenConfigDto, TargetAudienceLookup,
   ScreenInfoLookup, ComponentInfoLookup,
 } from '../../core/models';
+import { LookupCacheService } from '../../core/lookup-cache.service';
+import { snapshot, isDirty } from '../../shared/form-utils';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { Dirtyable } from '../../core/guards';
 
@@ -119,6 +121,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
+  private readonly lookupCache = inject(LookupCacheService);
 
   readonly loading  = signal(false);
   readonly saving   = signal(false);
@@ -167,11 +170,11 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   }
 
   private takeSnapshot(): void {
-    this.savedSnapshot = JSON.stringify(this.buildPayload());
+    this.savedSnapshot = snapshot(this.buildPayload());
   }
 
   isDirty(): boolean {
-    return !this.saving() && JSON.stringify(this.buildPayload()) !== this.savedSnapshot;
+    return !this.saving() && isDirty(this.savedSnapshot, this.buildPayload());
   }
 
   /** Labels of tabs with unsaved edits — drives the aggregate warning banner. */
@@ -225,11 +228,11 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   }
 
   private loadLookups(): void {
-    this.api.lookupTargetAudience().subscribe({ next: v => this.audienceLookup.set(v), error: () => {} });
-    this.api.lookupScreenInfo().subscribe({ next: v => this.screenLookup.set(v), error: () => {} });
-    this.api.lookupComponents().subscribe({ next: v => this.componentLookup.set(v), error: () => {} });
-    this.api.lookupServiceStatuses().subscribe({ next: v => this.statuses.set(v), error: () => {} });
-    this.api.lookupServiceTypes().subscribe({ next: v => this.types.set(v), error: () => {} });
+    this.lookupCache.lookupTargetAudience().subscribe({ next: v => this.audienceLookup.set(v), error: () => {} });
+    this.lookupCache.lookupScreenInfo().subscribe({ next: v => this.screenLookup.set(v), error: () => {} });
+    this.lookupCache.lookupComponents().subscribe({ next: v => this.componentLookup.set(v), error: () => {} });
+    this.lookupCache.lookupServiceStatuses().subscribe({ next: v => this.statuses.set(v), error: () => {} });
+    this.lookupCache.lookupServiceTypes().subscribe({ next: v => this.types.set(v), error: () => {} });
   }
 
   private loadService(code: string): void {

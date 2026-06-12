@@ -14,6 +14,8 @@ import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { Dirtyable } from '../../core/guards';
 import { CrudRow, LookupItem } from '../../core/models';
+import { LookupCacheService } from '../../core/lookup-cache.service';
+import { normalizeFlag, snapshot, isDirty } from '../../shared/form-utils';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { ENTITY_CONFIGS } from '../manage/entity-configs';
 
@@ -39,6 +41,7 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
+  private readonly lookupCache = inject(LookupCacheService);
 
   private readonly cfg = ENTITY_CONFIGS['donation-project'];
 
@@ -95,7 +98,7 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   private loadLookups(): void {
     for (const name of ['orgs', 'cats'] as const) {
       this.lookupState.update(m => ({ ...m, [name]: 'loading' }));
-      this.api.crudLookup('donation-project', name).subscribe({
+      this.lookupCache.crudLookup('donation-project', name).subscribe({
         next: v => {
           (name === 'orgs' ? this.orgs : this.cats).set(v);
           this.lookupState.update(m => ({ ...m, [name]: 'ready' }));
@@ -161,21 +164,19 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   private normalizeFlags(row: CrudRow): CrudRow {
     const out = { ...row };
     for (const col of ['LIMITED', 'HAS_PRE_DEFINED_AMOUNT']) {
-      const v = out[col];
-      const s = String(v ?? '').trim().toUpperCase();
-      out[col] = (v === true || v === 1 || s.startsWith('Y') || s === 'T' || s === '1' || s === 'TRUE') ? 'Y' : 'N';
+      out[col] = normalizeFlag(out[col]);
     }
     return out;
   }
 
   // ── Dirty tracking (per tab) ─────────────────────────────────────────────
-  private takeBasicSnapshot(): void   { this.basicSnapshot   = JSON.stringify(this.dto()); }
-  private takeAmountsSnapshot(): void { this.amountsSnapshot = JSON.stringify(this.amounts()); }
-  private takeDetailsSnapshot(): void { this.detailsSnapshot = JSON.stringify(this.details()); }
+  private takeBasicSnapshot(): void   { this.basicSnapshot   = snapshot(this.dto()); }
+  private takeAmountsSnapshot(): void { this.amountsSnapshot = snapshot(this.amounts()); }
+  private takeDetailsSnapshot(): void { this.detailsSnapshot = snapshot(this.details()); }
 
-  basicDirty(): boolean   { return JSON.stringify(this.dto())     !== this.basicSnapshot; }
-  amountsDirty(): boolean { return JSON.stringify(this.amounts()) !== this.amountsSnapshot; }
-  detailsDirty(): boolean { return JSON.stringify(this.details()) !== this.detailsSnapshot; }
+  basicDirty(): boolean   { return isDirty(this.basicSnapshot,   this.dto()); }
+  amountsDirty(): boolean { return isDirty(this.amountsSnapshot, this.amounts()); }
+  detailsDirty(): boolean { return isDirty(this.detailsSnapshot, this.details()); }
 
   isDirty(): boolean {
     return !this.saving() && (this.basicDirty() || this.amountsDirty() || this.detailsDirty());
