@@ -6,6 +6,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.ResultSetMetaData;
@@ -127,6 +128,7 @@ public class GenericCrudService {
 
     // ── Create ────────────────────────────────────────────────────────────────
 
+    @Transactional
     public Object create(CrudEntity e, Map<String, Object> values) {
         Map<String, ColMeta> meta = columnMeta(e.table);
         Map<String, Object> row = filterColumns(e, values, meta);
@@ -209,6 +211,7 @@ public class GenericCrudService {
 
     // ── Update ────────────────────────────────────────────────────────────────
 
+    @Transactional
     public void update(CrudEntity e, String id, Map<String, Object> values, String rowFilter) {
         Map<String, ColMeta> meta = columnMeta(e.table);
 
@@ -251,6 +254,7 @@ public class GenericCrudService {
 
     // ── Delete ────────────────────────────────────────────────────────────────
 
+    @Transactional
     public void delete(CrudEntity e, String id, String rowFilter) {
         String where = " WHERE " + e.pk + " = ?";
         if (rowFilter != null && !rowFilter.trim().isEmpty()) where += " AND (" + rowFilter + ")";
