@@ -42,7 +42,14 @@ public class GenericCrudService {
         TableMeta(Map<String, ColMeta> cols) { this.cols = cols; this.loadedAt = System.currentTimeMillis(); }
     }
 
+    /** Cached result of probing for a {@code <table>_SEQ} sequence (name may be null). */
+    private static final class SeqProbe {
+        final String name; final long loadedAt;
+        SeqProbe(String name) { this.name = name; this.loadedAt = System.currentTimeMillis(); }
+    }
+
     private final Map<String, TableMeta> metaCache = new ConcurrentHashMap<>();
+    private final Map<String, SeqProbe> seqCache = new ConcurrentHashMap<>();
 
     public GenericCrudService(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
@@ -128,7 +135,18 @@ public class GenericCrudService {
         row.remove(e.updatedAtCol);
         validate(e, row, meta, true);
 
-        // MAX+1 can race with a concurrent insert — retry with a fresh id on collision
+        // Preferred path: if a conventional <table>_SEQ sequence exists, allocate
+        // the id atomically with NEXTVAL — no race, no retry. (Run
+        // db/create_pk_sequences.sql to enable this for the managed tables.)
+        String seq = sequenceFor(e.table);
+        if (seq != null) {
+            long newId = Optional.ofNullable(
+                jdbc.queryForObject("SELECT " + seq + ".NEXTVAL FROM DUAL", Long.class)).orElse(1L);
+            insertRow(e, row, newId);
+            return newId;
+        }
+
+        // Fallback: MAX+1 can race with a concurrent insert — retry with a fresh id on collision
         DuplicateKeyException last = null;
         for (int attempt = 0; attempt < CREATE_RETRIES; attempt++) {
             long newId = nextValue(e.table, e.pk);
@@ -141,6 +159,31 @@ public class GenericCrudService {
         }
         throw new ResponseStatusException(HttpStatus.CONFLICT,
             "Could not allocate a unique ID — please retry", last);
+    }
+
+    /**
+     * Returns the name of the PK sequence for a table if one exists in the current
+     * schema following the {@code <table>_SEQ} convention, else null. Result is
+     * cached (positive and negative) with the same TTL as column metadata, so a
+     * newly-created sequence is picked up within {@value #META_TTL_MS} ms.
+     */
+    private String sequenceFor(String table) {
+        String key = table.toUpperCase();
+        SeqProbe cached = seqCache.get(key);
+        if (cached != null && System.currentTimeMillis() - cached.loadedAt < META_TTL_MS) {
+            return cached.name;
+        }
+        String candidate = key + "_SEQ";
+        String resolved = null;
+        try {
+            Integer n = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM user_sequences WHERE sequence_name = ?", Integer.class, candidate);
+            if (n != null && n > 0) resolved = candidate;
+        } catch (Exception ignore) {
+            // user_sequences not accessible — stay on the MAX+1 fallback
+        }
+        seqCache.put(key, new SeqProbe(resolved));
+        return resolved;
     }
 
     private void insertRow(CrudEntity e, Map<String, Object> row, long newId) {

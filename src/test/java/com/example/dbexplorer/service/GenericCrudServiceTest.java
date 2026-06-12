@@ -209,4 +209,41 @@ class GenericCrudServiceTest {
         assertEquals(11L, id);
         verify(jdbc, times(2)).update(anyString(), ArgumentMatchers.<Object[]>any());
     }
+
+    // ── create: sequence-aware allocation ─────────────────────────────────────
+
+    @Test
+    void createUsesSequenceNextvalWhenSequenceExists() {
+        // probe finds T_SEQ
+        when(jdbc.queryForObject(
+                eq("SELECT COUNT(*) FROM user_sequences WHERE sequence_name = ?"),
+                eq(Integer.class), eq("T_SEQ"))).thenReturn(1);
+        when(jdbc.queryForObject(startsWith("SELECT T_SEQ.NEXTVAL"), eq(Long.class))).thenReturn(100L);
+        when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
+
+        Map<String, Object> vals = new HashMap<>();
+        vals.put("NAME", "ok");
+        Object id = svc.create(entity, vals);
+
+        assertEquals(100L, id);
+        // sequence path is atomic — must not fall back to MAX+1
+        verify(jdbc, never()).queryForObject(startsWith("SELECT NVL(MAX("), eq(Long.class));
+        verify(jdbc, times(1)).update(anyString(), ArgumentMatchers.<Object[]>any());
+    }
+
+    @Test
+    void createFallsBackToMaxPlusOneWhenNoSequence() {
+        when(jdbc.queryForObject(
+                eq("SELECT COUNT(*) FROM user_sequences WHERE sequence_name = ?"),
+                eq(Integer.class), eq("T_SEQ"))).thenReturn(0);
+        when(jdbc.queryForObject(startsWith("SELECT NVL(MAX("), eq(Long.class))).thenReturn(5L);
+        when(jdbc.update(anyString(), ArgumentMatchers.<Object[]>any())).thenReturn(1);
+
+        Map<String, Object> vals = new HashMap<>();
+        vals.put("NAME", "ok");
+        Object id = svc.create(entity, vals);
+
+        assertEquals(5L, id);
+        verify(jdbc, never()).queryForObject(startsWith("SELECT T_SEQ.NEXTVAL"), eq(Long.class));
+    }
 }
