@@ -135,8 +135,8 @@ export class ApiService {
   crudGet(entity: string, id: string): Observable<CrudRow> {
     return this.http.get<CrudRow>(`/api/crud/${entity}/${encodeURIComponent(id)}`);
   }
-  crudCreate(entity: string, row: CrudRow): Observable<unknown> {
-    return this.http.post(`/api/crud/${entity}`, row);
+  crudCreate(entity: string, row: CrudRow): Observable<{ id: string | number }> {
+    return this.http.post<{ id: string | number }>(`/api/crud/${entity}`, row);
   }
   crudUpdate(entity: string, id: string, row: CrudRow): Observable<unknown> {
     return this.http.put(`/api/crud/${entity}/${encodeURIComponent(id)}`, row);
