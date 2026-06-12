@@ -32,15 +32,17 @@ CREATE TABLE DBX_USER_TABLE_FILTERS (
 );
 
 -- Initial Data (Admin)
-INSERT INTO DBX_USERS (USERNAME, PASSWORD, ROLE) VALUES ('admin', '{noop}admin123', 'ADMIN');
+-- NOTE: The application creates the admin account automatically on first run with a
+-- randomly generated BCrypt-hashed password printed once to stdout. Do NOT seed a
+-- hardcoded password here — run the app and copy the password from the startup log.
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('admin', 'SELECT');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('admin', 'INSERT');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('admin', 'UPDATE');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('admin', 'DELETE');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('admin', 'EXECUTE_SQL');
 
--- Initial Data (Analyst Example)
-INSERT INTO DBX_USERS (USERNAME, PASSWORD, ROLE) VALUES ('analyst', '{noop}analyst123', 'ANALYST');
+-- Initial Data (Analyst Example — replace {noop}analyst123 with a real BCrypt hash before use)
+INSERT INTO DBX_USERS (USERNAME, PASSWORD, ROLE) VALUES ('analyst', '{REPLACE_WITH_BCRYPT_HASH}', 'ANALYST');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('analyst', 'SELECT');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('analyst', 'INSERT');
 INSERT INTO DBX_USER_PRIVILEGES (USERNAME, PRIVILEGE) VALUES ('analyst', 'UPDATE');
