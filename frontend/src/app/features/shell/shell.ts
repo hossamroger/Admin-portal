@@ -20,6 +20,7 @@ import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { SchemaStateService } from '../../core/schema-state.service';
 import { NotifyService } from '../../core/notify.service';
+import { ThemeService } from '../../core/theme.service';
 import { DbObject, ObjectType } from '../../core/models';
 import { ENTITY_CONFIGS, NAV_ENTITIES } from '../manage/entity-configs';
 
@@ -44,6 +45,7 @@ export class ShellComponent implements OnDestroy {
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly breakpoints = inject(BreakpointObserver);
+  private readonly themeService = inject(ThemeService);
 
   readonly me = this.auth.me;
   readonly isAdmin = this.auth.isAdmin;
@@ -165,6 +167,9 @@ export class ShellComponent implements OnDestroy {
     // Re-fetch any groups that were already expanded so they don't go blank.
     for (const type of alreadyLoaded) this.loadGroup(type as ObjectType);
   }
+
+  isDark(): boolean { return this.themeService.isDark(); }
+  toggleTheme(): void { this.themeService.toggle(); }
 
   logout(): void {
     this.auth.logout().subscribe({
