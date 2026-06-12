@@ -43,6 +43,27 @@ class GenericCrudServiceTest {
         entity.searchCols = Arrays.asList("NAME");
     }
 
+    // ── describe (_meta contract) ─────────────────────────────────────────────
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void describeMergesRegistryAndDriverColumns() {
+        Map<String, Object> meta = svc.describe(entity);
+        assertEquals("t", meta.get("name"));
+        assertEquals("T", meta.get("table"));
+        assertEquals("ID", meta.get("pk"));
+        assertEquals(Arrays.asList("NAME"), meta.get("searchCols"));
+
+        List<Map<String, Object>> cols = (List<Map<String, Object>>) meta.get("columns");
+        assertFalse(cols.isEmpty());
+        Map<String, Object> idCol = cols.stream()
+            .filter(c -> "ID".equals(c.get("name"))).findFirst().orElseThrow(AssertionError::new);
+        assertEquals(false, idCol.get("writable"));   // pk is not writable by default
+        Map<String, Object> nameCol = cols.stream()
+            .filter(c -> "NAME".equals(c.get("name"))).findFirst().orElseThrow(AssertionError::new);
+        assertEquals(true, nameCol.get("writable"));
+    }
+
     // ── parseTemporal: strict, non-lenient ────────────────────────────────────
 
     @Test

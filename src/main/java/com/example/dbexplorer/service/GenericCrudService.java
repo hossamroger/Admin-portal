@@ -286,6 +286,43 @@ public class GenericCrudService {
         if (deleted == 0) throw new NoSuchElementException("Record not found: " + id);
     }
 
+    // ── Metadata (config-driven UI contract) ──────────────────────────────────
+
+    /**
+     * Describes an entity for clients: the registry-declared shape (pk, ops,
+     * search columns, lookups, audit/order columns) merged with the live
+     * driver-discovered column list (name, JDBC type, nullability, size).
+     */
+    public Map<String, Object> describe(CrudEntity e) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("name", e.name);
+        out.put("table", e.table);
+        out.put("pk", e.pk);
+        out.put("ops", new ArrayList<>(e.ops));
+        out.put("searchCols", e.searchCols);
+        out.put("orderCol", e.orderCol);
+        out.put("createdAtCol", e.createdAtCol);
+        out.put("updatedAtCol", e.updatedAtCol);
+        out.put("lookups", new ArrayList<>(e.lookups.keySet()));
+
+        List<Map<String, Object>> columns = new ArrayList<>();
+        for (Map.Entry<String, ColMeta> en : columnMeta(e.table).entrySet()) {
+            ColMeta c = en.getValue();
+            Map<String, Object> col = new LinkedHashMap<>();
+            col.put("name", en.getKey());
+            col.put("jdbcType", c.type);
+            col.put("nullable", c.nullable);
+            col.put("size", c.size);
+            boolean writable = e.writableCols.isEmpty()
+                ? !en.getKey().equals(e.pk)
+                : e.writableCols.contains(en.getKey());
+            col.put("writable", writable);
+            columns.add(col);
+        }
+        out.put("columns", columns);
+        return out;
+    }
+
     // ── Lookup (dropdown data) ────────────────────────────────────────────────
 
     public List<Map<String, Object>> lookup(CrudEntity e, String name) {
