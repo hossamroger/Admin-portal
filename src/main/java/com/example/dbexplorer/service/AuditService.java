@@ -76,6 +76,9 @@ public class AuditService {
 
     public long getDroppedCount() { return dropped.get(); }
 
+    /** Current number of buffered events awaiting the background writer. */
+    public int getQueueSize() { return queue.size(); }
+
     // ---- background writer ----
 
     private void drainLoop() {

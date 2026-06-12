@@ -61,8 +61,24 @@ dbexplorer:
     batch-size: 500           # rows per background insert
     table: DBX_AUDIT_LOG
 
+# Actuator — served under /api/actuator so the AuthFilter (which guards /api/**)
+# requires an authenticated session. Health details are hidden to avoid leaking
+# infrastructure info; only status, metrics and info are exposed.
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+
 logging:
   level:
     com.example.dbexplorer: INFO
+  pattern:
+    # include the per-request correlation id (set by RequestIdFilter) in each line
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"
     org.apache.catalina.connector.ClientAbortException: OFF
     org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver: OFF
