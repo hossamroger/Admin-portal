@@ -64,7 +64,7 @@
         <tbody>
           @for (row of items(); track trackId(row)) {
             <tr class="dl-row" tabindex="0" role="button"
-                (click)="edit(row)" (keydown.enter)="edit(row)">
+                (click)="edit(row)" (keydown.enter)="edit(row)" (keydown.space)="$event.preventDefault(); edit(row)">
               @for (col of c.listColumns; track col.col) {
                 <td [class.mono]="col.mono" [class.rtl]="col.rtl" [class.num]="col.align === 'right'">
                   @if (col.badge01) {

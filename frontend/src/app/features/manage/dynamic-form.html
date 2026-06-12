@@ -24,11 +24,15 @@
             @case ('textarea') {
               <textarea class="field-textarea" [class.rtl]="f.rtl" rows="3"
                         [id]="'fld-' + f.col"
+                        [attr.aria-invalid]="!!errorFor(f)"
+                        [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                         [value]="value(f)"
                         (input)="set(f, $any($event.target).value)"></textarea>
             }
             @case ('lookup') {
               <select class="field-select" [id]="'fld-' + f.col"
+                      [attr.aria-invalid]="!!errorFor(f)"
+                      [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                       [value]="value(f)"
                       (change)="set(f, $any($event.target).value)">
                 @switch (lookupStateFor(f)) {
@@ -44,6 +48,8 @@
             }
             @case ('select') {
               <select class="field-select" [id]="'fld-' + f.col"
+                      [attr.aria-invalid]="!!errorFor(f)"
+                      [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                       [value]="value(f)"
                       (change)="set(f, $any($event.target).value)">
                 <option value="" disabled hidden [selected]="value(f) === ''">Select…</option>
@@ -58,15 +64,21 @@
             }
             @case ('number') {
               <input class="field-input" [class.mono]="f.mono" type="number" [id]="'fld-' + f.col"
+                     [attr.aria-invalid]="!!errorFor(f)"
+                     [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                      [value]="value(f)" [placeholder]="f.placeholder || ''"
                      (input)="set(f, $any($event.target).value)">
             }
             @case ('date') {
               <input class="field-input" [class.mono]="f.mono" type="date" [id]="'fld-' + f.col"
+                     [attr.aria-invalid]="!!errorFor(f)"
+                     [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                      [value]="value(f)" (input)="set(f, $any($event.target).value)">
             }
             @case ('datetime') {
               <input class="field-input" [class.mono]="f.mono" type="datetime-local" [id]="'fld-' + f.col"
+                     [attr.aria-invalid]="!!errorFor(f)"
+                     [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                      [value]="value(f)" (input)="set(f, $any($event.target).value)">
             }
             @case ('color') {
@@ -78,12 +90,14 @@
             }
             @default {
               <input class="field-input" [class.mono]="f.mono" [class.rtl]="f.rtl" [id]="'fld-' + f.col"
+                     [attr.aria-invalid]="!!errorFor(f)"
+                     [attr.aria-describedby]="errorFor(f) ? 'err-' + f.col : null"
                      [value]="value(f)" [placeholder]="f.placeholder || ''"
                      (input)="set(f, $any($event.target).value)">
             }
           }
 
-          @if (errorFor(f)) { <span class="field-error">{{ errorFor(f) }}</span> }
+          @if (errorFor(f)) { <span class="field-error" [id]="'err-' + f.col" role="alert">{{ errorFor(f) }}</span> }
         </div>
       }
     </div>
