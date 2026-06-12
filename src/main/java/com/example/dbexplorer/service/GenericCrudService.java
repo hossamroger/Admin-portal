@@ -52,8 +52,19 @@ public class GenericCrudService {
     private final Map<String, TableMeta> metaCache = new ConcurrentHashMap<>();
     private final Map<String, SeqProbe> seqCache = new ConcurrentHashMap<>();
 
+    /** entity slug → hook; empty when no per-entity hooks are registered. */
+    private final Map<String, CrudHook> hooks;
+
     public GenericCrudService(JdbcTemplate jdbc) {
+        this(jdbc, Collections.emptyList());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public GenericCrudService(JdbcTemplate jdbc, List<CrudHook> hookBeans) {
         this.jdbc = jdbc;
+        Map<String, CrudHook> m = new HashMap<>();
+        for (CrudHook h : hookBeans) m.put(h.entity(), h);
+        this.hooks = m;
     }
 
     // ── List / search ─────────────────────────────────────────────────────────
@@ -137,6 +148,9 @@ public class GenericCrudService {
         row.remove(e.updatedAtCol);
         validate(e, row, meta, true);
 
+        CrudHook hook = hooks.get(e.name);
+        if (hook != null) hook.beforeInsert(e, row);
+
         // Preferred path: if a conventional <table>_SEQ sequence exists, allocate
         // the id atomically with NEXTVAL — no race, no retry. (Run
         // db/create_pk_sequences.sql to enable this for the managed tables.)
@@ -145,6 +159,7 @@ public class GenericCrudService {
             long newId = Optional.ofNullable(
                 jdbc.queryForObject("SELECT " + seq + ".NEXTVAL FROM DUAL", Long.class)).orElse(1L);
             insertRow(e, row, newId);
+            if (hook != null) hook.afterInsert(e, row, newId);
             return newId;
         }
 
@@ -154,6 +169,7 @@ public class GenericCrudService {
             long newId = nextValue(e.table, e.pk);
             try {
                 insertRow(e, row, newId);
+                if (hook != null) hook.afterInsert(e, row, newId);
                 return newId;
             } catch (DuplicateKeyException dup) {
                 last = dup;
@@ -233,6 +249,9 @@ public class GenericCrudService {
         row.remove(e.updatedAtCol);
         validate(e, row, meta, false);
 
+        CrudHook hook = hooks.get(e.name);
+        if (hook != null) hook.beforeUpdate(e, id, row);
+
         List<String> sets = new ArrayList<>();
         List<Object> args = new ArrayList<>();
         for (Map.Entry<String, Object> en : row.entrySet()) {
@@ -256,6 +275,9 @@ public class GenericCrudService {
 
     @Transactional
     public void delete(CrudEntity e, String id, String rowFilter) {
+        CrudHook hook = hooks.get(e.name);
+        if (hook != null) hook.beforeDelete(e, id);
+
         String where = " WHERE " + e.pk + " = ?";
         if (rowFilter != null && !rowFilter.trim().isEmpty()) where += " AND (" + rowFilter + ")";
         int deleted = jdbc.update(
