@@ -8,10 +8,7 @@
 
 <div class="panel">
   @if (users().length === 0) {
-    <div class="empty-state">
-      <mat-icon>group</mat-icon>
-      <span>No users found</span>
-    </div>
+    <app-empty-state icon="group" message="No users found" />
   } @else {
     <table mat-table [dataSource]="users()" class="users-table">
       <ng-container matColumnDef="username">

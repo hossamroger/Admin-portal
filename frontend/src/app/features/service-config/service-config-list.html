@@ -36,10 +36,7 @@
   </div>
 
   @if (total() === 0 && !loading()) {
-    <div class="sc-empty">
-      <mat-icon>manage_search</mat-icon>
-      <span>No services found</span>
-    </div>
+    <app-empty-state icon="manage_search" message="No services found" />
   } @else {
     <div class="sc-table-wrap" #tableWrap>
       <table class="sc-table">

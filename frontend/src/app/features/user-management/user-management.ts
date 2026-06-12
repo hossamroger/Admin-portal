@@ -10,11 +10,12 @@ import { NotifyService } from '../../core/notify.service';
 import { AdminUserSummary } from '../../core/models';
 import { UserDialogComponent } from './user-dialog';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
+import { EmptyStateComponent } from '../../shared/empty-state';
 
 @Component({
   selector: 'app-user-management',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, MatDialogModule],
+  imports: [MatTableModule, MatButtonModule, MatIconModule, MatTooltipModule, MatDialogModule, EmptyStateComponent],
   templateUrl: './user-management.html',
   styleUrl: './user-management.scss',
 })
