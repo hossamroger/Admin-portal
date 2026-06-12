@@ -1,17 +1,13 @@
 package com.example.dbexplorer.controller;
 
-import com.example.dbexplorer.config.AppProperties.User;
-import com.example.dbexplorer.config.CrudEntities;
-import com.example.dbexplorer.config.CrudEntities.CrudEntity;
-import com.example.dbexplorer.service.AuthService;
+import com.example.dbexplorer.dto.ApiResponse;
+import com.example.dbexplorer.security.AccessResolver;
+import com.example.dbexplorer.security.AccessResolver.Access;
 import com.example.dbexplorer.service.GenericCrudService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +22,11 @@ import java.util.Map;
 public class GenericCrudController {
 
     private final GenericCrudService svc;
-    private final AuthService auth;
+    private final AccessResolver access;
 
-    public GenericCrudController(GenericCrudService svc, AuthService auth) {
-        this.svc  = svc;
-        this.auth = auth;
+    public GenericCrudController(GenericCrudService svc, AccessResolver access) {
+        this.svc    = svc;
+        this.access = access;
     }
 
     @GetMapping("/{entity}")
@@ -42,7 +38,7 @@ public class GenericCrudController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String dir,
             HttpServletRequest http) {
-        Access a = resolve(entity, "SELECT", http);
+        Access a = access.resolveEntity(entity, "SELECT", http);
         return svc.list(a.entity, search, Math.max(page, 0),
             Math.min(Math.max(pageSize, 1), 500), a.rowFilter, sort, dir);
     }
@@ -50,68 +46,41 @@ public class GenericCrudController {
     @GetMapping("/{entity}/lookup/{name}")
     public List<Map<String, Object>> lookup(
             @PathVariable String entity, @PathVariable String name, HttpServletRequest http) {
-        Access a = resolve(entity, "SELECT", http);
+        Access a = access.resolveEntity(entity, "SELECT", http);
         return svc.lookup(a.entity, name);
     }
 
     @GetMapping("/{entity}/{id}")
     public ResponseEntity<Map<String, Object>> get(
             @PathVariable String entity, @PathVariable String id, HttpServletRequest http) {
-        Access a = resolve(entity, "SELECT", http);
+        Access a = access.resolveEntity(entity, "SELECT", http);
         Map<String, Object> row = svc.get(a.entity, id, a.rowFilter);
         return row == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(row);
     }
 
     @PostMapping("/{entity}")
-    public ResponseEntity<Map<String, Object>> create(
+    public ResponseEntity<ApiResponse> create(
             @PathVariable String entity, @RequestBody Map<String, Object> values,
             HttpServletRequest http) {
-        Access a = resolve(entity, "INSERT", http);
+        Access a = access.resolveEntity(entity, "INSERT", http);
         Object id = svc.create(a.entity, values);
-        Map<String, Object> r = new HashMap<>();
-        r.put("message", "Created");
-        r.put("id", id);
-        return ResponseEntity.ok(r);
+        return ResponseEntity.ok(ApiResponse.ok("Created", "id", id));
     }
 
     @PutMapping("/{entity}/{id}")
-    public ResponseEntity<Map<String, Object>> update(
+    public ResponseEntity<ApiResponse> update(
             @PathVariable String entity, @PathVariable String id,
             @RequestBody Map<String, Object> values, HttpServletRequest http) {
-        Access a = resolve(entity, "UPDATE", http);
+        Access a = access.resolveEntity(entity, "UPDATE", http);
         svc.update(a.entity, id, values, a.rowFilter);
-        Map<String, Object> r = new HashMap<>();
-        r.put("message", "Updated");
-        return ResponseEntity.ok(r);
+        return ResponseEntity.ok(ApiResponse.ok("Updated"));
     }
 
     @DeleteMapping("/{entity}/{id}")
-    public ResponseEntity<Map<String,Object>> delete(
+    public ResponseEntity<ApiResponse> delete(
             @PathVariable String entity, @PathVariable String id, HttpServletRequest http) {
-        Access a = resolve(entity, "DELETE", http);
+        Access a = access.resolveEntity(entity, "DELETE", http);
         svc.delete(a.entity, id, a.rowFilter);
-        Map<String,Object> r = new HashMap<>();
-        r.put("message","Deleted");
-        return ResponseEntity.ok(r);
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static final class Access {
-        final CrudEntity entity; final String rowFilter;
-        Access(CrudEntity entity, String rowFilter) { this.entity = entity; this.rowFilter = rowFilter; }
-    }
-
-    private Access resolve(String entity, String op, HttpServletRequest http) {
-        CrudEntity e = CrudEntities.get(entity);
-        if (e == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown entity: " + entity);
-        if (!e.ops.contains(op))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, op + " not allowed for " + entity);
-        User u = auth.effectiveUser(http);
-        auth.requirePrivilege(u, op);
-        auth.requireTableAccess(u, e.table);
-        String rowFilter = auth.getTableFilters(u).get(e.table.toUpperCase());
-        return new Access(e, rowFilter);
+        return ResponseEntity.ok(ApiResponse.ok("Deleted"));
     }
 }

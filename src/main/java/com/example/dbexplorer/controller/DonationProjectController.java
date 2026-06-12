@@ -1,7 +1,7 @@
 package com.example.dbexplorer.controller;
 
-import com.example.dbexplorer.config.AppProperties.User;
-import com.example.dbexplorer.service.AuthService;
+import com.example.dbexplorer.dto.ApiResponse;
+import com.example.dbexplorer.security.AccessResolver;
 import com.example.dbexplorer.service.DonationProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +18,11 @@ public class DonationProjectController {
     private static final String DETAILS_TABLE  = "DA_DONATION_PROJECTS_DETAILS";
 
     private final DonationProjectService svc;
-    private final AuthService auth;
+    private final AccessResolver access;
 
-    public DonationProjectController(DonationProjectService svc, AuthService auth) {
-        this.svc  = svc;
-        this.auth = auth;
+    public DonationProjectController(DonationProjectService svc, AccessResolver access) {
+        this.svc    = svc;
+        this.access = access;
     }
 
     @GetMapping("/{id}/amounts")
@@ -32,7 +32,7 @@ public class DonationProjectController {
     }
 
     @PutMapping("/{id}/amounts")
-    public ResponseEntity<Map<String,Object>> saveAmounts(
+    public ResponseEntity<ApiResponse> saveAmounts(
             @PathVariable long id, @RequestBody List<Map<String,Object>> body,
             HttpServletRequest http) {
         authorize(http, "UPDATE", AMOUNTS_TABLE);
@@ -47,7 +47,7 @@ public class DonationProjectController {
     }
 
     @PutMapping("/{id}/details")
-    public ResponseEntity<Map<String,Object>> saveDetails(
+    public ResponseEntity<ApiResponse> saveDetails(
             @PathVariable long id, @RequestBody List<Map<String,Object>> body,
             HttpServletRequest http) {
         authorize(http, "UPDATE", DETAILS_TABLE);
@@ -55,21 +55,17 @@ public class DonationProjectController {
         return ResponseEntity.ok(saved());
     }
 
-    private static Map<String, Object> saved() {
-        Map<String, Object> r = new HashMap<>();
-        r.put("message", "Saved");
-        return r;
+    private static ApiResponse saved() {
+        return ApiResponse.ok("Saved");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /** Mirror GenericCrudController.resolve(): privilege + table whitelist checks.
+    /** Mirror GenericCrudController access checks: privilege + table whitelist.
      *  The rows always belong to a project, so access to the parent table is
      *  required as well. */
     private void authorize(HttpServletRequest http, String op, String table) {
-        User u = auth.effectiveUser(http);
-        auth.requirePrivilege(u, op);
-        auth.requireTableAccess(u, table);
-        auth.requireTableAccess(u, PROJECTS_TABLE);
+        access.requireAccess(table, op, http);
+        access.requireAccess(PROJECTS_TABLE, op, http);
     }
 }
