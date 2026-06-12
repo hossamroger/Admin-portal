@@ -174,6 +174,25 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
     return !this.saving() && JSON.stringify(this.buildPayload()) !== this.savedSnapshot;
   }
 
+  /** Labels of tabs with unsaved edits — drives the aggregate warning banner. */
+  dirtyTabs(): string[] {
+    if (!this.savedSnapshot) return [];
+    const saved = JSON.parse(this.savedSnapshot) as ServiceConfigPayload;
+    const current = this.buildPayload();
+    const sections: [keyof ServiceConfigPayload, string][] = [
+      ['processInfo', 'Basic Info'],
+      ['steps', 'Steps'],
+      ['fees', 'Fees'],
+      ['requiredDocs', 'Documents'],
+      ['relatedDepts', 'Providers'],
+      ['targetAudiences', 'Target Audience'],
+      ['confirmationScreens', 'Confirmation Screens'],
+    ];
+    return sections
+      .filter(([key]) => JSON.stringify(current[key]) !== JSON.stringify(saved[key]))
+      .map(([, label]) => label);
+  }
+
   /** Mark one section clean after its per-tab save, leaving other edits dirty. */
   private snapshotSection(key: keyof ServiceConfigPayload): void {
     const base = this.savedSnapshot ? JSON.parse(this.savedSnapshot) : this.buildPayload();

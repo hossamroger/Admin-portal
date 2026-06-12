@@ -9,6 +9,13 @@
 
   @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
+  @if (dirtyTabs().length > 0) {
+    <div class="dpf-dirty-banner" role="status">
+      <mat-icon>info</mat-icon>
+      <span>Unsaved changes in: <strong>{{ dirtyTabs().join(', ') }}</strong>. Save each tab before leaving.</span>
+    </div>
+  }
+
   <mat-tab-group animationDuration="0" class="dpf-tabs">
 
     <!-- ── Basic Info ─────────────────────────────────────────────────── -->
