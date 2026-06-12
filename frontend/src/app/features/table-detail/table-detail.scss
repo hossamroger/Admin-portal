@@ -25,7 +25,7 @@
   border-radius: 8px; margin-bottom: 10px;
 
   .col-search-icon { font-size: 16px; height: 16px; width: 16px; color: var(--app-faint); flex-shrink: 0; }
-  .col-clear { font-size: 15px; height: 15px; width: 15px; color: var(--app-faint); cursor: pointer; flex-shrink: 0; &:hover { color: var(--app-fg); } }
+  .col-clear { width: 24px !important; height: 24px !important; padding: 0 !important; flex-shrink: 0; color: var(--app-faint); mat-icon { font-size: 15px; } &:hover { color: var(--app-fg); } }
 
   .col-search-input {
     flex: 1; border: none; outline: none; background: transparent;

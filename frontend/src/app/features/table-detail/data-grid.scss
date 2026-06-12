@@ -50,8 +50,8 @@
   .filter-val-spacer { flex: 3; }
 
   .filter-remove {
-    flex-shrink: 0; cursor: pointer; color: var(--app-faint);
-    font-size: 18px; width: 18px; height: 18px;
+    flex-shrink: 0; width: 28px !important; height: 28px !important; padding: 0 !important;
+    color: var(--app-faint); mat-icon { font-size: 18px; }
     &:hover { color: var(--app-error); }
   }
 
@@ -106,7 +106,7 @@ table.grid {
   .pk { color: var(--app-accent); font-weight: 500; }
   .null { color: var(--app-faint); font-style: italic; }
   .rowact { width: 38px; text-align: center; }
-  .del { cursor: pointer; color: var(--app-faint); font-size: 18px; }
+  .del { width: 32px !important; height: 32px !important; padding: 0 !important; color: var(--app-faint); mat-icon { font-size: 18px; } }
   .del:hover { color: var(--app-error); }
 
   input.cell {

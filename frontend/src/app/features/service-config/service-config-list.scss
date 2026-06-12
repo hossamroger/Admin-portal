@@ -35,8 +35,8 @@
   &:focus { border-color: var(--app-accent); }
 }
 .sc-search-clear {
-  position: absolute; right: 6px; font-size: 16px;
-  color: var(--app-muted); cursor: pointer;
+  position: absolute; right: 2px; width: 28px !important; height: 28px !important; padding: 0 !important;
+  color: var(--app-muted); mat-icon { font-size: 16px; }
   &:hover { color: var(--app-fg); }
 }
 

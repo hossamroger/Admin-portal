@@ -94,7 +94,9 @@
                 @if (filterText()) {
                   <span class="search-right">
                     <span class="filter-count">{{ filteredObjects(g.type).length }} / {{ objects(g.type).length }}</span>
-                    <mat-icon class="clear-icon" matTooltip="Clear" (click)="filterText.set(''); $event.stopPropagation()">close</mat-icon>
+                    <button type="button" mat-icon-button class="clear-icon" aria-label="Clear filter" matTooltip="Clear" (click)="filterText.set(''); $event.stopPropagation()">
+                      <mat-icon>close</mat-icon>
+                    </button>
                   </span>
                 }
               </div>

@@ -18,7 +18,9 @@
              [(ngModel)]="search" (ngModelChange)="onSearchChange()"
              (keydown.escape)="clearSearch()">
       @if (search()) {
-        <mat-icon class="dl-search-clear" (click)="clearSearch()">close</mat-icon>
+        <button type="button" mat-icon-button class="dl-search-clear" aria-label="Clear search" matTooltip="Clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
       }
     </div>
   </div>
