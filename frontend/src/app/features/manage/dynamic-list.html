@@ -109,6 +109,13 @@
         <div class="dl-scroll-end">All {{ total() }} records loaded</div>
       }
     </div>
+
+    @if (showScrollTop()) {
+      <button type="button" mat-mini-fab class="dl-scroll-top" aria-label="Scroll to top"
+              matTooltip="Back to top" (click)="scrollToTop(tableWrap)">
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
+    }
   }
 </div>
 }
