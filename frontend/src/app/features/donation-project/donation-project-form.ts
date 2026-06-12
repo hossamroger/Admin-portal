@@ -8,11 +8,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { Dirtyable } from '../../core/guards';
 import { CrudRow, LookupItem } from '../../core/models';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { ENTITY_CONFIGS } from '../manage/entity-configs';
 
 interface AmountRow { _k: number; AMOUNT: string; }
@@ -36,6 +38,7 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
 
   private readonly cfg = ENTITY_CONFIGS['donation-project'];
 
@@ -202,10 +205,23 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
 
   removeAmount(i: number): void {
     const row = this.amounts()[i];
-    if (row && String(row.AMOUNT ?? '').trim() !== '' &&
-        !confirm('Remove this amount? It will be permanently deleted when you save.')) return;
-    this.amounts.update(a => a.filter((_, idx) => idx !== i));
-    this.amountErrors.set(new Set());
+    const doRemove = () => {
+      this.amounts.update(a => a.filter((_, idx) => idx !== i));
+      this.amountErrors.set(new Set());
+    };
+    if (row && String(row.AMOUNT ?? '').trim() !== '') {
+      this.confirmRemoval('Remove this amount? It will be permanently deleted when you save.', doRemove);
+    } else {
+      doRemove();
+    }
+  }
+
+  /** Opens the shared confirm dialog and runs the action only if confirmed. */
+  private confirmRemoval(message: string, action: () => void): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { message, confirmLabel: 'Remove' },
+      width: '480px',
+    }).afterClosed().subscribe(confirmed => { if (confirmed) action(); });
   }
 
   clearAmountError(): void {
@@ -223,9 +239,12 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
     const row = this.details()[i];
     const hasData = !!row && (row.REC_ID != null ||
       [row.LABEL_AR, row.LABEL_EN, row.DESC_AR, row.DESC_EN].some(v => String(v ?? '').trim() !== ''));
-    if (hasData &&
-        !confirm('Remove this detail section? It will be permanently deleted when you save.')) return;
-    this.details.update(d => d.filter((_, idx) => idx !== i));
+    const doRemove = () => this.details.update(d => d.filter((_, idx) => idx !== i));
+    if (hasData) {
+      this.confirmRemoval('Remove this detail section? It will be permanently deleted when you save.', doRemove);
+    } else {
+      doRemove();
+    }
   }
 
   // ── Validation ──────────────────────────────────────────────────────────
