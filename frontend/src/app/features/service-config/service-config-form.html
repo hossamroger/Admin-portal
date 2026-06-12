@@ -273,11 +273,11 @@
                     @for (link of step.statusLinks; track $index; let li = $index) {
                       <div class="link-row">
                         <span class="link-num">{{ li + 1 }}</span>
-                        <input class="field-input" [(ngModel)]="link.requiredStatusCode" placeholder="Status Code">
-                        <input class="field-input" [(ngModel)]="link.labelEn" placeholder="Label EN">
-                        <input class="field-input rtl" [(ngModel)]="link.labelAr" placeholder="Label AR">
-                        <input class="field-input" [(ngModel)]="link.actionCode" placeholder="Action Code">
-                        <input class="field-input" [(ngModel)]="link.webLinkUrl" placeholder="Web URL">
+                        <input class="field-input" aria-label="Status Code" [(ngModel)]="link.requiredStatusCode" placeholder="Status Code">
+                        <input class="field-input" aria-label="Label EN" [(ngModel)]="link.labelEn" placeholder="Label EN">
+                        <input class="field-input rtl" aria-label="Label AR" [(ngModel)]="link.labelAr" placeholder="Label AR">
+                        <input class="field-input" aria-label="Action Code" [(ngModel)]="link.actionCode" placeholder="Action Code">
+                        <input class="field-input" aria-label="Web URL" [(ngModel)]="link.webLinkUrl" placeholder="Web URL">
                         <button mat-icon-button class="btn-remove" (click)="removeLink(step, li)">
                           <mat-icon>close</mat-icon>
                         </button>
