@@ -5,7 +5,7 @@
 @if (error()) {
   <div class="insights-error mono">{{ error() }}</div>
 } @else if (partialError()) {
-  <div class="insights-warning" style="background:var(--app-warn,#fff3cd);color:#856404;padding:8px 12px;border-radius:4px;margin-bottom:8px;">
+  <div class="insights-warning" style="background:color-mix(in srgb, var(--app-accent-lime) 18%, transparent);color:var(--app-fg);padding:8px 12px;border-radius:4px;margin-bottom:8px;">
     ⚠ {{ partialError() }}
   </div>
 }
