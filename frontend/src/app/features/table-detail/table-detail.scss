@@ -2,7 +2,7 @@
 
 .detail-head {
   display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
-  padding: 16px 20px; background: white; border-bottom: 1px solid var(--app-line); flex-shrink: 0;
+  padding: 16px 20px; background: var(--app-surface); border-bottom: 1px solid var(--app-line); flex-shrink: 0;
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--app-fg); }
   .kind {
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
@@ -21,7 +21,7 @@
 
 .col-search-bar {
   display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px; background: white; border: 1px solid var(--app-line);
+  padding: 7px 12px; background: var(--app-surface); border: 1px solid var(--app-line);
   border-radius: 8px; margin-bottom: 10px;
 
   .col-search-icon { font-size: 16px; height: 16px; width: 16px; color: var(--app-faint); flex-shrink: 0; }
@@ -62,5 +62,5 @@ table.grid {
   font-size: 11px; padding: 1px 6px; border-radius: 4px;
   border: 1px solid var(--app-line); color: var(--app-muted);
   &.y { color: var(--app-accent); border-color: rgba(0,102,53,0.3); }
-  &.n { color: var(--app-error); border-color: #f3c4c8; }
+  &.n { color: var(--app-error); border-color: color-mix(in srgb, var(--app-error) 40%, transparent); }
 }

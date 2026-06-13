@@ -32,7 +32,7 @@
 
 // ── Upload card ───────────────────────────────────────────────────
 .card {
-  background: white;
+  background: var(--app-surface);
   border: 1px solid var(--app-line);
   border-radius: 12px;
   padding: 28px;
@@ -99,8 +99,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff5f5;
-  border: 1px solid #f3c4c8;
+  background: color-mix(in srgb, var(--app-error) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--app-error) 40%, transparent);
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 13px;
@@ -117,7 +117,7 @@
 
 // ── Result card ───────────────────────────────────────────────────
 .result-card {
-  background: white;
+  background: var(--app-surface);
   border: 1px solid #c3e6cd;
   border-radius: 12px;
   padding: 24px;

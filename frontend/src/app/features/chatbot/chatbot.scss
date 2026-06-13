@@ -27,7 +27,7 @@
 .panel {
   width: 360px;
   max-height: 520px;
-  background: white;
+  background: var(--app-surface);
   border-radius: 16px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
   display: flex;
@@ -159,7 +159,7 @@
   font-size: 12px;
   cursor: pointer;
   border: 1px solid var(--app-line);
-  background: white;
+  background: var(--app-surface);
   color: var(--app-accent);
   transition: background 0.15s, color 0.15s;
   line-height: 1.4;

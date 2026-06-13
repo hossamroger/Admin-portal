@@ -40,7 +40,7 @@
 
   .filter-col, .filter-op, .filter-val {
     height: 32px; border: 1px solid var(--app-line); border-radius: 6px;
-    background: white; color: var(--app-fg); font-size: 13px; padding: 0 8px;
+    background: var(--app-surface); color: var(--app-fg); font-size: 13px; padding: 0 8px;
     outline: none;
     &:focus { border-color: var(--app-accent); }
   }
@@ -100,8 +100,8 @@ table.grid {
   }
 
   tr.dirty td { background: rgba(0,102,53,0.05); }
-  tr.todelete td { background: #fff1f2; text-decoration: line-through; opacity: 0.6; }
-  tr.newrow td { background: #fffdf0; }
+  tr.todelete td { background: color-mix(in srgb, var(--app-error) 10%, transparent); text-decoration: line-through; opacity: 0.6; }
+  tr.newrow td { background: color-mix(in srgb, var(--app-accent-lime) 10%, transparent); }
 
   .pk { color: var(--app-accent); font-weight: 500; }
   .null { color: var(--app-faint); font-style: italic; }
@@ -114,7 +114,7 @@ table.grid {
     border: 1px solid transparent; border-radius: 5px; padding: 5px 6px;
     font-family: var(--app-mono); font-size: 13px; color: var(--app-fg);
     &:hover { border-color: var(--app-line); }
-    &:focus { outline: none; border-color: var(--app-accent); background: white; }
+    &:focus { outline: none; border-color: var(--app-accent); background: var(--app-surface); }
     &[readonly] { color: var(--app-accent); background: rgba(0,102,53,0.04); border-color: var(--app-line); cursor: default; font-weight: 500; }
     &.pk-auto { color: var(--app-faint); font-style: italic; cursor: default; }
   }

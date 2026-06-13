@@ -65,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: white;
+  background: var(--app-surface);
   border: 1px solid var(--app-line);
   border-radius: 10px;
   padding: 10px 16px;
@@ -89,8 +89,8 @@
   }
 
   &.pill-ro {
-    border-color: #f3c4c8;
-    background: #fff5f5;
+    border-color: color-mix(in srgb, var(--app-error) 40%, transparent);
+    background: color-mix(in srgb, var(--app-error) 10%, transparent);
     mat-icon { color: var(--app-error); }
     .pill-value { color: var(--app-error); }
   }
@@ -120,7 +120,7 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  background: white;
+  background: var(--app-surface);
   border: 1px solid var(--app-line);
   border-radius: 14px;
   padding: 20px;

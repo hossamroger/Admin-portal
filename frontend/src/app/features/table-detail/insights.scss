@@ -18,7 +18,7 @@
 .stat-card {
   padding: 16px;
   border-radius: 10px;
-  background: white;
+  background: var(--app-surface);
   border-color: var(--app-line) !important;
 
   .stat-head {

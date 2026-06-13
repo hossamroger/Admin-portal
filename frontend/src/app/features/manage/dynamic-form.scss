@@ -30,7 +30,7 @@
 .field-input, .field-select, .field-textarea {
   height: 36px; padding: 0 10px;
   border: 1px solid var(--app-line); border-radius: 6px;
-  background: white; font-size: 14px; color: var(--app-fg); outline: none;
+  background: var(--app-surface); font-size: 14px; color: var(--app-fg); outline: none;
   font-family: inherit; box-sizing: border-box; width: 100%;
   &:focus { border-color: var(--app-accent); }
   &:disabled { background: var(--app-surface); color: var(--app-muted); cursor: default; }
@@ -49,7 +49,7 @@
 .color-swatch {
   width: 48px; height: 36px; padding: 2px;
   border: 1px solid var(--app-line); border-radius: 6px;
-  background: white; cursor: pointer;
+  background: var(--app-surface); cursor: pointer;
 }
 .color-value { font-size: 13px; color: var(--app-muted); }
 

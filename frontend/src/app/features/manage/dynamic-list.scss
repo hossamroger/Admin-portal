@@ -16,7 +16,7 @@
 .dl-search-input {
   width: 100%; height: 36px; padding: 0 32px 0 34px;
   border: 1px solid var(--app-line); border-radius: 8px;
-  background: white; font-size: 14px; color: var(--app-fg); outline: none; box-sizing: border-box;
+  background: var(--app-surface); font-size: 14px; color: var(--app-fg); outline: none; box-sizing: border-box;
   &:focus { border-color: var(--app-accent); }
 }
 .dl-search-clear { position: absolute; right: 2px; width: 28px !important; height: 28px !important; padding: 0 !important; color: var(--app-muted); mat-icon { font-size: 16px; } &:hover { color: var(--app-fg); } }
