@@ -2,7 +2,7 @@
 
 .detail-head {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 20px; background: white; border-bottom: 1px solid var(--app-line); flex-shrink: 0;
+  padding: 12px 20px; background: var(--app-surface); border-bottom: 1px solid var(--app-line); flex-shrink: 0;
 
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--app-fg); }
 

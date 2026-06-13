@@ -30,7 +30,7 @@
 .sc-search-input {
   width: 100%; height: 36px; padding: 0 32px 0 34px;
   border: 1px solid var(--app-line); border-radius: 8px;
-  background: white; font-size: 14px; color: var(--app-fg); outline: none;
+  background: var(--app-surface); font-size: 14px; color: var(--app-fg); outline: none;
   box-sizing: border-box;
   &:focus { border-color: var(--app-accent); }
 }
@@ -43,7 +43,7 @@
 .sc-filter-select {
   height: 36px; padding: 0 10px;
   border: 1px solid var(--app-line); border-radius: 8px;
-  background: white; font-size: 14px; color: var(--app-fg); outline: none; cursor: pointer;
+  background: var(--app-surface); font-size: 14px; color: var(--app-fg); outline: none; cursor: pointer;
   &:focus { border-color: var(--app-accent); }
 }
 

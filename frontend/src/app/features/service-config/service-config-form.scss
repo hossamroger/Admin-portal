@@ -82,7 +82,7 @@
 .field-input, .field-select, .field-textarea {
   height: 34px; padding: 0 10px;
   border: 1px solid var(--app-line); border-radius: 6px;
-  background: white; color: var(--app-fg); font-size: 14px;
+  background: var(--app-surface); color: var(--app-fg); font-size: 14px;
   outline: none; box-sizing: border-box;
   font-family: inherit;
   &:focus { border-color: var(--app-accent); }
