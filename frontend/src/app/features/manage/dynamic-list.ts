@@ -1,14 +1,13 @@
 import {
-  ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit,
+  ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, OnDestroy, untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Subscription } from 'rxjs';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
@@ -27,15 +26,14 @@ const SEARCH_DEBOUNCE_MS = 300;
   templateUrl: './dynamic-list.html',
   styleUrl:    './dynamic-list.scss',
 })
-export class DynamicListComponent implements OnInit, OnDestroy {
+export class DynamicListComponent implements OnDestroy {
   private readonly api    = inject(ApiService);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
-  private readonly route  = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
 
-  /** When embedded (e.g. inside the Donations hub) the host names the entity
-   *  directly instead of the :entity route param. */
+  /** Route param `:entity` auto-bound via withComponentInputBinding(), or set
+   *  directly by a parent component (e.g. inside the Donations hub). */
   readonly entity = input<string>();
 
   readonly cfg = signal<EntityConfig | null>(null);
@@ -55,32 +53,28 @@ export class DynamicListComponent implements OnInit, OnDestroy {
 
   readonly hasMore = computed(() => this.items().length < this.total());
 
-  private routeSub?: Subscription;
   private searchTimer?: ReturnType<typeof setTimeout>;
   /** Monotonic id so out-of-order/overlapping responses are ignored. */
   private reqSeq = 0;
 
-  ngOnInit(): void {
-    const fixed = this.entity();
-    if (fixed) {
-      const cfg = ENTITY_CONFIGS[fixed];
-      if (!cfg) { this.router.navigate(['/']); return; }
-      this.cfg.set(cfg);
-      this.load(true);
-      return;
-    }
-    this.routeSub = this.route.paramMap.subscribe(params => {
-      const cfg = ENTITY_CONFIGS[params.get('entity') ?? ''];
-      if (!cfg) { this.router.navigate(['/']); return; }
-      this.cfg.set(cfg);
-      this.search.set('');
-      this.sortCol.set(null);
-      this.load(true);
+  constructor() {
+    // Reacts both to the initial value AND to changes when the router reuses
+    // this component with a different :entity param (withComponentInputBinding).
+    effect(() => {
+      const name = this.entity();
+      if (!name) return;
+      const cfg = ENTITY_CONFIGS[name];
+      untracked(() => {
+        if (!cfg) { this.router.navigate(['/']); return; }
+        this.cfg.set(cfg);
+        this.search.set('');
+        this.sortCol.set(null);
+        this.load(true);
+      });
     });
   }
 
   ngOnDestroy(): void {
-    this.routeSub?.unsubscribe();
     clearTimeout(this.searchTimer);
   }
 
