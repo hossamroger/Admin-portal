@@ -132,7 +132,7 @@
     }
 
     &.active {
-      background: rgba(0,102,53,0.08);
+      background: color-mix(in srgb, var(--app-accent) 8%, transparent);
       border-left: 3px solid var(--app-accent);
       color: var(--app-accent);
       mat-icon { color: var(--app-accent); }
@@ -188,7 +188,7 @@
     box-sizing: border-box;
 
     &:hover { background: var(--app-bg); color: var(--app-accent); }
-    &.active { background: rgba(0,102,53,0.08); color: var(--app-accent); border-left: 3px solid var(--app-accent); font-weight: 500; }
+    &.active { background: color-mix(in srgb, var(--app-accent) 8%, transparent); color: var(--app-accent); border-left: 3px solid var(--app-accent); font-weight: 500; }
   }
 
   .loading, .empty-group { padding: 10px 16px; color: var(--app-faint); font-size: 13px; }

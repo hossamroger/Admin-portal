@@ -168,8 +168,8 @@
 }
 
 .related-chip {
-  background: rgba(0, 102, 53, 0.07);
-  border-color: rgba(0, 102, 53, 0.2);
+  background: color-mix(in srgb, var(--app-accent) 7%, transparent);
+  border-color: color-mix(in srgb, var(--app-accent) 20%, transparent);
 }
 
 // ── Input bar ─────────────────────────────────────────────────────────────────

@@ -57,12 +57,12 @@
   transition: border-color 0.2s, background 0.2s;
   min-height: 130px;
 
-  &:hover { border-color: var(--app-accent); background: rgba(0, 102, 53, 0.03); }
+  &:hover { border-color: var(--app-accent); background: color-mix(in srgb, var(--app-accent) 3%, transparent); }
 
   &.has-file {
     border-style: solid;
     border-color: var(--app-accent);
-    background: rgba(0, 102, 53, 0.04);
+    background: color-mix(in srgb, var(--app-accent) 4%, transparent);
     cursor: default;
     padding: 18px 24px;
     min-height: unset;
@@ -118,7 +118,7 @@
 // ── Result card ───────────────────────────────────────────────────
 .result-card {
   background: var(--app-surface);
-  border: 1px solid #c3e6cd;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 35%, transparent);
   border-radius: 12px;
   padding: 24px;
   display: flex;
