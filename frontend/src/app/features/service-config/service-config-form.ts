@@ -174,7 +174,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   }
 
   isDirty(): boolean {
-    return !this.saving() && isDirty(this.savedSnapshot, this.buildPayload());
+    return !this.saving() && !!this.savedSnapshot && isDirty(this.savedSnapshot, this.buildPayload());
   }
 
   /** Labels of tabs with unsaved edits — drives the aggregate warning banner. */
