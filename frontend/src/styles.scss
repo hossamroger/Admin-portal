@@ -31,6 +31,8 @@ html {
   --app-faint:          #959A97;
   --app-success:        #83C692;
   --app-error:          #c0392b;
+  --app-warn:           #a07000;
+  --app-info:           #1565c0;
   --app-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
@@ -67,6 +69,8 @@ html.dark {
   --app-faint:          #6E756F;
   --app-success:        #5BB873;
   --app-error:          #e57368;
+  --app-warn:           #d6a23e;
+  --app-info:           #5b9be0;
 }
 
 * { box-sizing: border-box; }
