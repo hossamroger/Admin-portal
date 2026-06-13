@@ -131,7 +131,7 @@
   align-items: flex-start;
   gap: 12px;
 
-  .result-icon { color: #22a050; font-size: 28px; height: 28px; width: 28px; margin-top: 2px; }
+  .result-icon { color: var(--app-accent-mint); font-size: 28px; height: 28px; width: 28px; margin-top: 2px; }
 
   .result-title { margin: 0; font-weight: 700; color: var(--app-fg); }
   .result-meta  { margin: 4px 0 0; font-size: 13px; color: var(--app-muted); }
@@ -183,8 +183,8 @@
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 
   &.copied {
-    border-color: #22a050;
-    color: #22a050;
+    border-color: var(--app-accent-mint);
+    color: var(--app-accent-mint);
   }
 
   mat-icon { font-size: 16px; height: 16px; width: 16px; }

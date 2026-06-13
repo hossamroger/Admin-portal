@@ -22,7 +22,7 @@
 
   &.role-admin    { color: var(--app-accent); background: rgba(0,102,53,0.08); border-color: rgba(0,102,53,0.3); }
   &.role-analyst  { color: var(--app-accent-teal); background: rgba(2,124,113,0.08); border-color: rgba(2,124,113,0.25); }
-  &.role-editor   { color: #1565c0; background: rgba(21,101,192,0.08); border-color: rgba(21,101,192,0.25); }
+  &.role-editor   { color: var(--app-info); background: color-mix(in srgb, var(--app-info) 10%, transparent); border-color: color-mix(in srgb, var(--app-info) 30%, transparent); }
   &.role-user     { color: var(--app-muted); background: var(--app-surface); border-color: var(--app-line); }
 }
 

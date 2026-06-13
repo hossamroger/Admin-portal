@@ -56,7 +56,7 @@
   font-size: 12px; font-weight: 500;
   background: var(--app-line); color: var(--app-muted);
   &.active { background: rgba(0,128,0,.12); color: var(--app-accent); }
-  &.warn   { background: rgba(200,60,30,.12); color: #b3431f; }
+  &.warn   { background: color-mix(in srgb, var(--app-error) 12%, transparent); color: var(--app-error); }
 }
 
 .dl-scroll-top {

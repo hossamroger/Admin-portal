@@ -99,8 +99,8 @@
   background: var(--app-line); color: var(--app-muted);
 
   &.badge-active   { background: rgba(0,128,0,.12); color: var(--app-accent); }
-  &.badge-inactive { background: rgba(128,0,0,.10); color: #a00; }
-  &.badge-draft    { background: rgba(200,140,0,.12); color: #a07000; }
+  &.badge-inactive { background: color-mix(in srgb, var(--app-error) 12%, transparent); color: var(--app-error); }
+  &.badge-draft    { background: color-mix(in srgb, var(--app-warn) 14%, transparent); color: var(--app-warn); }
 }
 
 .btn-del { color: var(--app-error) !important; }
