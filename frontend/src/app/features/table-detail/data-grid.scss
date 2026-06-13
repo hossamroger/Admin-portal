@@ -99,7 +99,7 @@ table.grid {
     white-space: nowrap; color: var(--app-fg);
   }
 
-  tr.dirty td { background: rgba(0,102,53,0.05); }
+  tr.dirty td { background: color-mix(in srgb, var(--app-accent) 5%, transparent); }
   tr.todelete td { background: color-mix(in srgb, var(--app-error) 10%, transparent); text-decoration: line-through; opacity: 0.6; }
   tr.newrow td { background: color-mix(in srgb, var(--app-accent-lime) 10%, transparent); }
 
@@ -115,7 +115,7 @@ table.grid {
     font-family: var(--app-mono); font-size: 13px; color: var(--app-fg);
     &:hover { border-color: var(--app-line); }
     &:focus { outline: none; border-color: var(--app-accent); background: var(--app-surface); }
-    &[readonly] { color: var(--app-accent); background: rgba(0,102,53,0.04); border-color: var(--app-line); cursor: default; font-weight: 500; }
+    &[readonly] { color: var(--app-accent); background: color-mix(in srgb, var(--app-accent) 4%, transparent); border-color: var(--app-line); cursor: default; font-weight: 500; }
     &.pk-auto { color: var(--app-faint); font-style: italic; cursor: default; }
   }
 }

@@ -20,8 +20,8 @@
 .scf-dirty-banner {
   display: flex; align-items: center; gap: 8px;
   margin: 4px 0 12px; padding: 8px 12px;
-  border: 1px solid #e0b400; border-radius: 8px;
-  background: rgba(255, 196, 0, 0.10); color: #7a5b00; font-size: 13px;
+  border: 1px solid color-mix(in srgb, var(--app-warn) 50%, transparent); border-radius: 8px;
+  background: color-mix(in srgb, var(--app-warn) 12%, transparent); color: var(--app-warn); font-size: 13px;
   mat-icon { font-size: 18px; height: 18px; width: 18px; flex-shrink: 0; }
   strong { font-weight: 600; }
 }
@@ -39,8 +39,8 @@
 
 .tab-notice {
   padding: 16px; border-radius: 8px;
-  background: rgba(200,140,0,.10); color: #a07000;
-  font-size: 14px; border: 1px solid rgba(200,140,0,.25);
+  background: color-mix(in srgb, var(--app-warn) 12%, transparent); color: var(--app-warn);
+  font-size: 14px; border: 1px solid color-mix(in srgb, var(--app-warn) 25%, transparent);
 }
 
 .tab-empty {
@@ -75,7 +75,7 @@
 
 .pk-auto-badge {
   font-size: 10px; font-weight: 600; padding: 1px 6px;
-  border-radius: 10px; background: rgba(0,102,53,.12);
+  border-radius: 10px; background: color-mix(in srgb, var(--app-accent) 12%, transparent);
   color: var(--app-accent); text-transform: uppercase; letter-spacing: .05em;
 }
 
@@ -195,7 +195,7 @@
   font-size: 13px; cursor: pointer; padding: 4px 8px;
   border-radius: 6px; border: 1px solid var(--app-line);
   &:hover { border-color: var(--app-accent); }
-  &.selected { background: rgba(0,102,53,.08); border-color: var(--app-accent); color: var(--app-accent); }
+  &.selected { background: color-mix(in srgb, var(--app-accent) 8%, transparent); border-color: var(--app-accent); color: var(--app-accent); }
 
   .comp-check { font-size: 18px; }
 }

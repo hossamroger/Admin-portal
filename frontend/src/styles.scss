@@ -97,3 +97,12 @@ body {
 // Native form controls must inherit color-scheme so browser-rendered dropdown
 // popups (the OS-level select panel) switch between light/dark with the page.
 select, input, textarea, button { color-scheme: inherit; }
+
+// Explicitly theme the native <select> popup list. color-scheme alone is not
+// enough once a select sets its own background — browsers then render the
+// option list with a default (often white) panel. Pinning option/optgroup to
+// the design tokens keeps every dropdown popup consistent in light and dark.
+option, optgroup {
+  background: var(--app-surface);
+  color: var(--app-fg);
+}
