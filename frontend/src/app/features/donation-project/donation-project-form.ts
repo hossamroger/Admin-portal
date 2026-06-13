@@ -65,9 +65,9 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   readonly detailsState = signal<'loading' | 'ready' | 'error'>('ready');
 
   /** Per-tab snapshots taken after load/save; anything different means unsaved changes. */
-  private basicSnapshot   = '';
-  private amountsSnapshot = '';
-  private detailsSnapshot = '';
+  private basicSnapshot   = snapshot({});
+  private amountsSnapshot = snapshot([]);
+  private detailsSnapshot = snapshot([]);
 
   /** Monotonic key generator so @for tracking survives row removal/reorder. */
   private keySeq = 0;

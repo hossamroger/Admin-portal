@@ -56,7 +56,7 @@ export class DynamicFormComponent implements OnInit, Dirtyable {
   readonly errors = signal<Record<string, string>>({});
 
   /** Snapshot taken after load/save; anything different means unsaved changes. */
-  private savedSnapshot = '';
+  private savedSnapshot = snapshot({});
 
   readonly title = computed(() => {
     const c = this.cfg();
