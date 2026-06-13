@@ -20,8 +20,8 @@
   padding: 2px 8px; border-radius: 4px; border: 1px solid;
   text-transform: uppercase; letter-spacing: 0.4px;
 
-  &.role-admin    { color: var(--app-accent); background: rgba(0,102,53,0.08); border-color: rgba(0,102,53,0.3); }
-  &.role-analyst  { color: var(--app-accent-teal); background: rgba(2,124,113,0.08); border-color: rgba(2,124,113,0.25); }
+  &.role-admin    { color: var(--app-accent); background: color-mix(in srgb, var(--app-accent) 8%, transparent); border-color: color-mix(in srgb, var(--app-accent) 30%, transparent); }
+  &.role-analyst  { color: var(--app-accent-teal); background: color-mix(in srgb, var(--app-accent-teal) 8%, transparent); border-color: color-mix(in srgb, var(--app-accent-teal) 25%, transparent); }
   &.role-editor   { color: var(--app-info); background: color-mix(in srgb, var(--app-info) 10%, transparent); border-color: color-mix(in srgb, var(--app-info) 30%, transparent); }
   &.role-user     { color: var(--app-muted); background: var(--app-surface); border-color: var(--app-line); }
 }
@@ -36,6 +36,6 @@
 .badge {
   font-size: 11px; padding: 2px 8px; border-radius: 4px;
   border: 1px solid var(--app-line); color: var(--app-muted);
-  &.y { color: var(--app-accent); border-color: rgba(0,102,53,0.3); }
+  &.y { color: var(--app-accent); border-color: color-mix(in srgb, var(--app-accent) 30%, transparent); }
   &.n { color: var(--app-error); border-color: color-mix(in srgb, var(--app-error) 40%, transparent); }
 }

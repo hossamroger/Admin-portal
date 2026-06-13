@@ -204,7 +204,7 @@
     flex-shrink: 0;
     width: 30px; height: 30px;
     border-radius: 8px;
-    background: rgba(0, 102, 53, 0.08);
+    background: color-mix(in srgb, var(--app-accent) 8%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
