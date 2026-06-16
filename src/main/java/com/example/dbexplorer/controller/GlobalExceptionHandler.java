@@ -3,6 +3,7 @@ package com.example.dbexplorer.controller;
 import com.example.dbexplorer.dto.ApiError;
 import com.example.dbexplorer.security.RequestIdFilter;
 import org.slf4j.MDC;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -65,6 +66,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleStatus(org.springframework.web.server.ResponseStatusException ex) {
         return ResponseEntity.status(ex.getStatus())
             .body(error(ex.getReason(), ex.getStatus().getReasonPhrase(), ex.getStatus()));
+    }
+
+    // Database errors (constraint violations, invalid values, etc.) — surface the
+    // root cause message so operators can act on it (e.g. "ORA-01400: cannot insert
+    // NULL"). The most-nested cause usually holds the clearest Oracle message.
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiError> handleDataAccess(DataAccessException ex) {
+        log.error("Data access error", ex);
+        Throwable root = ex;
+        while (root.getCause() != null) root = root.getCause();
+        String msg = root.getMessage();
+        if (msg == null || msg.isBlank()) msg = ex.getMessage();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(error(msg, "DatabaseError", HttpStatus.BAD_REQUEST));
     }
 
     // Unexpected failures: log the full detail server-side, but never leak raw
