@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
         Throwable root = ex;
         while (root.getCause() != null) root = root.getCause();
         String msg = root.getMessage();
-        if (msg == null || msg.isBlank()) msg = ex.getMessage();
+        if (msg == null || msg.trim().isEmpty()) msg = ex.getMessage();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(error(msg, "DatabaseError", HttpStatus.BAD_REQUEST));
     }
