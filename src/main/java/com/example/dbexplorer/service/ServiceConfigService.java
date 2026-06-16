@@ -436,7 +436,7 @@ public class ServiceConfigService {
             "  IOS_ACTION_TYPE, ANDROID_ACTION_TYPE, PLATFORM_CODE, PLATFORM_ICP_USER_ID, IS_SERVICE_CATALOG_ONE_TIME" +
             ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             p.processCode, p.bpmnProcessName, p.processDisplayLabelAr, p.processDisplayLabelEn,
-            p.processStatus, p.processInitiateSecurity, p.processOrder,
+            p.processStatus, nn(p.processInitiateSecurity), p.processOrder,
             p.sendMail, p.sendSms, p.showOnInbox,
             p.inboxCustomColumn1, p.inboxCustomColumn1Ar, p.inboxCustomColumn2, p.inboxCustomColumn2Ar,
             p.inboxCustomColumn3, p.inboxCustomColumn3Ar, p.inboxCustomColumn4, p.inboxCustomColumn4Ar,
@@ -481,7 +481,7 @@ public class ServiceConfigService {
             "  IOS_ACTION_TYPE=?, ANDROID_ACTION_TYPE=?, PLATFORM_CODE=?, PLATFORM_ICP_USER_ID=?, IS_SERVICE_CATALOG_ONE_TIME=?" +
             " WHERE PROCESS_CODE=?",
             p.bpmnProcessName, p.processDisplayLabelAr, p.processDisplayLabelEn,
-            p.processStatus, p.processInitiateSecurity, p.processOrder,
+            p.processStatus, nn(p.processInitiateSecurity), p.processOrder,
             p.sendMail, p.sendSms, p.showOnInbox,
             p.inboxCustomColumn1, p.inboxCustomColumn1Ar, p.inboxCustomColumn2, p.inboxCustomColumn2Ar,
             p.inboxCustomColumn3, p.inboxCustomColumn3Ar, p.inboxCustomColumn4, p.inboxCustomColumn4Ar,
@@ -657,6 +657,14 @@ public class ServiceConfigService {
         p.platformIcpUserId                  = rs.getString("PLATFORM_ICP_USER_ID");
         p.isServiceCatalogOneTime            = rs.getString("IS_SERVICE_CATALOG_ONE_TIME");
         return p;
+    }
+
+    /**
+     * NOT NULL columns that have no field on the form (e.g. PROCESS_INITIATE_SECURITY)
+     * must still satisfy the constraint — default a null/blank value to "-".
+     */
+    private static String nn(String value) {
+        return (value == null || value.trim().isEmpty()) ? "-" : value;
     }
 
     private static String sanitize(String name) {
