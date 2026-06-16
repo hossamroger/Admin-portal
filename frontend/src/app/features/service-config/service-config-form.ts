@@ -269,7 +269,13 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
         this.saving.set(false);
         this.notify.success(this.isNew() ? 'Service created' : 'Service updated');
         this.takeSnapshot();
-        if (this.isNew()) this.router.navigate(['/service-config', this.info().processCode]);
+        if (this.isNew()) {
+          // The record now exists — unlock the sub-section tabs immediately.
+          // (Navigation only changes the route param; this component instance is
+          // reused, so ngOnInit won't re-run to reset isNew on its own.)
+          this.isNew.set(false);
+          this.router.navigate(['/service-config', this.info().processCode]);
+        }
       },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
     });
