@@ -264,16 +264,102 @@ export const KB: KbEntry[] = [
       'The source code is displayed read-only with a **Copy** button to copy it to your clipboard.',
     related: ['nav-tables'],
   },
+
+  // ── Service Configuration ───────────────────────────────────────────────────
+  {
+    id: 'service-config',
+    title: 'Configuring services',
+    keywords: ['service', 'services', 'service config', 'configuration', 'process', 'bpm', 'configure service'],
+    answer:
+      'Open **Service Config** from the sidebar to manage services (BPM processes). ' +
+      'The list lets you search, filter by status/type, and paginate. ' +
+      'Click a service to edit it, or use **+ New Service** to create one. ' +
+      'Each service is organised into tabs: **Basic Info**, **Steps**, **Fees**, **Documents**, **Providers**, **Audience**, and **Confirmation**.',
+    related: ['service-create', 'service-tabs'],
+  },
+  {
+    id: 'service-create',
+    title: 'Creating a new service',
+    keywords: ['new service', 'create service', 'add service', 'create process'],
+    answer:
+      'On the Service Config list, click **+ New Service**. Fill in the **Basic Info** tab (the process code and label are required) and click **Create Service**. ' +
+      'Some required database fields that have no form input (e.g. PROCESS_INITIATE_SECURITY) are defaulted automatically. ' +
+      'Once the service is created, the other tabs (Steps, Fees, etc.) unlock so you can add sub-sections.',
+    related: ['service-config', 'service-tabs'],
+  },
+  {
+    id: 'service-tabs',
+    title: 'Saving service sub-sections (per-tab save)',
+    keywords: ['steps', 'fees', 'documents', 'providers', 'audience', 'confirmation', 'tab', 'sub-section', 'save tab'],
+    answer:
+      'Each service tab saves **independently**. After editing a tab (Steps, Fees, Documents, Providers, Audience, or Confirmation), click that tab\'s own **Save** button. ' +
+      'A banner warns you of any tab with unsaved changes. ' +
+      'You must save **Basic Info** first (to create the service record) before the sub-section tabs can be edited.',
+    related: ['service-config', 'service-create'],
+  },
+
+  // ── Attachments ─────────────────────────────────────────────────────────────
+  {
+    id: 'attachments',
+    title: 'Uploading files (Attachments)',
+    keywords: ['attachment', 'attachments', 'upload', 'file', 'firebase', 'storage', 'public url', 'link', 'share', 'document'],
+    answer:
+      'Open **Attachments** from the sidebar to upload a file to cloud storage and get a permanent shareable public URL.\n\n' +
+      '1. Click the drop zone to choose a file (any type, max 50 MB).\n' +
+      '2. Optionally set a **Folder name** (reused if it exists, created if new) and a **Document name** (defaults to the original filename).\n' +
+      '3. Click **Upload** — a progress bar shows status.\n\n' +
+      'When done, copy the generated **Public URL** with the Copy button.',
+    related: ['nav-tables'],
+  },
+
+  // ── Donations ───────────────────────────────────────────────────────────────
+  {
+    id: 'donations',
+    title: 'Managing donations',
+    keywords: ['donation', 'donations', 'project', 'projects', 'category', 'categories', 'organization', 'organizations', 'charity'],
+    answer:
+      'The **Donations** hub (under *Manage* in the sidebar) has three tabs:\n' +
+      '• **Projects** — donation projects (click one to open its full editor)\n' +
+      '• **Categories** — donation categories\n' +
+      '• **Organizations** — donation organizations\n\n' +
+      'Each tab is a searchable, paginated list with add/edit/delete.',
+    related: ['manage-lists'],
+  },
+
+  // ── Manage / dynamic lists ──────────────────────────────────────────────────
+  {
+    id: 'manage-lists',
+    title: 'Managing configuration lists',
+    keywords: ['manage', 'list', 'lists', 'process status', 'home banner', 'lookup', 'crud', 'entity', 'records'],
+    answer:
+      'Several configuration entities (e.g. **Process Status**, **Home Banner**, donation lists) appear as pinned links in the sidebar. ' +
+      'Each opens a searchable, sortable, paginated list where you can **add**, **edit**, and **delete** records through a generated form. ' +
+      'Forms warn you before leaving with unsaved changes.',
+    related: ['donations', 'service-config'],
+  },
+
+  // ── Dark mode ───────────────────────────────────────────────────────────────
+  {
+    id: 'dark-mode',
+    title: 'Switching between light and dark mode',
+    keywords: ['dark', 'dark mode', 'light', 'light mode', 'theme', 'appearance', 'night'],
+    answer:
+      'Click your **user avatar** (top-right) to open the menu, then choose **Dark mode** (or **Light mode** to switch back). ' +
+      'Your preference is remembered for next time.',
+    related: ['logout'],
+  },
 ];
 
 export const SUGGESTIONS = [
   'How do I open a table?',
   'How do I add a new row?',
-  'How do I edit a row?',
+  'How do I create a new service?',
+  'How do I save service tabs?',
+  'How do I upload a file?',
+  'How do I manage donations?',
+  'How do I switch to dark mode?',
   'What does Sync do?',
   'How do I manage users?',
-  'What are user privileges?',
-  'How do I sort data?',
 ];
 
 export function findAnswer(query: string): KbEntry[] {
