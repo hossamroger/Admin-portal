@@ -97,6 +97,7 @@ public class ServiceConfigService {
         r.relatedDepts      = fetchDepts(code);
         r.targetAudiences   = fetchAudiences(code);
         r.confirmationScreens = fetchConfirmationScreens(code);
+        r.paymentCallbacks  = fetchPaymentCallbacks(code);
         return r;
     }
 
@@ -112,6 +113,7 @@ public class ServiceConfigService {
         if (req.relatedDepts     != null) for (RelatedDeptDto d : req.relatedDepts)          insertDept(code, d);
         if (req.targetAudiences  != null) for (TargetAudienceDto a : req.targetAudiences)    insertAudience(code, a);
         if (req.confirmationScreens != null) for (ConfirmationScreenConfigDto c : req.confirmationScreens) insertConfirmationScreen(code, c);
+        if (req.paymentCallbacks != null) for (PaymentCallbackDto pc : req.paymentCallbacks)               insertPaymentCallback(code, pc);
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -125,6 +127,7 @@ public class ServiceConfigService {
         if (req.relatedDepts     != null) replaceDepts(processCode, req.relatedDepts);
         if (req.targetAudiences  != null) replaceAudiences(processCode, req.targetAudiences);
         if (req.confirmationScreens != null) replaceConfirmationScreens(processCode, req.confirmationScreens);
+        if (req.paymentCallbacks != null) replacePaymentCallbacks(processCode, req.paymentCallbacks);
     }
 
     // Per-tab partial saves
@@ -134,11 +137,13 @@ public class ServiceConfigService {
     @Transactional public void saveDepts(String code, List<RelatedDeptDto> depts)                    { replaceDepts(code, depts); }
     @Transactional public void saveAudiences(String code, List<TargetAudienceDto> audiences)         { replaceAudiences(code, audiences); }
     @Transactional public void saveConfirmation(String code, List<ConfirmationScreenConfigDto> cfgs) { replaceConfirmationScreens(code, cfgs); }
+    @Transactional public void savePaymentCallbacks(String code, List<PaymentCallbackDto> callbacks)  { replacePaymentCallbacks(code, callbacks); }
 
     // ── Delete ────────────────────────────────────────────────────────────────
 
     @Transactional
     public void delete(String processCode) {
+        replacePaymentCallbacks(processCode, Collections.emptyList());
         replaceConfirmationScreens(processCode, Collections.emptyList());
         replaceSteps(processCode, Collections.emptyList());
         replaceFees(processCode, Collections.emptyList());
@@ -284,6 +289,21 @@ public class ServiceConfigService {
             }, code);
     }
 
+    private List<PaymentCallbackDto> fetchPaymentCallbacks(String code) {
+        return jdbc.query(
+            "SELECT * FROM DS_PAYMENT_CONFIRMATION_CONFIG WHERE SERVICE_CODE = ? " +
+            "ORDER BY PAYMENT_STEP_ORDER NULLS LAST, ID",
+            (rs, i) -> {
+                PaymentCallbackDto pc = new PaymentCallbackDto();
+                pc.id               = rs.getObject("ID");
+                pc.url              = rs.getString("URL");
+                pc.status           = rs.getString("STATUS");
+                pc.paymentStepOrder = rs.getObject("PAYMENT_STEP_ORDER");
+                pc.sendNotification = rs.getString("SEND_NOTIFICATION");
+                return pc;
+            }, code);
+    }
+
     private List<RequiredDocDto> fetchDocs(String code) {
         return jdbc.query(
             "SELECT * FROM BPM_LKP_REQUIRED_DOCS WHERE PROCESS_CODE = ? ORDER BY ORDER_C NULLS LAST, BPM_PRO_REQUIRED_DOCS_SEQ",
@@ -380,6 +400,12 @@ public class ServiceConfigService {
         subResources.replace(Collections.singletonList(
             new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_FEES WHERE PROCESS_CODE = ?", code)),
             fees, f -> insertFee(code, f));
+    }
+
+    private void replacePaymentCallbacks(String code, List<PaymentCallbackDto> callbacks) {
+        subResources.replace(Collections.singletonList(
+            new SubResourceService.DeleteStep("DELETE FROM DS_PAYMENT_CONFIRMATION_CONFIG WHERE SERVICE_CODE = ?", code)),
+            callbacks, pc -> insertPaymentCallback(code, pc));
     }
 
     private void replaceDocs(String code, List<RequiredDocDto> docs) {
@@ -541,6 +567,15 @@ public class ServiceConfigService {
             seq, code, f.feesDescAr, f.feesDescEn, f.feesAmount, f.currencyAr, f.currencyEn, f.orderC);
     }
 
+    private void insertPaymentCallback(String code, PaymentCallbackDto pc) {
+        Object id = subResources.idOrMaxPlusOne(pc.id, "DS_PAYMENT_CONFIRMATION_CONFIG", "ID");
+        Object order = pc.paymentStepOrder != null ? pc.paymentStepOrder : 1;
+        jdbc.update(
+            "INSERT INTO DS_PAYMENT_CONFIRMATION_CONFIG (ID, SERVICE_CODE, URL, STATUS, " +
+            "ADDITION_DATE, PAYMENT_STEP_ORDER, SEND_NOTIFICATION) VALUES (?,?,?,?,SYSDATE,?,?)",
+            id, code, pc.url, flag(pc.status), order, flag(pc.sendNotification));
+    }
+
     private void insertDoc(String code, RequiredDocDto d) {
         Object seq = subResources.seqOrUuid(d.bpmProRequiredDocsSeq);
         jdbc.update(
@@ -668,6 +703,11 @@ public class ServiceConfigService {
      */
     private static String nn(String value) {
         return (value == null || value.trim().isEmpty()) ? "-" : value;
+    }
+
+    /** Default a NOT NULL T/F flag column to 'T' when no value is supplied. */
+    private static String flag(String value) {
+        return (value == null || value.trim().isEmpty()) ? "T" : value;
     }
 
     private static String sanitize(String name) {

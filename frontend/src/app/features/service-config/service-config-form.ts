@@ -18,7 +18,7 @@ import {
   ServiceConfigPayload, ProcessInfoDto, StepDto, StepLinkDto,
   FeeDto, RequiredDocDto, RelatedDeptDto, TargetAudienceDto,
   ConfirmationScreenConfigDto, TargetAudienceLookup,
-  ScreenInfoLookup, ComponentInfoLookup,
+  ScreenInfoLookup, ComponentInfoLookup, PaymentCallbackDto,
 } from '../../core/models';
 import { LookupCacheService } from '../../core/lookup-cache.service';
 import { snapshot, isDirty } from '../../shared/form-utils';
@@ -95,6 +95,10 @@ function emptyAudience(): TargetAudienceDto {
   return { targetAudienceDescAr: '', targetAudienceDescEn: '', orderC: null, mainTargetAudienceSeq: null };
 }
 
+function emptyPaymentCallback(): PaymentCallbackDto {
+  return { url: null, status: 'T', paymentStepOrder: null, sendNotification: 'T' };
+}
+
 function emptyConfirmation(): ConfirmationScreenConfigDto {
   return {
     dsConfirmationScreenInfoId: null, requiredStepId: null,
@@ -135,6 +139,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   readonly depts  = signal<RelatedDeptDto[]>([]);
   readonly audiences = signal<TargetAudienceDto[]>([]);
   readonly confirmations = signal<ConfirmationScreenConfigDto[]>([]);
+  readonly paymentCallbacks = signal<PaymentCallbackDto[]>([]);
 
   // lookups
   readonly audienceLookup  = signal<TargetAudienceLookup[]>([]);
@@ -190,6 +195,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
       ['relatedDepts', 'Providers'],
       ['targetAudiences', 'Target Audience'],
       ['confirmationScreens', 'Confirmation Screens'],
+      ['paymentCallbacks', 'Payment Callbacks'],
     ];
     return sections
       .filter(([key]) => JSON.stringify(current[key]) !== JSON.stringify(saved[key]))
@@ -246,6 +252,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
         this.depts.set(p.relatedDepts ?? []);
         this.audiences.set(p.targetAudiences ?? []);
         this.confirmations.set(p.confirmationScreens ?? []);
+        this.paymentCallbacks.set(p.paymentCallbacks ?? []);
         this.loading.set(false);
         this.takeSnapshot();
       },
@@ -290,6 +297,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
       relatedDepts: this.depts(),
       targetAudiences: this.audiences(),
       confirmationScreens: this.confirmations(),
+      paymentCallbacks: this.paymentCallbacks(),
     };
   }
 
@@ -393,6 +401,18 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
     this.saving.set(true);
     this.api.saveServiceConfirmation(this.info().processCode, this.confirmations()).subscribe({
       next: () => { this.saving.set(false); this.notify.success('Confirmation screens saved'); this.snapshotSection('confirmationScreens'); },
+      error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
+    });
+  }
+
+  // ── Payment Callbacks ───────────────────────────────────────────────────────
+
+  addPaymentCallback(): void { this.paymentCallbacks.update(arr => [...arr, emptyPaymentCallback()]); }
+  removePaymentCallback(i: number): void { this.paymentCallbacks.update(arr => arr.filter((_, idx) => idx !== i)); }
+  savePaymentCallbacks(): void {
+    this.saving.set(true);
+    this.api.saveServicePaymentCallbacks(this.info().processCode, this.paymentCallbacks()).subscribe({
+      next: () => { this.saving.set(false); this.notify.success('Payment callbacks saved'); this.snapshotSection('paymentCallbacks'); },
       error: err => { this.saving.set(false); this.notify.error(err, 'Save failed'); },
     });
   }

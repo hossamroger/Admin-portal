@@ -112,6 +112,14 @@ export interface ConfirmationScreenConfigDto {
   components: ConfirmationComponentConfigDto[];
 }
 
+export interface PaymentCallbackDto {
+  id?: number | null;
+  url?: string | null;
+  status?: string | null;
+  paymentStepOrder?: number | null;
+  sendNotification?: string | null;
+}
+
 export interface ProcessInfoDto {
   processCode: string;
   bpmnProcessName?: string | null;
@@ -177,6 +185,7 @@ export interface ServiceConfigPayload {
   relatedDepts: RelatedDeptDto[];
   targetAudiences: TargetAudienceDto[];
   confirmationScreens: ConfirmationScreenConfigDto[];
+  paymentCallbacks: PaymentCallbackDto[];
 }
 
 // Lookups

@@ -108,6 +108,14 @@ public class ServiceConfigDtos {
         public Object dsConfirmationComponentInfoId;  // FK → DS_CONFIRMATION_COMPONENT_INFO
     }
 
+    public static class PaymentCallbackDto {
+        public Object  id;                // ID (PK, generated on insert)
+        public String  url;               // URL
+        public String  status;            // STATUS (NOT NULL)
+        public Object  paymentStepOrder;  // PAYMENT_STEP_ORDER (NOT NULL)
+        public String  sendNotification;  // SEND_NOTIFICATION (NOT NULL)
+    }
+
     public static class ConfirmationScreenConfigDto {
         public Object  dsConfirmationId;          // DS_CONFIRMATION_ID (PK)
         public Object  dsConfirmationScreenInfoId; // FK → DS_CONFIRMATION_SCREEN_INFO (dropdown)
@@ -200,6 +208,7 @@ public class ServiceConfigDtos {
         public List<RelatedDeptDto>      relatedDepts;
         public List<TargetAudienceDto>   targetAudiences;
         public List<ConfirmationScreenConfigDto> confirmationScreens;
+        public List<PaymentCallbackDto>  paymentCallbacks;
     }
 
     public static class ServiceConfigResponse extends ServiceConfigRequest {
