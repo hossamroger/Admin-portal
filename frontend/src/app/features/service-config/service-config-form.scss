@@ -144,6 +144,16 @@
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--app-muted);
 }
+
+.callback-section {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 2px solid var(--app-line);
+
+  .section-header {
+    margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--app-fg);
+  }
+}
 .sub-empty {
   font-size: 13px; color: var(--app-faint); padding: 8px 0;
 }

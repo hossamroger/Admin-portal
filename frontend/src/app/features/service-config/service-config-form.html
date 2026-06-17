@@ -306,6 +306,47 @@
               <mat-icon>save</mat-icon> Save Steps
             </button>
           </div>
+
+          <!-- ── Payment Callback Configs (service-level) ──────────────────── -->
+          <div class="callback-section">
+            <h2 class="section-header">Payment Callback Configs ({{ paymentCallbacks().length }})</h2>
+            <table class="sub-table">
+              <thead><tr>
+                <th>#</th><th>URL</th><th>Status</th><th>Step Order</th><th>Send Notification</th><th></th>
+              </tr></thead>
+              <tbody>
+                @for (cb of paymentCallbacks(); track $index; let i = $index) {
+                  <tr>
+                    <td class="mono">{{ i + 1 }}</td>
+                    <td><input class="field-input mono" [(ngModel)]="cb.url" placeholder="https://…/confirm-payment"></td>
+                    <td>
+                      <select class="field-select" [(ngModel)]="cb.status">
+                        <option value="T">T</option><option value="F">F</option>
+                      </select>
+                    </td>
+                    <td><input class="field-input mono" type="number" [(ngModel)]="cb.paymentStepOrder"></td>
+                    <td>
+                      <select class="field-select" [(ngModel)]="cb.sendNotification">
+                        <option value="T">T</option><option value="F">F</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button mat-icon-button class="btn-remove" (click)="removePaymentCallback(i)">
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (paymentCallbacks().length === 0) { <div class="tab-empty">No payment callbacks</div> }
+            <div class="tab-actions">
+              <button mat-stroked-button (click)="addPaymentCallback()"><mat-icon>add</mat-icon> Add Callback</button>
+              <button mat-flat-button color="primary" (click)="savePaymentCallbacks()" [disabled]="saving()">
+                <mat-icon>save</mat-icon> Save Payment Callbacks
+              </button>
+            </div>
+          </div>
         }
       </div>
     </mat-tab>

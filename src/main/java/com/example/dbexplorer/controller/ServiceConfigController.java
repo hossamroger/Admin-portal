@@ -137,6 +137,15 @@ public class ServiceConfigController {
         return ok("Confirmation screens saved");
     }
 
+    @PutMapping("/{code}/payment-callbacks")
+    public ResponseEntity<ApiResponse> savePaymentCallbacks(@PathVariable String code,
+                                                                     @RequestBody List<PaymentCallbackDto> callbacks,
+                                                                     HttpServletRequest http) {
+        requireUpdate(http);
+        svc.savePaymentCallbacks(code, callbacks);
+        return ok("Payment callbacks saved");
+    }
+
     // ── Delete ────────────────────────────────────────────────────────────────
 
     @DeleteMapping("/{code}")

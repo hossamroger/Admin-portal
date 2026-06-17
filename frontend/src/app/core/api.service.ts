@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
   CrudListResponse, CrudRow, DataPage, DbObject, FeeDto, Fingerprint,
-  Insights, LookupItem, Me, ObjectType, ProcessInfoDto,
+  Insights, LookupItem, Me, ObjectType, PaymentCallbackDto, ProcessInfoDto,
   QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview, ScreenInfoLookup,
   ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
   TargetAudienceDto, TargetAudienceLookup, UploadResult, WriteResult,
@@ -111,6 +111,9 @@ export class ApiService {
   }
   saveServiceConfirmation(code: string, cfgs: ConfirmationScreenConfigDto[]): Observable<WriteResult> {
     return this.http.put<WriteResult>(`/api/service-config/${encodeURIComponent(code)}/confirmation`, cfgs);
+  }
+  saveServicePaymentCallbacks(code: string, callbacks: PaymentCallbackDto[]): Observable<WriteResult> {
+    return this.http.put<WriteResult>(`/api/service-config/${encodeURIComponent(code)}/payment-callbacks`, callbacks);
   }
   nextServiceOrder(): Observable<{ nextOrder: number }> {
     return this.http.get<{ nextOrder: number }>('/api/service-config/next-order');
