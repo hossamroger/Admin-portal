@@ -13,11 +13,6 @@
 
     <!-- Live stat pills -->
     <div class="stat-pills">
-      <div class="stat-pill">
-        <mat-icon>table_chart</mat-icon>
-        <span class="pill-value">{{ tableCount() }}</span>
-        <span class="pill-label">Tables</span>
-      </div>
       @if (isReadOnly()) {
         <div class="stat-pill pill-ro">
           <mat-icon>lock</mat-icon>
