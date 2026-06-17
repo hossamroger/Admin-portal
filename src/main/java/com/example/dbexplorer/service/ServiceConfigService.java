@@ -247,6 +247,7 @@ public class ServiceConfigService {
                 jdbc.query(
                     "SELECT L.*, S.BPM_PRO_STEPS_SEQ FROM BPM_LKP_SERV_STEP_STATUS_LINKS L " +
                     "JOIN BPM_LKP_STEPS S ON S.REQUIRED_STEP_ID = TO_CHAR(L.REQUIRED_STEP_ID) " +
+                    "  AND S.BPMN_PROCESS_NAME = L.BPMN_PROCESS_NAME " +
                     "  AND S.PROCESS_CODE = ? " +
                     "WHERE S.BPM_PRO_STEPS_SEQ IN (" + inClause + ")",
                     rs -> {
@@ -393,8 +394,8 @@ public class ServiceConfigService {
         // Cascade-delete status links first, then steps, then re-insert
         subResources.replace(Arrays.asList(
             new SubResourceService.DeleteStep(
-                "DELETE FROM BPM_LKP_SERV_STEP_STATUS_LINKS WHERE REQUIRED_STEP_ID IN " +
-                "(SELECT REQUIRED_STEP_ID FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?)", code),
+                "DELETE FROM BPM_LKP_SERV_STEP_STATUS_LINKS WHERE (TO_CHAR(REQUIRED_STEP_ID), BPMN_PROCESS_NAME) IN " +
+                "(SELECT REQUIRED_STEP_ID, BPMN_PROCESS_NAME FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?)", code),
             new SubResourceService.DeleteStep("DELETE FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?", code)),
             steps, s -> insertStep(code, s));
     }
