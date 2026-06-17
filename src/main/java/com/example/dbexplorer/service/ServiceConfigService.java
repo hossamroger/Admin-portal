@@ -245,7 +245,7 @@ public class ServiceConfigService {
             if (!seqs.isEmpty()) {
                 String inClause = seqs.stream().map(s -> "'" + s.replace("'", "''") + "'").collect(Collectors.joining(","));
                 jdbc.query(
-                    "SELECT L.*, S.BPM_PRO_STEPS_SEQ AS PARENT_STEP_SEQ FROM BPM_LKP_SERV_STEP_STATUS_LINKS L " +
+                    "SELECT L.*, S.BPM_PRO_STEPS_SEQ FROM BPM_LKP_SERV_STEP_STATUS_LINKS L " +
                     "JOIN BPM_LKP_STEPS S ON S.REQUIRED_STEP_ID = TO_CHAR(L.REQUIRED_STEP_ID) " +
                     "  AND S.BPMN_PROCESS_NAME = L.BPMN_PROCESS_NAME " +
                     "  AND S.PROCESS_CODE = ? " +
@@ -265,7 +265,7 @@ public class ServiceConfigService {
                         l.iosActionCode     = rs.getString("IOS_ACTION_CODE");
                         l.androidActionCode = rs.getString("ANDROID_ACTION_CODE");
                         l.platformCode      = rs.getString("PLATFORM_CODE");
-                        String parentSeq = rs.getString("PARENT_STEP_SEQ");
+                        String parentSeq = rs.getString("BPM_PRO_STEPS_SEQ");
                         linksBySeq.computeIfAbsent(parentSeq, k -> new ArrayList<>()).add(l);
                     }, code);
             }
