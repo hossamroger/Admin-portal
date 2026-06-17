@@ -41,7 +41,6 @@ export class WelcomeComponent {
     return name ? `${time}, ${name}` : time;
   });
 
-  readonly tableCount = computed(() => this.overview()?.counts?.['TABLE'] ?? 0);
   readonly isReadOnly = computed(() => {
     if (this.overview()?.readOnly) return true;
     const can = this.me()?.can;
@@ -51,25 +50,32 @@ export class WelcomeComponent {
 
   readonly features: FeatureCard[] = [
     {
-      icon: 'table_chart',
-      title: 'Browse Tables',
-      description: 'Explore, filter, sort and paginate any table in your schema. Inline editing with per-row save.',
-      link: '',
+      icon: 'settings',
+      title: 'Service Config',
+      description: 'Configure BPM services, steps, fees, documents, providers, audience, and confirmation screens.',
+      link: '/service-config',
       accent: 'green',
+    },
+    {
+      icon: 'volunteer_activism',
+      title: 'Donation Projects',
+      description: 'Manage donation projects, categories, and organizations across the platform.',
+      link: '/donations',
+      accent: 'teal',
     },
     {
       icon: 'cloud_upload',
       title: 'Attachments',
       description: 'Upload any file and instantly get a permanent shareable public URL.',
       link: '/attachments',
-      accent: 'teal',
+      accent: 'mint',
     },
     {
       icon: 'manage_accounts',
       title: 'User Management',
-      description: 'Create and manage users, assign roles and privileges, restrict access to specific tables.',
+      description: 'Create and manage users, assign roles and privileges, and control access.',
       link: '/admin/users',
-      accent: 'mint',
+      accent: 'green',
     },
   ];
 
@@ -78,11 +84,11 @@ export class WelcomeComponent {
     this.features.filter(f => f.link !== '/admin/users' || this.isAdmin()));
 
   readonly tips: QuickTip[] = [
-    { icon: 'view_sidebar',  text: 'Expand <strong>Tables</strong> in the sidebar to browse your schema objects.' },
-    { icon: 'filter_alt',    text: 'Type in the sidebar search box to instantly filter hundreds of tables.' },
-    { icon: 'sync',          text: 'Hit <strong>Sync</strong> in the toolbar whenever the DB schema changes.' },
-    { icon: 'sort',          text: 'Click a column header to sort across all records — not just the current page.' },
-    { icon: 'chat',         text: 'Use the <strong>help chatbot</strong> (bottom-right) for guidance at any time.' },
+    { icon: 'settings',        text: 'Open <strong>Service Config</strong> from the sidebar to configure BPM processes end-to-end.' },
+    { icon: 'tab',             text: 'Each service has tabs: <strong>Basic Info, Steps, Fees, Documents, Providers, Audience, Confirmation</strong>.' },
+    { icon: 'volunteer_activism', text: 'Use <strong>Donation Projects</strong> to manage amounts, categories, and organizations.' },
+    { icon: 'sync',            text: 'Hit <strong>Sync</strong> in the toolbar whenever the DB schema changes.' },
+    { icon: 'chat',            text: 'Use the <strong>help chatbot</strong> (bottom-right) for guidance at any time.' },
   ];
 
   navigate(link: string): void {
