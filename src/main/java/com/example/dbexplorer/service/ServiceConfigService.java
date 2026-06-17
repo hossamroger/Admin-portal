@@ -542,11 +542,13 @@ public class ServiceConfigService {
             s.stepSla, s.showLinkFlag, s.entityCode);
 
         if (s.statusLinks != null) {
-            for (StepLinkDto l : s.statusLinks) insertStepLink(s.requiredStepId, l);
+            for (StepLinkDto l : s.statusLinks) insertStepLink(s.requiredStepId, s.bpmnProcessName, l);
         }
     }
 
-    private void insertStepLink(String requiredStepId, StepLinkDto l) {
+    // FK: (REQUIRED_STEP_ID + BPMN_PROCESS_NAME) → BPM_LKP_STEPS.(REQUIRED_STEP_ID + BPMN_PROCESS_NAME)
+    // Both values are inherited from the parent step — they are not user-editable on the link itself.
+    private void insertStepLink(String stepRequiredStepId, String stepBpmnProcessName, StepLinkDto l) {
         Object linkId = subResources.idOrMaxPlusOne(
             l.stepLinkId, "BPM_LKP_SERV_STEP_STATUS_LINKS", "STEP_LINK_ID");
         jdbc.update(
@@ -554,8 +556,8 @@ public class ServiceConfigService {
             "WEB_LINK_URL, MOB_LINK_FLAG, BPMN_PROCESS_NAME, ACTION_CODE, ICON_URL, " +
             "LABEL_AR, LABEL_EN, IOS_ACTION_CODE, ANDROID_ACTION_CODE, PLATFORM_CODE) " +
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            linkId, l.requiredStatusCode, l.requiredStepId != null ? l.requiredStepId : requiredStepId,
-            l.webLinkUrl, l.mobLinkFlag, l.bpmnProcessName, l.actionCode, l.iconUrl,
+            linkId, l.requiredStatusCode, stepRequiredStepId,
+            l.webLinkUrl, l.mobLinkFlag, stepBpmnProcessName, l.actionCode, l.iconUrl,
             l.labelAr, l.labelEn, l.iosActionCode, l.androidActionCode, l.platformCode);
     }
 
