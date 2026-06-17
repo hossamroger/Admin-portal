@@ -409,6 +409,28 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
 
   addPaymentCallback(): void { this.paymentCallbacks.update(arr => [...arr, emptyPaymentCallback()]); }
   removePaymentCallback(i: number): void { this.paymentCallbacks.update(arr => arr.filter((_, idx) => idx !== i)); }
+
+  /** Returns callbacks that belong to a specific step (matched by step orderC). */
+  stepCallbacks(step: StepDto): PaymentCallbackDto[] {
+    return this.paymentCallbacks().filter(cb => cb.paymentStepOrder === step.orderC);
+  }
+
+  addCallbackForStep(step: StepDto): void {
+    this.paymentCallbacks.update(arr => [
+      ...arr,
+      { ...emptyPaymentCallback(), paymentStepOrder: step.orderC ?? null },
+    ]);
+  }
+
+  removeCallbackByRef(cb: PaymentCallbackDto): void {
+    this.paymentCallbacks.update(arr => arr.filter(c => c !== cb));
+  }
+
+  toggleCallbackFlag(cb: PaymentCallbackDto, field: 'status' | 'sendNotification', checked: boolean): void {
+    cb[field] = checked ? 'T' : 'F';
+    this.paymentCallbacks.update(arr => [...arr]);
+  }
+
   savePaymentCallbacks(): void {
     this.saving.set(true);
     this.api.saveServicePaymentCallbacks(this.info().processCode, this.paymentCallbacks()).subscribe({
