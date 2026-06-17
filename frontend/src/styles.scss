@@ -106,3 +106,35 @@ option, optgroup {
   background: var(--app-surface);
   color: var(--app-fg);
 }
+
+// ── Angular Material overlay popups ─────────────────────────────────────────
+// mat-select / mat-menu / mat-autocomplete render their panels in the CDK
+// overlay container appended to <body>. Although the --app-* and --mat-sys-*
+// tokens inherit into it, Material's own component styles can paint a default
+// surface. Pin every overlay popup to the design tokens so dropdowns are
+// consistent with the page in both light and dark mode.
+.cdk-overlay-container {
+  .mat-mdc-select-panel,
+  .mat-mdc-autocomplete-panel,
+  .mat-mdc-menu-panel,
+  .mat-mdc-menu-panel .mat-mdc-menu-content {
+    background: var(--app-surface) !important;
+  }
+
+  .mat-mdc-option .mdc-list-item__primary-text,
+  .mat-mdc-menu-item .mat-mdc-menu-item-text,
+  .mat-mdc-menu-item .mat-icon { color: var(--app-fg); }
+
+  // Hover / active highlight on options and menu items.
+  .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+  .mat-mdc-option.mat-mdc-option-active,
+  .mat-mdc-menu-item:hover:not([disabled]),
+  .mat-mdc-menu-item.cdk-focused {
+    background: var(--app-surface-soft);
+  }
+
+  // Selected option text/check uses the accent so it reads in both themes.
+  .mat-mdc-option.mdc-list-item--selected .mdc-list-item__primary-text {
+    color: var(--app-accent);
+  }
+}
