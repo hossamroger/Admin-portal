@@ -145,13 +145,37 @@
   margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--app-muted);
 }
 
-.callback-section {
-  margin-top: 28px;
-  padding-top: 18px;
-  border-top: 2px solid var(--app-line);
+// ── Per-step payment callback rows ────────────────────────────────────────
 
-  .section-header {
-    margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--app-fg);
+.callback-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px; padding: 7px 10px;
+  border: 1px solid var(--app-line); border-radius: 6px;
+  background: var(--app-bg);
+  transition: border-color .15s;
+
+  &:hover { border-color: color-mix(in srgb, var(--app-accent) 40%, transparent); }
+
+  .url-input { flex: 1; min-width: 0; }
+}
+
+.cb-toggle {
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; font-size: 12px; font-weight: 500;
+  color: var(--app-muted); cursor: pointer; user-select: none;
+  padding: 2px 6px; border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background .12s, border-color .12s;
+
+  input[type="checkbox"] {
+    accent-color: var(--app-accent); cursor: pointer;
+    width: 14px; height: 14px; flex-shrink: 0;
+  }
+
+  &:has(input:checked) {
+    background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+    border-color: color-mix(in srgb, var(--app-accent) 25%, transparent);
+    color: var(--app-accent);
   }
 }
 .sub-empty {
