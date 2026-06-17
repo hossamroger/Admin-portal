@@ -167,6 +167,8 @@
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).iosShow === 'T'" (change)="setInfoVal('iosShow', $any($event.target).checked ? 'T' : 'F')"><span>iOS Show</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).androidShow === 'T'" (change)="setInfoVal('androidShow', $any($event.target).checked ? 'T' : 'F')"><span>Android Show</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).webShow === 'T'" (change)="setInfoVal('webShow', $any($event.target).checked ? 'T' : 'F')"><span>Web Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).testUserShow === 'T'" (change)="setInfoVal('testUserShow', $any($event.target).checked ? 'T' : 'F')"><span>Test User Show</span></label>
+              <label class="flag-item"><input type="checkbox" [checked]="$any(info()).releaseUserShow === 'T'" (change)="setInfoVal('releaseUserShow', $any($event.target).checked ? 'T' : 'F')"><span>Release User Show</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).adminPayment === 'T'" (change)="setInfoVal('adminPayment', $any($event.target).checked ? 'T' : 'F')"><span>Admin Payment</span></label>
               <label class="flag-item"><input type="checkbox" [checked]="$any(info()).isServiceCatalogOneTime === 'T'" (change)="setInfoVal('isServiceCatalogOneTime', $any($event.target).checked ? 'T' : 'F')"><span>One Time</span></label>
             </div>
