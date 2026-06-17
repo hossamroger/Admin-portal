@@ -568,13 +568,16 @@ public class ServiceConfigService {
     }
 
     private void insertConfirmationScreen(String code, ConfirmationScreenConfigDto c) {
-        Object cfgId = subResources.idOrMaxPlusOne(
+        Object suppliedId = subResources.idOrMaxPlusOne(
             c.dsConfirmationId, "DS_CONFIRMATION_SCREEN_CONFIG", "DS_CONFIRMATION_ID");
-        jdbc.update(
+        // Capture the actually-persisted DS_CONFIRMATION_ID: a trigger may reassign
+        // it, and the component rows below must reference the real parent id.
+        long cfgId = subResources.insertReturningId(
             "INSERT INTO DS_CONFIRMATION_SCREEN_CONFIG (DS_CONFIRMATION_ID, DS_CONFIRMATION_SCREEN_INFO_ID, " +
             "REQUIRED_STEP_ID, REQUIRED_STATUS_CODE, HAS_PAYMENT, HAS_RT_RECORD, SERVICE_CODE, " +
             "SHOW_REF_NO, GUEST, ACTION) VALUES (?,?,?,?,?,?,?,?,?,?)",
-            cfgId, c.dsConfirmationScreenInfoId, c.requiredStepId, c.requiredStatusCode,
+            "DS_CONFIRMATION_ID",
+            suppliedId, c.dsConfirmationScreenInfoId, c.requiredStepId, c.requiredStatusCode,
             c.hasPayment, c.hasRtRecord, code, c.showRefNo, c.guest, c.action);
 
         if (c.components != null) {
