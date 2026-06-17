@@ -60,7 +60,7 @@ export class WelcomeComponent {
       icon: 'volunteer_activism',
       title: 'Donation Projects',
       description: 'Manage donation projects, categories, and organizations across the platform.',
-      link: '/donations',
+      link: '/manage/donation-project',
       accent: 'teal',
     },
     {
