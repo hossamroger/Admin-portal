@@ -1,8 +1,11 @@
 package com.example.dbexplorer.service;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -117,6 +120,29 @@ public class SubResourceService {
         if (supplied != null) return supplied;
         return jdbc.queryForObject(
             "SELECT NVL(MAX(" + idColumn + "),0)+1 FROM " + table, Long.class);
+    }
+
+    /**
+     * Run an INSERT and return the PK value actually persisted for {@code pkColumn}.
+     * A BEFORE INSERT trigger may reassign the id we passed in, so capturing it via
+     * the RETURNING clause (JDBC generated keys) is the only way a caller can safely
+     * reference the new parent row when inserting its children. Falls back to the
+     * first bound arg (the supplied/allocated id) if the driver returns no key.
+     */
+    public long insertReturningId(String sql, String pkColumn, Object... args) {
+        KeyHolder kh = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement(sql, new String[]{ pkColumn });
+            for (int i = 0; i < args.length; i++) ps.setObject(i + 1, args[i]);
+            return ps;
+        }, kh);
+        try {
+            Object k = kh.getKey();
+            if (k instanceof Number) return ((Number) k).longValue();
+        } catch (Exception ignore) {
+            // Multiple/no keys or driver quirk — fall through to the supplied id.
+        }
+        return args.length > 0 && args[0] instanceof Number ? ((Number) args[0]).longValue() : 0L;
     }
 
     /**
