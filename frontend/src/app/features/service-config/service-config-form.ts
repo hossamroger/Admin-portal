@@ -410,18 +410,21 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   addPaymentCallback(): void { this.paymentCallbacks.update(arr => [...arr, emptyPaymentCallback()]); }
   removePaymentCallback(i: number): void { this.paymentCallbacks.update(arr => arr.filter((_, idx) => idx !== i)); }
 
-  /** Returns callbacks that belong to a specific step (matched by step bpmProStepsSeq = FK target). */
+  /** Returns callbacks that belong to a specific step.
+   *  FK: DS_PAYMENT_CONFIRMATION_CONFIG.(SERVICE_CODE, PAYMENT_STEP_ORDER)
+   *    → BPM_LKP_STEPS.(BPMN_PROCESS_NAME, REQUIRED_STEP_ID)
+   */
   stepCallbacks(step: StepDto): PaymentCallbackDto[] {
-    const seq = step.bpmProStepsSeq != null ? Number(step.bpmProStepsSeq) : null;
-    return this.paymentCallbacks().filter(cb => cb.paymentStepOrder === seq);
+    const rid = step.requiredStepId != null ? Number(step.requiredStepId) : null;
+    return this.paymentCallbacks().filter(cb => cb.paymentStepOrder === rid);
   }
 
   addCallbackForStep(step: StepDto): void {
-    // paymentStepOrder references BPM_LKP_STEPS.BPM_PRO_STEPS_SEQ (the step PK), not orderC
-    const seq = step.bpmProStepsSeq != null ? Number(step.bpmProStepsSeq) : null;
+    // PAYMENT_STEP_ORDER → BPM_LKP_STEPS.REQUIRED_STEP_ID (composite FK with SERVICE_CODE → BPMN_PROCESS_NAME)
+    const rid = step.requiredStepId != null ? Number(step.requiredStepId) : null;
     this.paymentCallbacks.update(arr => [
       ...arr,
-      { ...emptyPaymentCallback(), paymentStepOrder: seq },
+      { ...emptyPaymentCallback(), paymentStepOrder: rid },
     ]);
   }
 
