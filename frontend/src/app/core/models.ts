@@ -114,6 +114,7 @@ export interface ConfirmationScreenConfigDto {
 
 export interface PaymentCallbackDto {
   id?: number | null;
+  serviceCode?: string | null;
   url?: string | null;
   status?: string | null;
   paymentStepOrder?: number | null;
