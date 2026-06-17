@@ -410,15 +410,18 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   addPaymentCallback(): void { this.paymentCallbacks.update(arr => [...arr, emptyPaymentCallback()]); }
   removePaymentCallback(i: number): void { this.paymentCallbacks.update(arr => arr.filter((_, idx) => idx !== i)); }
 
-  /** Returns callbacks that belong to a specific step (matched by step orderC). */
+  /** Returns callbacks that belong to a specific step (matched by step bpmProStepsSeq = FK target). */
   stepCallbacks(step: StepDto): PaymentCallbackDto[] {
-    return this.paymentCallbacks().filter(cb => cb.paymentStepOrder === step.orderC);
+    const seq = step.bpmProStepsSeq != null ? Number(step.bpmProStepsSeq) : null;
+    return this.paymentCallbacks().filter(cb => cb.paymentStepOrder === seq);
   }
 
   addCallbackForStep(step: StepDto): void {
+    // paymentStepOrder references BPM_LKP_STEPS.BPM_PRO_STEPS_SEQ (the step PK), not orderC
+    const seq = step.bpmProStepsSeq != null ? Number(step.bpmProStepsSeq) : null;
     this.paymentCallbacks.update(arr => [
       ...arr,
-      { ...emptyPaymentCallback(), paymentStepOrder: step.orderC ?? null },
+      { ...emptyPaymentCallback(), paymentStepOrder: seq },
     ]);
   }
 
