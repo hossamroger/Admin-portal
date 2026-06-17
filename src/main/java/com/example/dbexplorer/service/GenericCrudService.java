@@ -5,10 +5,13 @@ import com.example.dbexplorer.config.CrudEntities.LookupDef;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -158,9 +161,9 @@ public class GenericCrudService {
         if (seq != null) {
             long newId = Optional.ofNullable(
                 jdbc.queryForObject("SELECT " + seq + ".NEXTVAL FROM DUAL", Long.class)).orElse(1L);
-            insertRow(e, row, newId);
-            if (hook != null) hook.afterInsert(e, row, newId);
-            return newId;
+            long actualId = insertRow(e, row, newId);
+            if (hook != null) hook.afterInsert(e, row, actualId);
+            return actualId;
         }
 
         // Fallback: MAX+1 can race with a concurrent insert — retry with a fresh id on collision
@@ -168,9 +171,9 @@ public class GenericCrudService {
         for (int attempt = 0; attempt < CREATE_RETRIES; attempt++) {
             long newId = nextValue(e.table, e.pk);
             try {
-                insertRow(e, row, newId);
-                if (hook != null) hook.afterInsert(e, row, newId);
-                return newId;
+                long actualId = insertRow(e, row, newId);
+                if (hook != null) hook.afterInsert(e, row, actualId);
+                return actualId;
             } catch (DuplicateKeyException dup) {
                 last = dup;
             }
@@ -204,7 +207,15 @@ public class GenericCrudService {
         return resolved;
     }
 
-    private void insertRow(CrudEntity e, Map<String, Object> row, long newId) {
+    /**
+     * Inserts the row and returns the PK value that was actually persisted.
+     * We pre-fill {@code e.pk} with the allocated {@code newId}, but a BEFORE
+     * INSERT trigger may reassign it (a common Oracle pattern). Capturing the
+     * value via the RETURNING clause (JDBC generated keys for {@code e.pk})
+     * means callers always get the real id, whether it came from our allocation
+     * or from a trigger — so sub-resource saves can find the parent afterwards.
+     */
+    private long insertRow(CrudEntity e, Map<String, Object> row, long newId) {
         Map<String, Object> r = new LinkedHashMap<>(row);
         r.put(e.pk, newId);
         if (e.orderCol != null && r.get(e.orderCol) == null) {
@@ -219,10 +230,29 @@ public class GenericCrudService {
         if (e.createdAtCol != null) { cols.add(e.createdAtCol); placeholders.add("SYSTIMESTAMP"); }
         if (e.updatedAtCol != null) { cols.add(e.updatedAtCol); placeholders.add("SYSTIMESTAMP"); }
 
-        jdbc.update(
-            "INSERT INTO " + e.table + " (" + String.join(", ", cols) + ") VALUES (" +
-            String.join(", ", placeholders) + ")",
-            args.toArray());
+        String sql = "INSERT INTO " + e.table + " (" + String.join(", ", cols) + ") VALUES (" +
+            String.join(", ", placeholders) + ")";
+        String pkCol = e.pk;
+        KeyHolder kh = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement(sql, new String[]{ pkCol });
+            for (int i = 0; i < args.size(); i++) ps.setObject(i + 1, args.get(i));
+            return ps;
+        }, kh);
+
+        Number key = keyOrNull(kh);
+        return key != null ? key.longValue() : newId;
+    }
+
+    /** Best-effort extraction of the single generated PK; null if unavailable. */
+    private static Number keyOrNull(KeyHolder kh) {
+        try {
+            Object k = kh.getKey();
+            if (k instanceof Number) return (Number) k;
+        } catch (Exception ignore) {
+            // Multiple/no keys or driver quirk — fall back to the allocated id.
+        }
+        return null;
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
