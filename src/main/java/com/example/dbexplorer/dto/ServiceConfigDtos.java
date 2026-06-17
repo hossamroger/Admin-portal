@@ -110,9 +110,10 @@ public class ServiceConfigDtos {
 
     public static class PaymentCallbackDto {
         public Object  id;                // ID (PK, generated on insert)
+        public String  serviceCode;       // SERVICE_CODE → BPM_LKP_STEPS.BPMN_PROCESS_NAME
         public String  url;               // URL
         public String  status;            // STATUS (NOT NULL)
-        public Object  paymentStepOrder;  // PAYMENT_STEP_ORDER (NOT NULL)
+        public Object  paymentStepOrder;  // PAYMENT_STEP_ORDER → BPM_LKP_STEPS.REQUIRED_STEP_ID
         public String  sendNotification;  // SEND_NOTIFICATION (NOT NULL)
     }
 

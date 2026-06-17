@@ -113,7 +113,7 @@ public class ServiceConfigService {
         if (req.relatedDepts     != null) for (RelatedDeptDto d : req.relatedDepts)          insertDept(code, d);
         if (req.targetAudiences  != null) for (TargetAudienceDto a : req.targetAudiences)    insertAudience(code, a);
         if (req.confirmationScreens != null) for (ConfirmationScreenConfigDto c : req.confirmationScreens) insertConfirmationScreen(code, c);
-        if (req.paymentCallbacks != null) for (PaymentCallbackDto pc : req.paymentCallbacks)               insertPaymentCallback(code, pc);
+        if (req.paymentCallbacks != null) for (PaymentCallbackDto pc : req.paymentCallbacks)               insertPaymentCallback(pc);
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -290,12 +290,15 @@ public class ServiceConfigService {
     }
 
     private List<PaymentCallbackDto> fetchPaymentCallbacks(String code) {
+        // SERVICE_CODE → BPM_LKP_STEPS.BPMN_PROCESS_NAME; fetch via the steps for this process
         return jdbc.query(
-            "SELECT * FROM DS_PAYMENT_CONFIRMATION_CONFIG WHERE SERVICE_CODE = ? " +
+            "SELECT * FROM DS_PAYMENT_CONFIRMATION_CONFIG " +
+            "WHERE SERVICE_CODE IN (SELECT DISTINCT BPMN_PROCESS_NAME FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?) " +
             "ORDER BY PAYMENT_STEP_ORDER NULLS LAST, ID",
             (rs, i) -> {
                 PaymentCallbackDto pc = new PaymentCallbackDto();
                 pc.id               = rs.getObject("ID");
+                pc.serviceCode      = rs.getString("SERVICE_CODE");
                 pc.url              = rs.getString("URL");
                 pc.status           = rs.getString("STATUS");
                 pc.paymentStepOrder = rs.getObject("PAYMENT_STEP_ORDER");
@@ -403,9 +406,12 @@ public class ServiceConfigService {
     }
 
     private void replacePaymentCallbacks(String code, List<PaymentCallbackDto> callbacks) {
+        // Delete by BPMN_PROCESS_NAME join, then re-insert using per-callback serviceCode
         subResources.replace(Collections.singletonList(
-            new SubResourceService.DeleteStep("DELETE FROM DS_PAYMENT_CONFIRMATION_CONFIG WHERE SERVICE_CODE = ?", code)),
-            callbacks, pc -> insertPaymentCallback(code, pc));
+            new SubResourceService.DeleteStep(
+                "DELETE FROM DS_PAYMENT_CONFIRMATION_CONFIG WHERE SERVICE_CODE IN " +
+                "(SELECT DISTINCT BPMN_PROCESS_NAME FROM BPM_LKP_STEPS WHERE PROCESS_CODE = ?)", code)),
+            callbacks, pc -> insertPaymentCallback(pc));
     }
 
     private void replaceDocs(String code, List<RequiredDocDto> docs) {
@@ -569,13 +575,13 @@ public class ServiceConfigService {
             seq, code, f.feesDescAr, f.feesDescEn, f.feesAmount, f.currencyAr, f.currencyEn, f.orderC);
     }
 
-    private void insertPaymentCallback(String code, PaymentCallbackDto pc) {
+    private void insertPaymentCallback(PaymentCallbackDto pc) {
         Object id = subResources.idOrMaxPlusOne(pc.id, "DS_PAYMENT_CONFIRMATION_CONFIG", "ID");
-        Object order = pc.paymentStepOrder != null ? pc.paymentStepOrder : 1;
+        // SERVICE_CODE = step's BPMN_PROCESS_NAME (FK target); PAYMENT_STEP_ORDER = step's REQUIRED_STEP_ID
         jdbc.update(
             "INSERT INTO DS_PAYMENT_CONFIRMATION_CONFIG (ID, SERVICE_CODE, URL, STATUS, " +
             "ADDITION_DATE, PAYMENT_STEP_ORDER, SEND_NOTIFICATION) VALUES (?,?,?,?,SYSDATE,?,?)",
-            id, code, pc.url, flag(pc.status), order, flag(pc.sendNotification));
+            id, pc.serviceCode, pc.url, flag(pc.status), pc.paymentStepOrder, flag(pc.sendNotification));
     }
 
     private void insertDoc(String code, RequiredDocDto d) {

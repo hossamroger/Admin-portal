@@ -96,7 +96,7 @@ function emptyAudience(): TargetAudienceDto {
 }
 
 function emptyPaymentCallback(): PaymentCallbackDto {
-  return { url: null, status: 'T', paymentStepOrder: null, sendNotification: 'T' };
+  return { serviceCode: null, url: null, status: 'T', paymentStepOrder: null, sendNotification: 'T' };
 }
 
 function emptyConfirmation(): ConfirmationScreenConfigDto {
@@ -420,11 +420,11 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   }
 
   addCallbackForStep(step: StepDto): void {
-    // PAYMENT_STEP_ORDER → BPM_LKP_STEPS.REQUIRED_STEP_ID (composite FK with SERVICE_CODE → BPMN_PROCESS_NAME)
+    // Composite FK: (SERVICE_CODE, PAYMENT_STEP_ORDER) → (BPMN_PROCESS_NAME, REQUIRED_STEP_ID)
     const rid = step.requiredStepId != null ? Number(step.requiredStepId) : null;
     this.paymentCallbacks.update(arr => [
       ...arr,
-      { ...emptyPaymentCallback(), paymentStepOrder: rid },
+      { ...emptyPaymentCallback(), serviceCode: step.bpmnProcessName ?? null, paymentStepOrder: rid },
     ]);
   }
 
