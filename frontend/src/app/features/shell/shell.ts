@@ -71,9 +71,7 @@ export class ShellComponent implements OnDestroy {
     { initialValue: this.titleFromUrl(this.router.url) },
   );
 
-  readonly groups: Group[] = [
-    { type: 'TABLE', label: 'Tables', icon: 'table_chart' },
-  ];
+  readonly groups: Group[] = [];
 
   private readonly objectsByType = signal<Record<string, DbObject[]>>({});
   private readonly loadingType = signal<string | null>(null);
