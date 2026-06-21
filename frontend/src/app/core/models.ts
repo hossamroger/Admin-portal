@@ -433,3 +433,33 @@ export interface PayCodeListResponse {
   page: number;
   pageSize: number;
 }
+
+// ── Entity Management (ENTITY_LKP) ────────────────────────────────────────────
+
+export interface EntityDto {
+  id: number | null;
+  entityCode: string | null;
+  entityNameEn: string | null;
+  entityNameAr: string | null;
+  entityLogoUrl: string | null;
+  entityStatus: string | null;
+  androidStatus: string | null;
+  iosStatus: string | null;
+  actionType: string | null;
+  actionUrl: string | null;
+}
+
+export interface EntitySummary {
+  id: number;
+  entityCode: string | null;
+  entityNameEn: string | null;
+  entityNameAr: string | null;
+  entityStatus: string | null;
+}
+
+export interface EntityListResponse {
+  items: EntitySummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}

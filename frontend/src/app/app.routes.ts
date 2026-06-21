@@ -44,6 +44,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/pay-code/pay-code-form').then(m => m.PayCodeFormComponent),
       },
       {
+        path: 'entity',
+        loadComponent: () => import('./features/entity/entity-list').then(m => m.EntityListComponent),
+      },
+      {
+        path: 'entity/:id',
+        canDeactivate: [dirtyGuard],
+        loadComponent: () => import('./features/entity/entity-form').then(m => m.EntityFormComponent),
+      },
+      {
         path: 'manage/donation-project',
         loadComponent: () => import('./features/donation-hub/donation-hub').then(m => m.DonationHubComponent),
       },

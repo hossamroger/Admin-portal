@@ -1,0 +1,118 @@
+<div class="pf-page">
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" class="pf-top-bar" />
+  }
+
+  <!-- Toolbar -->
+  <div class="pf-toolbar">
+    <button mat-icon-button matTooltip="Back to list" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2 class="pf-heading">
+      {{ isNew() ? 'New Entity' : (entity().entityNameEn || entity().entityCode || 'Entity') }}
+    </h2>
+    @if (dirty()) {
+      <span class="pf-dirty-badge">Unsaved changes</span>
+    }
+    <span class="pf-spacer"></span>
+    @if (!isNew()) {
+      <button mat-stroked-button color="warn" (click)="delete()" [disabled]="saving()">
+        <mat-icon>delete_outline</mat-icon> Delete
+      </button>
+    }
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="saving() || loading()">
+      <mat-icon>save</mat-icon>
+      {{ saving() ? 'Saving…' : (isNew() ? 'Create' : 'Save') }}
+    </button>
+  </div>
+
+  <div class="pf-body">
+
+    <section class="pf-card">
+      <div class="pf-card-header">
+        <mat-icon>business</mat-icon>
+        <span>Entity Details</span>
+      </div>
+      <div class="pf-card-body">
+        <div class="pf-grid">
+
+          <div class="pf-field">
+            <label class="pf-label">Entity Code <span class="req">*</span></label>
+            <input class="pf-input" [value]="entity().entityCode ?? ''"
+                   (input)="set('entityCode', $any($event.target).value || null)"
+                   [readonly]="!isNew()"
+                   placeholder="e.g. ENT-001">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Name (English)</label>
+            <input class="pf-input" [value]="entity().entityNameEn ?? ''"
+                   (input)="set('entityNameEn', $any($event.target).value || null)"
+                   placeholder="Entity name in English">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Name (Arabic)</label>
+            <input class="pf-input rtl" dir="rtl" [value]="entity().entityNameAr ?? ''"
+                   (input)="set('entityNameAr', $any($event.target).value || null)"
+                   placeholder="اسم الجهة بالعربية">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Logo URL</label>
+            <input class="pf-input" [value]="entity().entityLogoUrl ?? ''"
+                   (input)="set('entityLogoUrl', $any($event.target).value || null)"
+                   placeholder="https://…">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Status</label>
+            <select class="pf-select"
+                    (change)="set('entityStatus', $any($event.target).value || null)">
+              <option value="" [selected]="!entity().entityStatus">— Select —</option>
+              <option value="A" [selected]="entity().entityStatus === 'A'">Active</option>
+              <option value="I" [selected]="entity().entityStatus === 'I'">Inactive</option>
+            </select>
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Android Status</label>
+            <select class="pf-select"
+                    (change)="set('androidStatus', $any($event.target).value || null)">
+              <option value="" [selected]="!entity().androidStatus">— Select —</option>
+              <option value="Y" [selected]="entity().androidStatus === 'Y'">Y</option>
+              <option value="N" [selected]="entity().androidStatus === 'N'">N</option>
+            </select>
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">iOS Status</label>
+            <select class="pf-select"
+                    (change)="set('iosStatus', $any($event.target).value || null)">
+              <option value="" [selected]="!entity().iosStatus">— Select —</option>
+              <option value="Y" [selected]="entity().iosStatus === 'Y'">Y</option>
+              <option value="N" [selected]="entity().iosStatus === 'N'">N</option>
+            </select>
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Action Type</label>
+            <input class="pf-input" [value]="entity().actionType ?? ''"
+                   (input)="set('actionType', $any($event.target).value || null)"
+                   placeholder="e.g. WEBVIEW">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Action URL</label>
+            <input class="pf-input" [value]="entity().actionUrl ?? ''"
+                   (input)="set('actionUrl', $any($event.target).value || null)"
+                   placeholder="https://…">
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
