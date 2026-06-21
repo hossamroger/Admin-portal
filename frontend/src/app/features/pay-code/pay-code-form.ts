@@ -116,7 +116,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         },
       });
     } else {
-      this.snap.set(snapshot({ payCode: this.payCode(), details: null }));
+      this.snap.set(snapshot({ payCode: this.payCode(), details: this.details() }));
     }
   }
 
@@ -147,15 +147,18 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
 
     req$.subscribe({
       next: res => {
-        this.snap.set(snapshot(payload));
         this.saving.set(false);
         this.notify.success(this.isNew() ? 'Payment code created' : 'Payment code updated');
         if (this.isNew()) {
           const newId = res?.id ?? pc.id;
           if (newId != null) {
-            this.payCode.update(c => ({ ...c, id: Number(newId) }));
+            const savedPc = { ...pc, id: Number(newId) };
+            this.payCode.set(savedPc);
+            this.snap.set(snapshot({ payCode: savedPc, details: this.details() }));
             this.router.navigate(['/pay-code', newId], { replaceUrl: true });
           }
+        } else {
+          this.snap.set(snapshot(payload));
         }
         this.isNew.set(false);
       },
