@@ -146,11 +146,10 @@
 
                   <td>
                     <select class="pf-table-select"
-                            [value]="det.entityCode ?? ''"
                             (change)="updateDetail(i, 'entityCode', $any($event.target).value || null)">
-                      <option value="">— Select —</option>
+                      <option value="" [selected]="!det.entityCode">— Select —</option>
                       @for (e of entities(); track e.entityCode) {
-                        <option [value]="e.entityCode">
+                        <option [value]="e.entityCode" [selected]="det.entityCode === e.entityCode">
                           {{ e.entityCode }}{{ e.entityNameEn ? ' — ' + e.entityNameEn : '' }}
                         </option>
                       }
