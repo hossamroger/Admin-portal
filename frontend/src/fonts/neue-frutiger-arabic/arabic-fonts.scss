@@ -1,0 +1,28 @@
+// ── Neue Frutiger Arabic ───────────────────────────────────────────────────
+//
+// To activate the premium typeface, drop the font files from the original
+// portal into the sibling directories and rebuild:
+//
+//   fonts/neue-frutiger-arabic/regular/NeueFrutigerArabic-Regular.woff2
+//   fonts/neue-frutiger-arabic/medium/NeueFrutigerArabic-Medium.woff2
+//
+// Until those files are present the stack falls back to IBM Plex Sans Arabic
+// (loaded from Google Fonts in index.html) then to system Arabic fonts.
+// We declare @font-face unconditionally so components can always reference
+// the family names; the browser skips sources it cannot resolve.
+
+@font-face {
+  font-family: 'Neue-frutiger-arabic-regular';
+  src: local('Neue Frutiger Arabic Regular');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue-frutiger-arabic-medium';
+  src: local('Neue Frutiger Arabic Medium');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
