@@ -39,11 +39,11 @@ public class PayCodeService {
 
         List<PayCodeSummary> items = jdbc.query(sql, args.toArray(), (rs, i) -> {
             PayCodeSummary s = new PayCodeSummary();
-            s.id                 = rs.getObject("ID");
-            s.entityCode         = rs.getString("ENTITY_CODE");
-            s.entityServiceCode  = rs.getString("ENTITY_SERVICE_CODE");
-            s.processCode        = rs.getString("PROCESS_CODE");
-            s.processIdentifier  = rs.getString("PROCESS_IDENTIFIER");
+            s.id                = rs.getObject("ID");
+            s.entityCode        = rs.getString("ENTITY_CODE");
+            s.entityServiceCode = rs.getString("ENTITY_SERVICE_CODE");
+            s.processCode       = rs.getString("PROCESS_CODE");
+            s.processIdentifier = rs.getString("PROCESS_IDENTIFIER");
             return s;
         });
 
@@ -76,23 +76,26 @@ public class PayCodeService {
                 });
         if (masters.isEmpty()) return null;
 
-        List<PayCodeDetailsDto> details = fetchDetails(processCode);
-
         PayCodePayload p = new PayCodePayload();
         p.payCode = masters.get(0);
-        p.details = details;
+        p.details = fetchDetail(processCode);
         return p;
     }
 
-    private List<PayCodeDetailsDto> fetchDetails(String processCode) {
-        return jdbc.query(
+    private PayCodeDetailsDto fetchDetail(String processCode) {
+        List<PayCodeDetailsDto> rows = jdbc.query(
                 "SELECT ID, PROCESS_CODE, ENTITY_SERVICE_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
                 + " PAY_ENTITY_CODE, PAY_DEPARTMENT_CODE,"
                 + " SERVICE_DESC_AR, SERVICE_DESC_EN,"
                 + " ENTITY_NAME_AR, ENTITY_NAME_EN, ENTITY_CODE"
-                + " FROM LKP_PAY_CODE_DETAILS WHERE PROCESS_CODE = ?"
-                + " ORDER BY ID",
-                new Object[]{ processCode },
+                + " FROM LKP_PAY_CODE_DETAILS"
+                + " WHERE PROCESS_CODE = ?"
+                + "   AND PAY_ENTITY_CODE = (SELECT ENTITY_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
+                + "   AND PAY_DEPARTMENT_CODE = (SELECT ENTITY_DEPARTMENT_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
+                + "   AND ENTITY_SERVICE_CATEGORY_CODE = (SELECT ENTITY_SERVICE_CATEGORY_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
+                + "   AND ENTITY_SERVICE_CODE = (SELECT ENTITY_SERVICE_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
+                + " FETCH FIRST 1 ROWS ONLY",
+                new Object[]{ processCode, processCode, processCode, processCode, processCode },
                 (rs, i) -> {
                     PayCodeDetailsDto d = new PayCodeDetailsDto();
                     d.id                        = rs.getObject("ID");
@@ -108,6 +111,7 @@ public class PayCodeService {
                     d.entityCode                = rs.getString("ENTITY_CODE");
                     return d;
                 });
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
     // ── Create ────────────────────────────────────────────────────────────────
@@ -124,9 +128,7 @@ public class PayCodeService {
                 c.entityServiceCode, c.processCode, c.processIdentifier);
 
         if (req.details != null) {
-            for (PayCodeDetailsDto d : req.details) {
-                insertDetail(d, c);
-            }
+            insertDetail(req.details, c);
         }
     }
 
@@ -145,12 +147,19 @@ public class PayCodeService {
                 c.entityServiceCategoryCode, c.entityServiceCode,
                 c.processIdentifier, processCode);
 
-        // Replace all details
-        jdbc.update("DELETE FROM LKP_PAY_CODE_DETAILS WHERE PROCESS_CODE = ?", processCode);
+        // Delete existing detail then re-insert (upsert via replace)
+        jdbc.update(
+                "DELETE FROM LKP_PAY_CODE_DETAILS"
+                + " WHERE PROCESS_CODE = ?"
+                + "   AND PAY_ENTITY_CODE = ?"
+                + "   AND PAY_DEPARTMENT_CODE = ?"
+                + "   AND ENTITY_SERVICE_CATEGORY_CODE = ?"
+                + "   AND ENTITY_SERVICE_CODE = ?",
+                processCode, c.entityCode, c.entityDepartmentCode,
+                c.entityServiceCategoryCode, c.entityServiceCode);
+
         if (req.details != null) {
-            for (PayCodeDetailsDto d : req.details) {
-                insertDetail(d, c);
-            }
+            insertDetail(req.details, c);
         }
     }
 
@@ -189,9 +198,9 @@ public class PayCodeService {
                 "SELECT ENTITY_CODE, ENTITY_NAME_EN, ENTITY_NAME_AR FROM ENTITY_LKP ORDER BY ENTITY_NAME_EN",
                 (rs, i) -> {
                     EntityLookup e = new EntityLookup();
-                    e.entityCode    = rs.getString("ENTITY_CODE");
-                    e.entityNameEn  = rs.getString("ENTITY_NAME_EN");
-                    e.entityNameAr  = rs.getString("ENTITY_NAME_AR");
+                    e.entityCode   = rs.getString("ENTITY_CODE");
+                    e.entityNameEn = rs.getString("ENTITY_NAME_EN");
+                    e.entityNameAr = rs.getString("ENTITY_NAME_AR");
                     return e;
                 });
     }
