@@ -71,8 +71,8 @@
             <select class="pf-select"
                     (change)="set('entityStatus', $any($event.target).value || null)">
               <option value="" [selected]="!entity().entityStatus">— Select —</option>
-              <option value="A" [selected]="entity().entityStatus === 'A'">Active</option>
-              <option value="I" [selected]="entity().entityStatus === 'I'">Inactive</option>
+              <option value="T" [selected]="entity().entityStatus === 'T'">Active</option>
+              <option value="F" [selected]="entity().entityStatus === 'F'">Inactive</option>
             </select>
           </div>
 

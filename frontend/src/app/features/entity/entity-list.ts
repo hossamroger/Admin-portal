@@ -104,6 +104,6 @@ export class EntityListComponent implements AfterViewInit, OnDestroy {
   }
 
   statusLabel(status: string | null): string {
-    return status === 'A' ? 'Active' : status === 'I' ? 'Inactive' : status || '—';
+    return status === 'T' ? 'Active' : status === 'F' ? 'Inactive' : status || '—';
   }
 }

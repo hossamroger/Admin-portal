@@ -46,7 +46,7 @@
               <td>{{ item.entityNameEn || '—' }}</td>
               <td class="rtl-cell">{{ item.entityNameAr || '—' }}</td>
               <td>
-                <span class="status-badge" [class.active]="item.entityStatus === 'A'" [class.inactive]="item.entityStatus === 'I'">
+                <span class="status-badge" [class.active]="item.entityStatus === 'T'" [class.inactive]="item.entityStatus === 'F'">
                   {{ statusLabel(item.entityStatus) }}
                 </span>
               </td>
