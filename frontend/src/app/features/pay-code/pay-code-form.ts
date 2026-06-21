@@ -149,7 +149,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
     const pc = this.payCode();
     this.dialog.open(ConfirmDialogComponent, {
       data: { message: `Delete payment code "${pc.processCode}"? This will also delete the associated detail record.` },
-      width: '480px',
+      width: 'auto',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.api.deletePayCode(pc.id!).subscribe({

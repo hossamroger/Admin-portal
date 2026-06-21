@@ -450,7 +450,7 @@ export class ServiceConfigFormComponent implements OnInit, Dirtyable {
   deleteService(): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: { message: `Delete service "${this.info().processCode}"? This will also delete all steps, fees, documents and related data.` },
-      width: '480px',
+      width: 'auto',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.api.deleteService(this.info().processCode).subscribe({
