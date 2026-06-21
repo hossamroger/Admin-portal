@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, inject, signal, OnInit,
+  ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, OnDestroy,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
+import { Subscription } from 'rxjs';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
@@ -47,7 +48,7 @@ function emptyDetails(): PayCodeDetailsDto {
   templateUrl: './pay-code-form.html',
   styleUrl:    './pay-code-form.scss',
 })
-export class PayCodeFormComponent implements OnInit, Dirtyable {
+export class PayCodeFormComponent implements OnInit, OnDestroy, Dirtyable {
   private readonly api    = inject(ApiService);
   private readonly notify = inject(NotifyService);
   private readonly router = inject(Router);
@@ -58,6 +59,8 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   readonly loading  = signal(false);
   readonly saving   = signal(false);
   readonly isNew    = signal(false);
+
+  private paramSub?: Subscription;
 
   readonly payCode  = signal<PayCodeDto>(emptyPayCode());
   readonly details  = signal<PayCodeDetailsDto>(emptyDetails());
@@ -95,13 +98,26 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   }
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id') ?? '';
-    this.isNew.set(idParam === 'new');
-
     this.cache.lookupPayCodeEntities()
       .subscribe({ next: v => this.entities.set(v), error: () => {} });
 
-    if (!this.isNew()) {
+    // Subscribe to paramMap so re-use of this component instance (e.g. navigating
+    // from /pay-code/new → /pay-code/123 after save) triggers a proper re-init.
+    this.paramSub = this.route.paramMap.subscribe(params => {
+      const idParam = params.get('id') ?? '';
+      this.init(idParam);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.paramSub?.unsubscribe();
+  }
+
+  private init(idParam: string): void {
+    const isNew = idParam === 'new';
+    this.isNew.set(isNew);
+
+    if (!isNew) {
       this.loading.set(true);
       this.api.getPayCode(idParam).subscribe({
         next: p => {
@@ -116,7 +132,9 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         },
       });
     } else {
-      this.snap.set(snapshot({ payCode: this.payCode(), details: this.details() }));
+      this.payCode.set(emptyPayCode());
+      this.details.set(emptyDetails());
+      this.snap.set(snapshot({ payCode: emptyPayCode(), details: emptyDetails() }));
     }
   }
 
@@ -152,15 +170,14 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         if (this.isNew()) {
           const newId = res?.id ?? pc.id;
           if (newId != null) {
-            const savedPc = { ...pc, id: Number(newId) };
-            this.payCode.set(savedPc);
-            this.snap.set(snapshot({ payCode: savedPc, details: this.details() }));
+            // Sync snap so dirtyGuard passes, then navigate — paramMap subscription
+            // will call init(newId) which loads the saved record fresh in edit mode.
+            this.snap.set(snapshot(payload));
             this.router.navigate(['/pay-code', newId], { replaceUrl: true });
           }
         } else {
           this.snap.set(snapshot(payload));
         }
-        this.isNew.set(false);
       },
       error: err => {
         this.saving.set(false);
