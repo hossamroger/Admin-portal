@@ -12,7 +12,10 @@
 
 .scf-header {
   display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 20px;
+
+  button { white-space: nowrap; }
 }
 .scf-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); flex: 1; }
 .btn-delete { margin-left: auto; }
@@ -60,6 +63,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px 20px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    .field-group.span-2 { grid-column: span 1; }
+  }
 }
 
 .field-group {
@@ -233,4 +241,8 @@
   &.selected { background: color-mix(in srgb, var(--app-accent) 8%, transparent); border-color: var(--app-accent); color: var(--app-accent); }
 
   .comp-check { font-size: 18px; }
+}
+
+@media (max-width: 600px) {
+  .scf-page { padding: 14px; }
 }

@@ -1,13 +1,19 @@
 :host { display: block; height: 100%; overflow: auto; }
 
 .detail-head {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 16px 20px; background: var(--app-surface); border-bottom: 1px solid var(--app-line);
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--app-fg); }
   .spacer { flex: 1; }
+  button { white-space: nowrap; }
 }
 
-.panel { padding: 20px; }
+.panel { padding: 20px; box-sizing: border-box; }
+@media (max-width: 600px) {
+  .panel { padding: 14px; }
+}
+
+.table-wrap { width: 100%; max-width: 100%; overflow-x: auto; }
 
 .users-table {
   width: 100%; background: var(--app-surface); border: 1px solid var(--app-line);

@@ -1,6 +1,8 @@
 /* Donation Project Form */
-.dpf-page { padding: 24px; max-width: 900px; margin: 0 auto; }
-.dpf-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.dpf-page { padding: 24px; max-width: 900px; margin: 0 auto; box-sizing: border-box; }
+@media (max-width: 600px) { .dpf-page { padding: 14px; } }
+.dpf-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+  button { white-space: nowrap; } }
 .dpf-title { font-size: 22px; font-weight: 500; margin: 0; }
 .dpf-tabs { margin-top: 8px; }
 

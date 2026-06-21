@@ -1,7 +1,7 @@
 :host { display: flex; flex-direction: column; height: 100%; }
 
 .detail-head {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 12px 20px; background: var(--app-surface); border-bottom: 1px solid var(--app-line); flex-shrink: 0;
 
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--app-fg); }

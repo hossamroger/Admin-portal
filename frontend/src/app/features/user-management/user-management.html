@@ -10,6 +10,7 @@
   @if (users().length === 0) {
     <app-empty-state icon="group" message="No users found" />
   } @else {
+    <div class="table-wrap">
     <table mat-table [dataSource]="users()" class="users-table">
       <ng-container matColumnDef="username">
         <th mat-header-cell *matHeaderCellDef>Username</th>
@@ -49,5 +50,6 @@
       <tr mat-header-row *matHeaderRowDef="columns"></tr>
       <tr mat-row *matRowDef="let row; columns: columns"></tr>
     </table>
+    </div>
   }
 </div>

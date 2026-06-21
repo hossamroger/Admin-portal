@@ -1,8 +1,13 @@
 :host { display: block; }
 
-.df-page { padding: 24px 24px 0; max-width: 960px; margin: 0 auto; }
+.df-page { padding: 24px 24px 0; max-width: 960px; margin: 0 auto; box-sizing: border-box; }
 
-.df-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+@media (max-width: 600px) {
+  .df-page { padding: 14px 14px 0; }
+}
+
+.df-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+  button { white-space: nowrap; } }
 .df-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); }
 
 .df-section {
