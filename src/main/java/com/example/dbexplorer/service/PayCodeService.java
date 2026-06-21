@@ -84,18 +84,20 @@ public class PayCodeService {
 
     private PayCodeDetailsDto fetchDetail(String processCode) {
         List<PayCodeDetailsDto> rows = jdbc.query(
-                "SELECT ID, PROCESS_CODE, ENTITY_SERVICE_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
-                + " PAY_ENTITY_CODE, PAY_DEPARTMENT_CODE,"
-                + " SERVICE_DESC_AR, SERVICE_DESC_EN,"
-                + " ENTITY_NAME_AR, ENTITY_NAME_EN, ENTITY_CODE"
-                + " FROM LKP_PAY_CODE_DETAILS"
-                + " WHERE PROCESS_CODE = ?"
-                + "   AND PAY_ENTITY_CODE = (SELECT ENTITY_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
-                + "   AND PAY_DEPARTMENT_CODE = (SELECT ENTITY_DEPARTMENT_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
-                + "   AND ENTITY_SERVICE_CATEGORY_CODE = (SELECT ENTITY_SERVICE_CATEGORY_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
-                + "   AND ENTITY_SERVICE_CODE = (SELECT ENTITY_SERVICE_CODE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?)"
+                "SELECT d.ID, d.PROCESS_CODE, d.ENTITY_SERVICE_CODE, d.ENTITY_SERVICE_CATEGORY_CODE,"
+                + "     d.PAY_ENTITY_CODE, d.PAY_DEPARTMENT_CODE,"
+                + "     d.SERVICE_DESC_AR, d.SERVICE_DESC_EN,"
+                + "     d.ENTITY_NAME_AR, d.ENTITY_NAME_EN, d.ENTITY_CODE"
+                + " FROM LKP_PAY_CODE_DETAILS d"
+                + " JOIN LKP_PAY_CODE c"
+                + "   ON c.ENTITY_CODE                  = d.PAY_ENTITY_CODE"
+                + "  AND c.ENTITY_DEPARTMENT_CODE        = d.PAY_DEPARTMENT_CODE"
+                + "  AND c.ENTITY_SERVICE_CATEGORY_CODE  = d.ENTITY_SERVICE_CATEGORY_CODE"
+                + "  AND c.ENTITY_SERVICE_CODE           = d.ENTITY_SERVICE_CODE"
+                + "  AND c.PROCESS_CODE                  = d.PROCESS_CODE"
+                + " WHERE c.PROCESS_CODE = ?"
                 + " FETCH FIRST 1 ROWS ONLY",
-                new Object[]{ processCode, processCode, processCode, processCode, processCode },
+                new Object[]{ processCode },
                 (rs, i) -> {
                     PayCodeDetailsDto d = new PayCodeDetailsDto();
                     d.id                        = rs.getObject("ID");
