@@ -3,10 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
-  CrudListResponse, CrudRow, DataPage, DbObject, FeeDto, Fingerprint,
-  Insights, LookupItem, Me, ObjectType, PaymentCallbackDto, ProcessInfoDto,
-  QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview, ScreenInfoLookup,
-  ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
+  CrudListResponse, CrudRow, DataPage, DbObject, EntityLookup, FeeDto, Fingerprint,
+  Insights, LookupItem, Me, ObjectType, PayCodeListResponse, PayCodePayload, PaymentCallbackDto,
+  ProcessInfoDto, QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview,
+  ScreenInfoLookup, ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
   TargetAudienceDto, TargetAudienceLookup, UploadResult, WriteResult,
 } from './models';
 
@@ -124,6 +124,30 @@ export class ApiService {
   lookupComponents(): Observable<ComponentInfoLookup[]>       { return this.http.get<ComponentInfoLookup[]>('/api/service-config/lookups/components'); }
   lookupServiceStatuses(): Observable<string[]>               { return this.http.get<string[]>('/api/service-config/lookups/statuses'); }
   lookupServiceTypes(): Observable<string[]>                  { return this.http.get<string[]>('/api/service-config/lookups/types'); }
+
+  // ---- payment codes ----
+  listPayCodes(params: { search?: string; page?: number; pageSize?: number }): Observable<PayCodeListResponse> {
+    let p = new HttpParams();
+    if (params.search)           p = p.set('search',   params.search);
+    if (params.page != null)     p = p.set('page',     params.page);
+    if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
+    return this.http.get<PayCodeListResponse>('/api/pay-code', { params: p });
+  }
+  getPayCode(processCode: string): Observable<PayCodePayload> {
+    return this.http.get<PayCodePayload>(`/api/pay-code/${encodeURIComponent(processCode)}`);
+  }
+  createPayCode(payload: PayCodePayload): Observable<WriteResult> {
+    return this.http.post<WriteResult>('/api/pay-code', payload);
+  }
+  updatePayCode(processCode: string, payload: PayCodePayload): Observable<WriteResult> {
+    return this.http.put<WriteResult>(`/api/pay-code/${encodeURIComponent(processCode)}`, payload);
+  }
+  deletePayCode(processCode: string): Observable<WriteResult> {
+    return this.http.delete<WriteResult>(`/api/pay-code/${encodeURIComponent(processCode)}`);
+  }
+  lookupPayCodeEntities(): Observable<EntityLookup[]> {
+    return this.http.get<EntityLookup[]>('/api/pay-code/lookups/entities');
+  }
 
   // ---- generic CRUD (dynamic entities) ----
   crudList(entity: string, params: { search?: string; page?: number; pageSize?: number; sort?: string; dir?: string }): Observable<CrudListResponse> {
