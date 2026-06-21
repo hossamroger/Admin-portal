@@ -76,13 +76,14 @@ public class PayCodeService {
                 });
         if (masters.isEmpty()) return null;
 
+        PayCodeDto master = masters.get(0);
         PayCodePayload p = new PayCodePayload();
-        p.payCode = masters.get(0);
-        p.details = fetchDetail(id);
+        p.payCode = master;
+        p.details = fetchDetail(id, master);
         return p;
     }
 
-    private PayCodeDetailsDto fetchDetail(long payCodeId) {
+    private PayCodeDetailsDto fetchDetail(long payCodeId, PayCodeDto master) {
         List<PayCodeDetailsDto> rows = jdbc.query(
                 "SELECT d.ID, d.PROCESS_CODE, d.ENTITY_SERVICE_CODE, d.ENTITY_SERVICE_CATEGORY_CODE,"
                 + "     d.PAY_ENTITY_CODE, d.PAY_DEPARTMENT_CODE,"
@@ -98,23 +99,42 @@ public class PayCodeService {
                 + " WHERE c.ID = ?"
                 + " FETCH FIRST 1 ROWS ONLY",
                 new Object[]{ payCodeId },
-                (rs, i) -> {
-                    PayCodeDetailsDto d = new PayCodeDetailsDto();
-                    d.id                        = rs.getObject("ID");
-                    d.processCode               = rs.getString("PROCESS_CODE");
-                    d.entityServiceCode         = rs.getString("ENTITY_SERVICE_CODE");
-                    d.entityServiceCategoryCode = rs.getString("ENTITY_SERVICE_CATEGORY_CODE");
-                    d.payEntityCode             = rs.getString("PAY_ENTITY_CODE");
-                    d.payDepartmentCode         = rs.getString("PAY_DEPARTMENT_CODE");
-                    d.serviceDescAr             = rs.getString("SERVICE_DESC_AR");
-                    d.serviceDescEn             = rs.getString("SERVICE_DESC_EN");
-                    d.entityNameAr              = rs.getString("ENTITY_NAME_AR");
-                    d.entityNameEn              = rs.getString("ENTITY_NAME_EN");
-                    d.entityCode                = rs.getString("ENTITY_CODE");
-                    return d;
-                });
-        return rows.isEmpty() ? null : rows.get(0);
+                DETAIL_MAPPER);
+
+        if (!rows.isEmpty()) return rows.get(0);
+
+        // Fallback: match only on the 3-column key that was available in older data
+        List<PayCodeDetailsDto> fallback = jdbc.query(
+                "SELECT d.ID, d.PROCESS_CODE, d.ENTITY_SERVICE_CODE, d.ENTITY_SERVICE_CATEGORY_CODE,"
+                + "     d.PAY_ENTITY_CODE, d.PAY_DEPARTMENT_CODE,"
+                + "     d.SERVICE_DESC_AR, d.SERVICE_DESC_EN,"
+                + "     d.ENTITY_NAME_AR, d.ENTITY_NAME_EN, d.ENTITY_CODE"
+                + " FROM LKP_PAY_CODE_DETAILS d"
+                + " WHERE d.PROCESS_CODE = ?"
+                + "   AND d.ENTITY_SERVICE_CATEGORY_CODE = ?"
+                + "   AND d.ENTITY_SERVICE_CODE = ?"
+                + " FETCH FIRST 1 ROWS ONLY",
+                new Object[]{ master.processCode, master.entityServiceCategoryCode, master.entityServiceCode },
+                DETAIL_MAPPER);
+        return fallback.isEmpty() ? null : fallback.get(0);
     }
+
+    private static final org.springframework.jdbc.core.RowMapper<PayCodeDetailsDto> DETAIL_MAPPER =
+            (rs, i) -> {
+                PayCodeDetailsDto d = new PayCodeDetailsDto();
+                d.id                        = rs.getObject("ID");
+                d.processCode               = rs.getString("PROCESS_CODE");
+                d.entityServiceCode         = rs.getString("ENTITY_SERVICE_CODE");
+                d.entityServiceCategoryCode = rs.getString("ENTITY_SERVICE_CATEGORY_CODE");
+                d.payEntityCode             = rs.getString("PAY_ENTITY_CODE");
+                d.payDepartmentCode         = rs.getString("PAY_DEPARTMENT_CODE");
+                d.serviceDescAr             = rs.getString("SERVICE_DESC_AR");
+                d.serviceDescEn             = rs.getString("SERVICE_DESC_EN");
+                d.entityNameAr              = rs.getString("ENTITY_NAME_AR");
+                d.entityNameEn              = rs.getString("ENTITY_NAME_EN");
+                d.entityCode                = rs.getString("ENTITY_CODE");
+                return d;
+            };
 
     // ── Create ────────────────────────────────────────────────────────────────
 
