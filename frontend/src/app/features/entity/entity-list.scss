@@ -4,11 +4,15 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .el-header {
   display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
   margin-bottom: 20px;
+
+  button { white-space: nowrap; }
 }
 .el-header-left { display: flex; align-items: baseline; gap: 10px; }
 .el-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); }
@@ -21,7 +25,7 @@
 
 .el-search-wrap {
   position: relative; display: flex; align-items: center;
-  flex: 1; min-width: 280px;
+  flex: 1; min-width: 0;
 }
 .el-search-icon {
   position: absolute; left: 8px; font-size: 18px;
@@ -91,4 +95,8 @@
 .el-scroll-hint, .el-scroll-end {
   padding: 12px; text-align: center;
   font-size: 12px; color: var(--app-faint);
+}
+
+@media (max-width: 600px) {
+  .el-page { padding: 14px; }
 }

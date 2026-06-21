@@ -4,11 +4,15 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .sc-header {
   display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
   margin-bottom: 20px;
+
+  button { white-space: nowrap; }
 }
 .sc-header-left { display: flex; align-items: baseline; gap: 10px; }
 .sc-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg); }
@@ -21,7 +25,7 @@
 
 .sc-search-wrap {
   position: relative; display: flex; align-items: center;
-  flex: 1; min-width: 220px;
+  flex: 1; min-width: 0;
 }
 .sc-search-icon {
   position: absolute; left: 8px; font-size: 18px;
@@ -117,4 +121,8 @@
 .sc-table thead tr {
   position: sticky; top: 0; z-index: 1;
   background: var(--app-surface);
+}
+
+@media (max-width: 600px) {
+  .sc-page { padding: 14px; }
 }
