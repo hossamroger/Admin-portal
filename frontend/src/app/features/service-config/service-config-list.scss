@@ -84,7 +84,7 @@
     overflow: hidden; text-overflow: ellipsis;
   }
   .mono { font-family: var(--app-mono); font-size: 13px; }
-  .rtl  { direction: rtl; text-align: right; }
+  .rtl  { direction: rtl; text-align: right; font-family: var(--app-font-arabic); }
 
   .td-actions {
     padding: 4px 8px;

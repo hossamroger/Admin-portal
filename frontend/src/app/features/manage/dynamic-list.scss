@@ -45,7 +45,7 @@
   }
   td { padding: 10px 14px; color: var(--app-fg); white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
   .mono { font-family: var(--app-mono); font-size: 13px; }
-  .rtl  { direction: rtl; text-align: right; }
+  .rtl  { direction: rtl; text-align: right; font-family: var(--app-font-arabic); }
   .num  { text-align: right; }
   .td-actions { padding: 4px 8px; button { opacity: 0; transition: opacity .15s; } }
   .dl-row:hover .td-actions button { opacity: 1; }

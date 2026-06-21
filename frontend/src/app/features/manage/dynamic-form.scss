@@ -37,7 +37,8 @@
 }
 .field-textarea { height: auto; padding: 8px 10px; resize: vertical; }
 .mono { font-family: var(--app-mono); font-size: 13px; }
-.rtl  { direction: rtl; text-align: right; }
+.rtl  { direction: rtl; text-align: right; font-family: var(--app-font-arabic); }
+.rtl::placeholder { font-family: var(--app-font-arabic); }
 
 .field-invalid {
   .field-input, .field-select, .field-textarea, .color-swatch { border-color: var(--app-error); }
