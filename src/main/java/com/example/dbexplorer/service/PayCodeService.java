@@ -22,7 +22,7 @@ public class PayCodeService {
     public PayCodeListResponse list(String search, int page, int pageSize) {
         String where = "";
         List<Object> args = new ArrayList<>();
-        if (search != null && !search.isBlank()) {
+        if (search != null && !search.trim().isEmpty()) {
             where = " WHERE UPPER(PROCESS_CODE) LIKE ? OR UPPER(PROCESS_IDENTIFIER) LIKE ? OR UPPER(ENTITY_SERVICE_CODE) LIKE ?";
             String q = "%" + search.toUpperCase() + "%";
             args.add(q); args.add(q); args.add(q);
