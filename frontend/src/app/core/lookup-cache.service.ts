@@ -3,7 +3,7 @@ import { Observable, shareReplay } from 'rxjs';
 
 import { ApiService } from './api.service';
 import {
-  LookupItem, TargetAudienceLookup, ScreenInfoLookup, ComponentInfoLookup,
+  EntityLookup, LookupItem, TargetAudienceLookup, ScreenInfoLookup, ComponentInfoLookup,
 } from './models';
 
 /**
@@ -54,5 +54,9 @@ export class LookupCacheService {
 
   lookupServiceTypes(): Observable<string[]> {
     return this.memo('svc:types', () => this.api.lookupServiceTypes());
+  }
+
+  lookupPayCodeEntities(): Observable<EntityLookup[]> {
+    return this.memo('pay-code:entities', () => this.api.lookupPayCodeEntities());
   }
 }

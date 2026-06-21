@@ -35,6 +35,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/service-config/service-config-form').then(m => m.ServiceConfigFormComponent),
       },
       {
+        path: 'pay-code',
+        loadComponent: () => import('./features/pay-code/pay-code-list').then(m => m.PayCodeListComponent),
+      },
+      {
+        path: 'pay-code/:processCode',
+        canDeactivate: [dirtyGuard],
+        loadComponent: () => import('./features/pay-code/pay-code-form').then(m => m.PayCodeFormComponent),
+      },
+      {
         path: 'manage/donation-project',
         loadComponent: () => import('./features/donation-hub/donation-hub').then(m => m.DonationHubComponent),
       },

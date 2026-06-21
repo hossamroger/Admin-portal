@@ -1,0 +1,174 @@
+<div class="pf-page">
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" class="pf-top-bar" />
+  }
+
+  <!-- Toolbar -->
+  <div class="pf-toolbar">
+    <button mat-icon-button matTooltip="Back to list" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2 class="pf-heading">
+      {{ isNew() ? 'New Payment Code' : payCode().processCode }}
+    </h2>
+    @if (dirty()) {
+      <span class="pf-dirty-badge">Unsaved changes</span>
+    }
+    <span class="pf-spacer"></span>
+    @if (!isNew()) {
+      <button mat-stroked-button color="warn" (click)="delete()" [disabled]="saving()">
+        <mat-icon>delete_outline</mat-icon> Delete
+      </button>
+    }
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="saving() || loading()">
+      <mat-icon>save</mat-icon>
+      {{ saving() ? 'Saving…' : (isNew() ? 'Create' : 'Save') }}
+    </button>
+  </div>
+
+  <div class="pf-body">
+
+    <!-- ── Section 1: Pay Code (Master) ──────────────────────────────────── -->
+    <section class="pf-card">
+      <div class="pf-card-header">
+        <mat-icon>payments</mat-icon>
+        <span>Pay Code</span>
+      </div>
+      <div class="pf-card-body">
+        <div class="pf-grid">
+
+          <div class="pf-field">
+            <label class="pf-label">Process Code <span class="req">*</span></label>
+            <input class="pf-input" [value]="payCode().processCode"
+                   (input)="payCode.update(c => ({...c, processCode: $any($event.target).value}))"
+                   [readonly]="!isNew()" placeholder="e.g. PC-001">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Process Identifier</label>
+            <input class="pf-input" [value]="payCode().processIdentifier ?? ''"
+                   (input)="payCode.update(c => ({...c, processIdentifier: $any($event.target).value || null}))"
+                   placeholder="Optional identifier">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Entity Code <span class="req">*</span></label>
+            <input class="pf-input" [value]="payCode().entityCode"
+                   (input)="payCode.update(c => ({...c, entityCode: $any($event.target).value}))"
+                   placeholder="e.g. ENT-01">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Entity Department Code <span class="req">*</span></label>
+            <input class="pf-input" [value]="payCode().entityDepartmentCode"
+                   (input)="payCode.update(c => ({...c, entityDepartmentCode: $any($event.target).value}))"
+                   placeholder="Department code">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Entity Service Category Code <span class="req">*</span></label>
+            <input class="pf-input" [value]="payCode().entityServiceCategoryCode"
+                   (input)="payCode.update(c => ({...c, entityServiceCategoryCode: $any($event.target).value}))"
+                   placeholder="Service category code">
+          </div>
+
+          <div class="pf-field">
+            <label class="pf-label">Entity Service Code <span class="req">*</span></label>
+            <input class="pf-input" [value]="payCode().entityServiceCode"
+                   (input)="payCode.update(c => ({...c, entityServiceCode: $any($event.target).value}))"
+                   placeholder="Service code">
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Section 2: Pay Code Details (Children) ────────────────────────── -->
+    <section class="pf-card">
+      <div class="pf-card-header">
+        <mat-icon>list_alt</mat-icon>
+        <span>Pay Code Details</span>
+        <span class="pf-badge">{{ details().length }}</span>
+        <span class="pf-spacer"></span>
+        <button mat-stroked-button (click)="addDetail()">
+          <mat-icon>add</mat-icon> Add Detail
+        </button>
+      </div>
+
+      @if (details().length === 0) {
+        <div class="pf-empty-details">
+          <mat-icon>info_outline</mat-icon>
+          <span>No details yet — click "Add Detail" to start</span>
+        </div>
+      } @else {
+        <div class="pf-details-table-wrap">
+          <table class="pf-details-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Service Desc (AR) <span class="req">*</span></th>
+                <th>Service Desc (EN)</th>
+                <th>Entity Name (AR)</th>
+                <th>Entity Name (EN)</th>
+                <th>Entity Code</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (det of details(); track trackByIdx($index); let i = $index) {
+                <tr class="pf-detail-row">
+                  <td class="pf-detail-idx">{{ i + 1 }}</td>
+
+                  <td>
+                    <input class="pf-table-input rtl" [value]="det.serviceDescAr"
+                           (input)="updateDetail(i, 'serviceDescAr', $any($event.target).value)"
+                           placeholder="وصف الخدمة">
+                  </td>
+
+                  <td>
+                    <input class="pf-table-input" [value]="det.serviceDescEn ?? ''"
+                           (input)="updateDetail(i, 'serviceDescEn', $any($event.target).value || null)"
+                           placeholder="Service description">
+                  </td>
+
+                  <td>
+                    <input class="pf-table-input rtl" [value]="det.entityNameAr ?? ''"
+                           (input)="updateDetail(i, 'entityNameAr', $any($event.target).value || null)"
+                           placeholder="اسم الجهة">
+                  </td>
+
+                  <td>
+                    <input class="pf-table-input" [value]="det.entityNameEn ?? ''"
+                           (input)="updateDetail(i, 'entityNameEn', $any($event.target).value || null)"
+                           placeholder="Entity name">
+                  </td>
+
+                  <td>
+                    <select class="pf-table-select"
+                            [value]="det.entityCode ?? ''"
+                            (change)="updateDetail(i, 'entityCode', $any($event.target).value || null)">
+                      <option value="">— Select —</option>
+                      @for (e of entities(); track e.entityCode) {
+                        <option [value]="e.entityCode">
+                          {{ e.entityCode }}{{ e.entityNameEn ? ' — ' + e.entityNameEn : '' }}
+                        </option>
+                      }
+                    </select>
+                  </td>
+
+                  <td class="pf-detail-actions">
+                    <button mat-icon-button matTooltip="Remove" class="btn-del" (click)="removeDetail(i)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+  </div><!-- /pf-body -->
+</div>

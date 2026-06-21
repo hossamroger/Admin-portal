@@ -1,0 +1,74 @@
+<div class="pc-page">
+
+  <div class="pc-header">
+    <div class="pc-header-left">
+      <h1 class="pc-title">Payment Codes</h1>
+      <span class="pc-count">{{ items().length }} / {{ total() }} records</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> New Payment Code
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="pc-filters">
+    <div class="pc-search-wrap">
+      <mat-icon class="pc-search-icon">search</mat-icon>
+      <input class="pc-search-input" placeholder="Search by process code, identifier or service code…"
+             [ngModel]="search()" (ngModelChange)="search.set($event); onSearchChange()"
+             (keydown.escape)="clearSearch()">
+      @if (search()) {
+        <button type="button" mat-icon-button class="pc-search-clear" matTooltip="Clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (total() === 0 && !loading()) {
+    <app-empty-state icon="payments" message="No payment codes found" />
+  } @else {
+    <div class="pc-table-wrap" #tableWrap>
+      <table class="pc-table">
+        <thead>
+          <tr>
+            <th>Process Code</th>
+            <th>Process Identifier</th>
+            <th>Entity Code</th>
+            <th>Service Code</th>
+            <th class="th-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.processCode) {
+            <tr class="pc-row" (click)="edit(item.processCode)">
+              <td class="mono">{{ item.processCode }}</td>
+              <td>{{ item.processIdentifier || '—' }}</td>
+              <td class="mono">{{ item.entityCode || '—' }}</td>
+              <td class="mono">{{ item.entityServiceCode || '—' }}</td>
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(item.processCode)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Delete" class="btn-del"
+                        (click)="remove(item.processCode)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (loading()) {
+        <div class="pc-scroll-loading">
+          <mat-progress-bar mode="indeterminate" />
+        </div>
+      } @else if (hasMore()) {
+        <div class="pc-scroll-hint">Scroll down to load more…</div>
+      } @else if (items().length > 0) {
+        <div class="pc-scroll-end">All {{ total() }} records loaded</div>
+      }
+    </div>
+  }
+</div>

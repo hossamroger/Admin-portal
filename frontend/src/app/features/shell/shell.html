@@ -69,6 +69,11 @@
         <mat-icon>settings_applications</mat-icon>
         <span>Service Config</span>
       </a>
+      <a class="pinned-link" routerLink="/pay-code" routerLinkActive="active"
+         (click)="onObjectClick(drawer.close.bind(drawer))">
+        <mat-icon>payments</mat-icon>
+        <span>Payment Codes</span>
+      </a>
       @for (entity of navEntities; track entity.name) {
         <a class="pinned-link" [routerLink]="['/manage', entity.name]" routerLinkActive="active"
            (click)="onObjectClick(drawer.close.bind(drawer))">

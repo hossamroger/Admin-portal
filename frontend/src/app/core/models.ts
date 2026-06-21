@@ -381,3 +381,55 @@ export interface SaveUserRequest {
   allowedTables: string[];
   filters: RowFilter[];
 }
+
+// ── Payment Codes ─────────────────────────────────────────────────────────────
+
+export interface EntityLookup {
+  entityCode: string;
+  entityNameEn: string | null;
+  entityNameAr: string | null;
+}
+
+export interface PayCodeDto {
+  id?: number | null;
+  entityCode: string;
+  entityDepartmentCode: string;
+  entityServiceCategoryCode: string;
+  entityServiceCode: string;
+  processCode: string;
+  processIdentifier?: string | null;
+}
+
+export interface PayCodeDetailsDto {
+  id?: number | null;
+  processCode?: string | null;
+  entityServiceCode?: string | null;
+  entityServiceCategoryCode?: string | null;
+  payEntityCode?: string | null;
+  payDepartmentCode?: string | null;
+  serviceDescAr: string;
+  serviceDescEn?: string | null;
+  entityNameAr?: string | null;
+  entityNameEn?: string | null;
+  entityCode?: string | null;
+}
+
+export interface PayCodePayload {
+  payCode: PayCodeDto;
+  details: PayCodeDetailsDto[];
+}
+
+export interface PayCodeSummary {
+  id: number | null;
+  entityCode: string | null;
+  entityServiceCode: string | null;
+  processCode: string;
+  processIdentifier: string | null;
+}
+
+export interface PayCodeListResponse {
+  items: PayCodeSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
