@@ -95,7 +95,9 @@ public class EntityService {
 
     public long create(EntityDto dto) {
         requireNoDuplicate(dto.entityCode, null);
-        long id = jdbc.queryForObject("SELECT ENTITY_LKP_SEQ.NEXTVAL FROM DUAL", Long.class);
+        // ENTITY_LKP has no Oracle sequence, so derive the next ID from MAX(ID)+1.
+        Long next = jdbc.queryForObject("SELECT NVL(MAX(ID), 0) + 1 FROM ENTITY_LKP", Long.class);
+        long id = next == null ? 1L : next;
         jdbc.update(
                 "INSERT INTO ENTITY_LKP"
                 + " (ID, ENTITY_CODE, ENTITY_NAME_EN, ENTITY_NAME_AR,"
