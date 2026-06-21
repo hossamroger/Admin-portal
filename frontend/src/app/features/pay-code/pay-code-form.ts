@@ -14,7 +14,7 @@ import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { PayCodeDto, PayCodeDetailsDto, PayCodePayload, EntityLookup } from '../../core/models';
 import { LookupCacheService } from '../../core/lookup-cache.service';
-import { snapshot, isDirty } from '../../shared/form-utils';
+import { snapshot, isDirty, changedSections } from '../../shared/form-utils';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { Dirtyable } from '../../core/guards';
 
@@ -70,6 +70,29 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
     isDirty(this.snap(), { payCode: this.payCode(), details: this.details() }));
   readonly dirty = this.dirtySignal;
   isDirty(): boolean { return this.dirtySignal(); }
+
+  dirtyMessage(): string {
+    const pc = this.payCode();
+    if (this.isNew()) {
+      const label = pc.processCode?.trim() ? `"${pc.processCode}"` : 'this new payment code';
+      return `${label.charAt(0).toUpperCase() + label.slice(1)} has not been saved yet. Leave and discard it?`;
+    }
+    const changed = changedSections(this.snap(), {
+      payCode: pc,
+      details: this.details(),
+    });
+    const label = pc.processCode?.trim() ? ` to "${pc.processCode}"` : '';
+    if (changed.includes('payCode') && changed.includes('details')) {
+      return `You have unsaved changes${label} in the Pay Code fields and Pay Code Details. Leave and discard them?`;
+    }
+    if (changed.includes('payCode')) {
+      return `You have unsaved changes${label} in the Pay Code fields. Leave and discard them?`;
+    }
+    if (changed.includes('details')) {
+      return `You have unsaved changes${label} in the Pay Code Details. Leave and discard them?`;
+    }
+    return `You have unsaved changes${label}. Leave and discard them?`;
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id') ?? '';

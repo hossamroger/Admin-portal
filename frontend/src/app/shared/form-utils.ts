@@ -27,3 +27,21 @@ export function snapshot(value: unknown): string {
 export function isDirty(snap: string, value: unknown): boolean {
   return JSON.stringify(value) !== snap;
 }
+
+/**
+ * Snapshot individual named sections and return which ones differ from the
+ * baseline snap (which was taken of the whole object at load/save time).
+ *
+ * Usage: snapFields(baselineSnap, { master: obj1, details: obj2 })
+ * Returns the keys whose current JSON differs from what's in the baseline.
+ */
+export function changedSections(
+  baselineSnap: string,
+  sections: Record<string, unknown>,
+): string[] {
+  let baseline: Record<string, unknown>;
+  try { baseline = JSON.parse(baselineSnap); } catch { return Object.keys(sections); }
+  return Object.keys(sections).filter(
+    key => JSON.stringify(sections[key]) !== JSON.stringify(baseline[key]),
+  );
+}
