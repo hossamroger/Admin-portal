@@ -28,13 +28,16 @@ export const adminGuard: CanActivateFn = () => {
 /** Components that can hold unsaved edits implement this. */
 export interface Dirtyable {
   isDirty(): boolean;
+  dirtyMessage?(): string;
 }
 
 /** Confirm before navigating away from a form with unsaved changes. */
 export const dirtyGuard: CanDeactivateFn<Dirtyable> = (component) => {
   if (!component?.isDirty?.()) return true;
+  const message = component.dirtyMessage?.() ??
+    'You have unsaved changes. Leave this page and discard them?';
   return inject(MatDialog).open(ConfirmDialogComponent, {
-    data: { message: 'You have unsaved changes. Leave this page and discard them?', confirmLabel: 'Discard' },
+    data: { message, confirmLabel: 'Discard' },
     width: 'auto',
   }).afterClosed().pipe(map(confirmed => !!confirmed));
 };
