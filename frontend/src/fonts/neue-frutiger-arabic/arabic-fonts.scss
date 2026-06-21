@@ -1,0 +1,34 @@
+// ── Neue Frutiger Arabic (optional premium font) ───────────────────────────
+//
+// The licensed font files are NOT in the repo. To activate the premium
+// typeface, drop them into the public assets folder and rebuild:
+//
+//   public/fonts/neue-frutiger-arabic/NeueFrutigerArabic-Regular.woff2
+//   public/fonts/neue-frutiger-arabic/NeueFrutigerArabic-Medium.woff2
+//
+// These @font-face rules reference absolute /fonts/... URLs that resolve
+// against the served static assets. Because they are NOT bundler-processed
+// resources, the build never fails when the files are absent — the browser
+// simply gets a 404 and falls back to IBM Plex Sans Arabic (self-hosted,
+// always present) and then to system Arabic fonts. A local() source is also
+// listed so an OS-installed copy is used without any download.
+
+@font-face {
+  font-family: 'Neue-frutiger-arabic-regular';
+  src:
+    local('Neue Frutiger Arabic Regular'),
+    url('/fonts/neue-frutiger-arabic/NeueFrutigerArabic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue-frutiger-arabic-medium';
+  src:
+    local('Neue Frutiger Arabic Medium'),
+    url('/fonts/neue-frutiger-arabic/NeueFrutigerArabic-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

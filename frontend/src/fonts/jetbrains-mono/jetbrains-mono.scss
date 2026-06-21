@@ -1,0 +1,11 @@
+// ── JetBrains Mono (self-hosted variable font) ─────────────────────────────
+// Self-hosted monospace font for code/technical text, no internet required.
+// Variable font: a single woff2 supplies weights 400–600.
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}

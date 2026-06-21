@@ -1,0 +1,30 @@
+// ── Material Icons (self-hosted) ───────────────────────────────────────────
+// Self-hosted icon font + the .material-icons / mat-icon ligature class so
+// icons render with no outbound internet access.
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./MaterialIcons-Regular.woff2') format('woff2');
+  font-display: block;
+}
+
+.material-icons,
+.mat-icon.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}

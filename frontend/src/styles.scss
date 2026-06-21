@@ -1,4 +1,9 @@
 @use '@angular/material' as mat;
+@use './fonts/roboto/roboto';
+@use './fonts/jetbrains-mono/jetbrains-mono';
+@use './fonts/material-icons/material-icons';
+@use './fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic';
+@use './fonts/neue-frutiger-arabic/arabic-fonts';
 
 html {
   color-scheme: light;
@@ -34,11 +39,64 @@ html {
   --app-warn:           #a07000;
   --app-info:           #1565c0;
   --app-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --app-font-arabic: 'Neue-frutiger-arabic-regular', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+  --app-font-arabic-medium: 'Neue-frutiger-arabic-medium', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+
+  // ── Legacy color aliases (maps old portal variables → app tokens) ────────
+  // Allows components copy-migrated from the old portal to work without
+  // touching their CSS. All aliases point to the nearest --app-* equivalent.
+  --white:               #ffffff;
+  --black:               #000000;
+  --mainGreen:           var(--app-accent);
+  --lightMainGreen:      var(--app-accent-mint);
+  --mainDarkBlue:        #1a237e;
+  --darkGray:            var(--app-muted);
+  --mediumGray:          var(--app-faint);
+  --lightGray:           var(--app-line);
+  --platinumGray:        var(--app-line-muted);
+  --paleGrey:            var(--app-surface-subtle);
+  --blackish:            var(--app-fg);
+  --blackish2:           var(--app-fg);
+  --searchIcon:          var(--app-faint);
+  --lightBlueLink:       var(--app-info);
+  --progress:            var(--app-warn);
+  --alarm:               var(--app-warn);
+  --error:               var(--app-error);
+  --errorWithOpacity:    color-mix(in srgb, var(--app-error) 10%, transparent);
+  --lockState:           var(--app-surface-muted);
+  --musterd:             #b5890a;
+  --skrim:               rgba(0, 0, 0, 0.32);
+  --alertSuccess:        var(--app-success);
+  --alertCaution:        var(--app-warn);
+  --alertInformation:    var(--app-info);
+  --alertNegative:       var(--app-error);
+  --alertLightCaution:   color-mix(in srgb, var(--app-warn) 10%, transparent);
+  --activeStatusBar:     var(--app-accent-teal);
+  --inactiveStatusBar:   var(--app-line-muted);
+  --completedStatusBar:  var(--app-success);
+  --lightBlue:           var(--app-info);
+  --primary900:          var(--app-accent);
+  // hueGray ramp → app surface/line ramp
+  --hueGray50:           var(--app-surface);
+  --hueGray100:          var(--app-surface-subtle);
+  --hueGray200:          var(--app-surface-soft);
+  --hueGray300:          var(--app-bg);
+  --hueGray400:          var(--app-line-muted);
+  --hueGray500:          var(--app-line);
+  --hueGray600:          var(--app-line-strong);
+  --hueGray800:          var(--app-muted);
+  --hueGray900:          var(--app-fg);
+  // gray semantic ramp
+  --gray100:             var(--app-surface-subtle);
+  --gray200:             var(--app-surface-soft);
+  --gray500:             var(--app-faint);
+  --gray600:             var(--app-muted);
+  --gray700:             var(--app-fg-secondary);
+  --gray800:             var(--app-fg);
+  --gray900:             var(--app-fg);
 }
 
 // ── Dark theme ────────────────────────────────────────────────────────────────
-// Toggled by ThemeService adding `.dark` on <html>. Re-runs the Material theme in
-// dark mode and overrides the --app-* design tokens with a dark neutral ramp.
 html.dark {
   color-scheme: dark;
   @include mat.theme((
@@ -81,6 +139,22 @@ body {
   background: var(--app-bg);
   font-family: Roboto, 'Helvetica Neue', sans-serif;
   color: var(--app-fg);
+}
+
+// ── Arabic utility classes (mirrors old portal's general.scss) ────────────
+.fontFamilyRegular-Ar {
+  font-family: var(--app-font-arabic) !important;
+  font-weight: 400 !important;
+}
+
+.fontFamilyMedium-Ar {
+  font-family: var(--app-font-arabic-medium) !important;
+  font-weight: 500 !important;
+}
+
+// Applied to any element whose content is Arabic (dir="rtl" or lang="ar")
+[lang="ar"], [dir="rtl"] {
+  font-family: var(--app-font-arabic);
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }

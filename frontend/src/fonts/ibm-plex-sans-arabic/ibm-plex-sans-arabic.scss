@@ -1,0 +1,28 @@
+// ── IBM Plex Sans Arabic (self-hosted) ─────────────────────────────────────
+// Self-hosted Arabic-subset woff2 files (weights 400/500/600) so Arabic text
+// renders correctly even in deployments with no outbound internet access.
+// Used as the fallback when the premium Neue Frutiger Arabic is not present.
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('./IBMPlexSansArabic-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('./IBMPlexSansArabic-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('./IBMPlexSansArabic-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}

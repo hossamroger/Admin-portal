@@ -1,0 +1,11 @@
+// ── Roboto (self-hosted variable font) ─────────────────────────────────────
+// Self-hosted so the UI font renders with no outbound internet access.
+// Variable font: a single woff2 supplies weights 400–700.
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('./Roboto-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
