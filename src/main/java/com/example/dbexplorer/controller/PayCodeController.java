@@ -34,33 +34,33 @@ public class PayCodeController {
         return svc.list(search, page, pageSize);
     }
 
-    @GetMapping("/{processCode}")
-    public ResponseEntity<PayCodePayload> get(@PathVariable String processCode, HttpServletRequest http) {
+    @GetMapping("/{id}")
+    public ResponseEntity<PayCodePayload> get(@PathVariable long id, HttpServletRequest http) {
         requireSelect(http);
-        PayCodePayload r = svc.get(processCode);
+        PayCodePayload r = svc.get(id);
         return r == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(r);
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse> create(@RequestBody PayCodePayload req, HttpServletRequest http) {
         requireInsert(http);
-        svc.create(req);
-        return ok("Payment code created");
+        long id = svc.create(req);
+        return ResponseEntity.ok(ApiResponse.ok("Payment code created", "id", id));
     }
 
-    @PutMapping("/{processCode}")
-    public ResponseEntity<ApiResponse> update(@PathVariable String processCode,
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse> update(@PathVariable long id,
                                                @RequestBody PayCodePayload req,
                                                HttpServletRequest http) {
         requireUpdate(http);
-        svc.update(processCode, req);
+        svc.update(id, req);
         return ok("Payment code updated");
     }
 
-    @DeleteMapping("/{processCode}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable String processCode, HttpServletRequest http) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> delete(@PathVariable long id, HttpServletRequest http) {
         requireDelete(http);
-        svc.delete(processCode);
+        svc.delete(id);
         return ok("Payment code deleted");
     }
 

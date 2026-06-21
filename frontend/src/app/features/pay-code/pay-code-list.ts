@@ -102,15 +102,16 @@ export class PayCodeListComponent implements AfterViewInit, OnDestroy {
   clearSearch(): void { this.search.set(''); this.load(true); }
 
   create(): void { this.router.navigate(['/pay-code', 'new']); }
-  edit(processCode: string): void { this.router.navigate(['/pay-code', processCode]); }
+  edit(id: number | null): void { if (id != null) this.router.navigate(['/pay-code', id]); }
 
-  remove(processCode: string): void {
+  remove(id: number | null, processCode: string): void {
+    if (id == null) return;
     this.dialog.open(ConfirmDialogComponent, {
-      data: { message: `Delete payment code "${processCode}"? This will also delete all associated details.` },
+      data: { message: `Delete payment code "${processCode}"? This will also delete the associated detail record.` },
       width: '480px',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
-      this.api.deletePayCode(processCode).subscribe({
+      this.api.deletePayCode(id).subscribe({
         next: () => { this.notify.success('Payment code deleted'); this.load(true); },
         error: err => this.notify.error(err, 'Delete failed'),
       });

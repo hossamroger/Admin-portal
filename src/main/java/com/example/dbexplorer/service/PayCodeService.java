@@ -55,14 +55,14 @@ public class PayCodeService {
         return r;
     }
 
-    // ── Get one ───────────────────────────────────────────────────────────────
+    // ── Get one (by unique ID) ──────────────────────────────────────────────────
 
-    public PayCodePayload get(String processCode) {
+    public PayCodePayload get(long id) {
         List<PayCodeDto> masters = jdbc.query(
                 "SELECT ID, ENTITY_CODE, ENTITY_DEPARTMENT_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
                 + " ENTITY_SERVICE_CODE, PROCESS_CODE, PROCESS_IDENTIFIER"
-                + " FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?",
-                new Object[]{ processCode },
+                + " FROM LKP_PAY_CODE WHERE ID = ?",
+                new Object[]{ id },
                 (rs, i) -> {
                     PayCodeDto d = new PayCodeDto();
                     d.id                        = rs.getObject("ID");
@@ -78,11 +78,11 @@ public class PayCodeService {
 
         PayCodePayload p = new PayCodePayload();
         p.payCode = masters.get(0);
-        p.details = fetchDetail(processCode);
+        p.details = fetchDetail(id);
         return p;
     }
 
-    private PayCodeDetailsDto fetchDetail(String processCode) {
+    private PayCodeDetailsDto fetchDetail(long payCodeId) {
         List<PayCodeDetailsDto> rows = jdbc.query(
                 "SELECT d.ID, d.PROCESS_CODE, d.ENTITY_SERVICE_CODE, d.ENTITY_SERVICE_CATEGORY_CODE,"
                 + "     d.PAY_ENTITY_CODE, d.PAY_DEPARTMENT_CODE,"
@@ -95,9 +95,9 @@ public class PayCodeService {
                 + "  AND c.ENTITY_SERVICE_CATEGORY_CODE  = d.ENTITY_SERVICE_CATEGORY_CODE"
                 + "  AND c.ENTITY_SERVICE_CODE           = d.ENTITY_SERVICE_CODE"
                 + "  AND c.PROCESS_CODE                  = d.PROCESS_CODE"
-                + " WHERE c.PROCESS_CODE = ?"
+                + " WHERE c.ID = ?"
                 + " FETCH FIRST 1 ROWS ONLY",
-                new Object[]{ processCode },
+                new Object[]{ payCodeId },
                 (rs, i) -> {
                     PayCodeDetailsDto d = new PayCodeDetailsDto();
                     d.id                        = rs.getObject("ID");
@@ -119,39 +119,67 @@ public class PayCodeService {
     // ── Create ────────────────────────────────────────────────────────────────
 
     @Transactional
-    public void create(PayCodePayload req) {
+    public long create(PayCodePayload req) {
         PayCodeDto c = req.payCode;
         requireNoDuplicate(c, null);
+        long id = jdbc.queryForObject("SELECT LKP_PAY_CODE_SEQ.NEXTVAL FROM DUAL", Long.class);
         jdbc.update(
                 "INSERT INTO LKP_PAY_CODE"
                 + " (ID, ENTITY_CODE, ENTITY_DEPARTMENT_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
                 + "  ENTITY_SERVICE_CODE, QUANTITY, PROCESS_CODE, PROCESS_IDENTIFIER)"
-                + " VALUES (LKP_PAY_CODE_SEQ.NEXTVAL, ?, ?, ?, ?, '1', ?, ?)",
-                c.entityCode, c.entityDepartmentCode, c.entityServiceCategoryCode,
+                + " VALUES (?, ?, ?, ?, ?, '1', ?, ?)",
+                id, c.entityCode, c.entityDepartmentCode, c.entityServiceCategoryCode,
                 c.entityServiceCode, c.processCode, c.processIdentifier);
 
         if (req.details != null) {
             insertDetail(req.details, c);
         }
+        return id;
     }
 
-    // ── Update ────────────────────────────────────────────────────────────────
+    // ── Update (by unique ID) ────────────────────────────────────────────────────
 
     @Transactional
-    public void update(String processCode, PayCodePayload req) {
+    public void update(long id, PayCodePayload req) {
         PayCodeDto c = req.payCode;
-        requireNoDuplicate(c, c.id);
+        requireNoDuplicate(c, id);
+
+        // Load the existing row so the OLD composite key can scope the detail delete.
+        PayCodeDto old = jdbc.query(
+                "SELECT ENTITY_CODE, ENTITY_DEPARTMENT_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
+                + " ENTITY_SERVICE_CODE, PROCESS_CODE FROM LKP_PAY_CODE WHERE ID = ?",
+                new Object[]{ id },
+                (rs, i) -> {
+                    PayCodeDto d = new PayCodeDto();
+                    d.entityCode                = rs.getString("ENTITY_CODE");
+                    d.entityDepartmentCode      = rs.getString("ENTITY_DEPARTMENT_CODE");
+                    d.entityServiceCategoryCode = rs.getString("ENTITY_SERVICE_CATEGORY_CODE");
+                    d.entityServiceCode         = rs.getString("ENTITY_SERVICE_CODE");
+                    d.processCode               = rs.getString("PROCESS_CODE");
+                    return d;
+                }).stream().findFirst().orElse(null);
+        if (old == null) {
+            throw new java.util.NoSuchElementException("Pay code not found");
+        }
+
         jdbc.update(
                 "UPDATE LKP_PAY_CODE SET"
                 + " ENTITY_CODE = ?, ENTITY_DEPARTMENT_CODE = ?,"
                 + " ENTITY_SERVICE_CATEGORY_CODE = ?, ENTITY_SERVICE_CODE = ?,"
-                + " PROCESS_IDENTIFIER = ?"
-                + " WHERE PROCESS_CODE = ?",
+                + " PROCESS_CODE = ?, PROCESS_IDENTIFIER = ?"
+                + " WHERE ID = ?",
                 c.entityCode, c.entityDepartmentCode,
                 c.entityServiceCategoryCode, c.entityServiceCode,
-                c.processIdentifier, processCode);
+                c.processCode, c.processIdentifier, id);
 
-        // Delete existing detail then re-insert (upsert via replace)
+        // Replace the single detail: delete the old one (scoped by the OLD key), insert the new.
+        deleteDetailByKey(old);
+        if (req.details != null) {
+            insertDetail(req.details, c);
+        }
+    }
+
+    private void deleteDetailByKey(PayCodeDto key) {
         jdbc.update(
                 "DELETE FROM LKP_PAY_CODE_DETAILS"
                 + " WHERE PROCESS_CODE = ?"
@@ -159,12 +187,8 @@ public class PayCodeService {
                 + "   AND PAY_DEPARTMENT_CODE = ?"
                 + "   AND ENTITY_SERVICE_CATEGORY_CODE = ?"
                 + "   AND ENTITY_SERVICE_CODE = ?",
-                processCode, c.entityCode, c.entityDepartmentCode,
-                c.entityServiceCategoryCode, c.entityServiceCode);
-
-        if (req.details != null) {
-            insertDetail(req.details, c);
-        }
+                key.processCode, key.entityCode, key.entityDepartmentCode,
+                key.entityServiceCategoryCode, key.entityServiceCode);
     }
 
     /**
@@ -215,12 +239,28 @@ public class PayCodeService {
                 d.entityCode);
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────────
+    // ── Delete (by unique ID) ────────────────────────────────────────────────────
 
     @Transactional
-    public void delete(String processCode) {
-        jdbc.update("DELETE FROM LKP_PAY_CODE_DETAILS WHERE PROCESS_CODE = ?", processCode);
-        jdbc.update("DELETE FROM LKP_PAY_CODE WHERE PROCESS_CODE = ?", processCode);
+    public void delete(long id) {
+        // Scope the detail delete to this exact row's composite key, then drop the master.
+        PayCodeDto key = jdbc.query(
+                "SELECT ENTITY_CODE, ENTITY_DEPARTMENT_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
+                + " ENTITY_SERVICE_CODE, PROCESS_CODE FROM LKP_PAY_CODE WHERE ID = ?",
+                new Object[]{ id },
+                (rs, i) -> {
+                    PayCodeDto d = new PayCodeDto();
+                    d.entityCode                = rs.getString("ENTITY_CODE");
+                    d.entityDepartmentCode      = rs.getString("ENTITY_DEPARTMENT_CODE");
+                    d.entityServiceCategoryCode = rs.getString("ENTITY_SERVICE_CATEGORY_CODE");
+                    d.entityServiceCode         = rs.getString("ENTITY_SERVICE_CODE");
+                    d.processCode               = rs.getString("PROCESS_CODE");
+                    return d;
+                }).stream().findFirst().orElse(null);
+        if (key != null) {
+            deleteDetailByKey(key);
+        }
+        jdbc.update("DELETE FROM LKP_PAY_CODE WHERE ID = ?", id);
     }
 
     // ── Lookup: ENTITY_LKP ────────────────────────────────────────────────────

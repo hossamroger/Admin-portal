@@ -40,18 +40,18 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of items(); track item.processCode) {
-            <tr class="pc-row" (click)="edit(item.processCode)">
+          @for (item of items(); track item.id) {
+            <tr class="pc-row" (click)="edit(item.id)">
               <td class="mono">{{ item.processCode }}</td>
               <td>{{ item.processIdentifier || '—' }}</td>
               <td class="mono">{{ item.entityCode || '—' }}</td>
               <td class="mono">{{ item.entityServiceCode || '—' }}</td>
               <td class="td-actions" (click)="$event.stopPropagation()">
-                <button mat-icon-button matTooltip="Edit" (click)="edit(item.processCode)">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(item.id)">
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button mat-icon-button matTooltip="Delete" class="btn-del"
-                        (click)="remove(item.processCode)">
+                        (click)="remove(item.id, item.processCode)">
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </td>
