@@ -1,0 +1,74 @@
+<div class="el-page">
+
+  <div class="el-header">
+    <div class="el-header-left">
+      <h1 class="el-title">Entities</h1>
+      <span class="el-count">{{ items().length }} / {{ total() }} records</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> New Entity
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="el-filters">
+    <div class="el-search-wrap">
+      <mat-icon class="el-search-icon">search</mat-icon>
+      <input class="el-search-input" placeholder="Search by entity code, English or Arabic name…"
+             [ngModel]="search()" (ngModelChange)="search.set($event); onSearchChange()"
+             (keydown.escape)="clearSearch()">
+      @if (search()) {
+        <button type="button" mat-icon-button class="el-search-clear" matTooltip="Clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (total() === 0 && !loading()) {
+    <app-empty-state icon="business" message="No entities found" />
+  } @else {
+    <div class="el-table-wrap" #tableWrap>
+      <table class="el-table">
+        <thead>
+          <tr>
+            <th>Entity Code</th>
+            <th>Name (EN)</th>
+            <th>Name (AR)</th>
+            <th>Status</th>
+            <th class="th-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track $index) {
+            <tr class="el-row" (click)="edit(item.id)">
+              <td class="mono">{{ item.entityCode || '—' }}</td>
+              <td>{{ item.entityNameEn || '—' }}</td>
+              <td class="rtl-cell">{{ item.entityNameAr || '—' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="item.entityStatus === 'A'" [class.inactive]="item.entityStatus === 'I'">
+                  {{ statusLabel(item.entityStatus) }}
+                </span>
+              </td>
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(item.id)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (loading()) {
+        <div class="el-scroll-loading">
+          <mat-progress-bar mode="indeterminate" />
+        </div>
+      } @else if (hasMore()) {
+        <div class="el-scroll-hint">Scroll down to load more…</div>
+      } @else if (items().length > 0) {
+        <div class="el-scroll-end">All {{ total() }} records loaded</div>
+      }
+    </div>
+  }
+</div>

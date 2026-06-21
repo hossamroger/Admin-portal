@@ -1,0 +1,81 @@
+:host { display: block; }
+
+.pf-page {
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.pf-top-bar { margin-bottom: 8px; }
+
+.pf-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+.pf-heading {
+  margin: 0; font-size: 20px; font-weight: 600; color: var(--app-fg);
+}
+.pf-spacer { flex: 1; }
+
+.pf-dirty-badge {
+  padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+  background: color-mix(in srgb, var(--app-warn) 14%, transparent);
+  color: var(--app-warn);
+}
+
+.pf-body { display: flex; flex-direction: column; gap: 20px; }
+
+.pf-card {
+  border: 1px solid var(--app-line); border-radius: 10px;
+  background: var(--app-surface); overflow: hidden;
+}
+
+.pf-card-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--app-line);
+  font-size: 14px; font-weight: 600; color: var(--app-fg);
+  background: var(--app-bg);
+  mat-icon { font-size: 18px; color: var(--app-accent); }
+}
+
+.pf-card-body { padding: 16px; }
+
+.pf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.pf-field { display: flex; flex-direction: column; gap: 4px; }
+
+.pf-label {
+  font-size: 12px; font-weight: 500; color: var(--app-muted);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+
+.pf-input {
+  height: 36px; padding: 0 10px;
+  border: 1px solid var(--app-line); border-radius: 6px;
+  background: var(--app-bg); font-size: 14px; color: var(--app-fg); outline: none;
+  box-sizing: border-box;
+  &:focus     { border-color: var(--app-accent); }
+  &[readonly] { opacity: .65; cursor: default; }
+}
+
+.pf-select {
+  height: 36px; padding: 0 10px;
+  border: 1px solid var(--app-line); border-radius: 6px;
+  background: var(--app-bg); font-size: 14px; color: var(--app-fg); outline: none;
+  cursor: pointer; box-sizing: border-box; width: 100%;
+  &:focus { border-color: var(--app-accent); }
+}
+
+.req { color: var(--app-error); }
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--app-font-arabic);
+  &::placeholder { font-family: var(--app-font-arabic); }
+}

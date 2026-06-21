@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AdminUserDetail, AdminUserSummary, ColumnFilter, ComponentInfoLookup, ConfirmationScreenConfigDto,
-  CrudListResponse, CrudRow, DataPage, DbObject, EntityLookup, FeeDto, Fingerprint,
+  CrudListResponse, CrudRow, DataPage, DbObject, EntityDto, EntityListResponse, EntityLookup, FeeDto, Fingerprint,
   Insights, LookupItem, Me, ObjectType, PayCodeListResponse, PayCodePayload, PaymentCallbackDto,
   ProcessInfoDto, QueryResult, RelatedDeptDto, RequiredDocDto, SaveUserRequest, SchemaOverview,
   ScreenInfoLookup, ServiceConfigPayload, ServiceListResponse, SourceCode, StepDto, TableDetail,
@@ -147,6 +147,27 @@ export class ApiService {
   }
   lookupPayCodeEntities(): Observable<EntityLookup[]> {
     return this.http.get<EntityLookup[]>('/api/pay-code/lookups/entities');
+  }
+
+  // ---- entity management ----
+  listEntities(params: { search?: string; page?: number; pageSize?: number }): Observable<EntityListResponse> {
+    let p = new HttpParams();
+    if (params.search)           p = p.set('search',   params.search);
+    if (params.page != null)     p = p.set('page',     params.page);
+    if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
+    return this.http.get<EntityListResponse>('/api/entity', { params: p });
+  }
+  getEntity(id: number | string): Observable<EntityDto> {
+    return this.http.get<EntityDto>(`/api/entity/${encodeURIComponent(id)}`);
+  }
+  createEntity(dto: EntityDto): Observable<WriteResult> {
+    return this.http.post<WriteResult>('/api/entity', dto);
+  }
+  updateEntity(id: number | string, dto: EntityDto): Observable<WriteResult> {
+    return this.http.put<WriteResult>(`/api/entity/${encodeURIComponent(id)}`, dto);
+  }
+  deleteEntity(id: number | string): Observable<WriteResult> {
+    return this.http.delete<WriteResult>(`/api/entity/${encodeURIComponent(id)}`);
   }
 
   // ---- generic CRUD (dynamic entities) ----
