@@ -133,17 +133,17 @@ export class ApiService {
     if (params.pageSize != null) p = p.set('pageSize', params.pageSize);
     return this.http.get<PayCodeListResponse>('/api/pay-code', { params: p });
   }
-  getPayCode(processCode: string): Observable<PayCodePayload> {
-    return this.http.get<PayCodePayload>(`/api/pay-code/${encodeURIComponent(processCode)}`);
+  getPayCode(id: number | string): Observable<PayCodePayload> {
+    return this.http.get<PayCodePayload>(`/api/pay-code/${encodeURIComponent(id)}`);
   }
   createPayCode(payload: PayCodePayload): Observable<WriteResult> {
     return this.http.post<WriteResult>('/api/pay-code', payload);
   }
-  updatePayCode(processCode: string, payload: PayCodePayload): Observable<WriteResult> {
-    return this.http.put<WriteResult>(`/api/pay-code/${encodeURIComponent(processCode)}`, payload);
+  updatePayCode(id: number | string, payload: PayCodePayload): Observable<WriteResult> {
+    return this.http.put<WriteResult>(`/api/pay-code/${encodeURIComponent(id)}`, payload);
   }
-  deletePayCode(processCode: string): Observable<WriteResult> {
-    return this.http.delete<WriteResult>(`/api/pay-code/${encodeURIComponent(processCode)}`);
+  deletePayCode(id: number | string): Observable<WriteResult> {
+    return this.http.delete<WriteResult>(`/api/pay-code/${encodeURIComponent(id)}`);
   }
   lookupPayCodeEntities(): Observable<EntityLookup[]> {
     return this.http.get<EntityLookup[]>('/api/pay-code/lookups/entities');

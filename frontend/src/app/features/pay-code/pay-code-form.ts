@@ -72,15 +72,15 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   isDirty(): boolean { return this.dirtySignal(); }
 
   ngOnInit(): void {
-    const code = this.route.snapshot.paramMap.get('processCode') ?? '';
-    this.isNew.set(code === 'new');
+    const idParam = this.route.snapshot.paramMap.get('id') ?? '';
+    this.isNew.set(idParam === 'new');
 
     this.cache.lookupPayCodeEntities()
       .subscribe({ next: v => this.entities.set(v), error: () => {} });
 
     if (!this.isNew()) {
       this.loading.set(true);
-      this.api.getPayCode(code).subscribe({
+      this.api.getPayCode(idParam).subscribe({
         next: p => {
           this.payCode.set(p.payCode);
           this.details.set(p.details ?? emptyDetails());
@@ -120,14 +120,20 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
 
     const req$ = this.isNew()
       ? this.api.createPayCode(payload)
-      : this.api.updatePayCode(pc.processCode, payload);
+      : this.api.updatePayCode(pc.id!, payload);
 
     req$.subscribe({
-      next: () => {
+      next: res => {
         this.snap.set(snapshot(payload));
         this.saving.set(false);
         this.notify.success(this.isNew() ? 'Payment code created' : 'Payment code updated');
-        if (this.isNew()) this.router.navigate(['/pay-code', pc.processCode], { replaceUrl: true });
+        if (this.isNew()) {
+          const newId = res?.id ?? pc.id;
+          if (newId != null) {
+            this.payCode.update(c => ({ ...c, id: Number(newId) }));
+            this.router.navigate(['/pay-code', newId], { replaceUrl: true });
+          }
+        }
         this.isNew.set(false);
       },
       error: err => {
@@ -140,13 +146,13 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   // ── Delete ────────────────────────────────────────────────────────────────
 
   delete(): void {
-    const code = this.payCode().processCode;
+    const pc = this.payCode();
     this.dialog.open(ConfirmDialogComponent, {
-      data: { message: `Delete payment code "${code}"? This will also delete the associated detail record.` },
+      data: { message: `Delete payment code "${pc.processCode}"? This will also delete the associated detail record.` },
       width: '480px',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
-      this.api.deletePayCode(code).subscribe({
+      this.api.deletePayCode(pc.id!).subscribe({
         next: () => {
           this.notify.success('Payment code deleted');
           this.router.navigate(['/pay-code']);

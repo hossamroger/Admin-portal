@@ -39,7 +39,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/pay-code/pay-code-list').then(m => m.PayCodeListComponent),
       },
       {
-        path: 'pay-code/:processCode',
+        path: 'pay-code/:id',
         canDeactivate: [dirtyGuard],
         loadComponent: () => import('./features/pay-code/pay-code-form').then(m => m.PayCodeFormComponent),
       },
