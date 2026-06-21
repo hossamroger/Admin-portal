@@ -416,7 +416,7 @@ export interface PayCodeDetailsDto {
 
 export interface PayCodePayload {
   payCode: PayCodeDto;
-  details: PayCodeDetailsDto[];
+  details: PayCodeDetailsDto | null; // one-to-one
 }
 
 export interface PayCodeSummary {

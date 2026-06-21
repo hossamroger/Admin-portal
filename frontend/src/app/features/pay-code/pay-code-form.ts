@@ -29,7 +29,7 @@ function emptyPayCode(): PayCodeDto {
   };
 }
 
-function emptyDetail(): PayCodeDetailsDto {
+function emptyDetails(): PayCodeDetailsDto {
   return {
     serviceDescAr: '',
     serviceDescEn: null,
@@ -60,15 +60,15 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   readonly isNew    = signal(false);
 
   readonly payCode  = signal<PayCodeDto>(emptyPayCode());
-  readonly details  = signal<PayCodeDetailsDto[]>([]);
+  readonly details  = signal<PayCodeDetailsDto>(emptyDetails());
 
   readonly entities = signal<EntityLookup[]>([]);
 
   private readonly snap = signal('');
 
-  private readonly dirtySignal = computed(() => isDirty(this.snap(), { payCode: this.payCode(), details: this.details() }));
+  private readonly dirtySignal = computed(() =>
+    isDirty(this.snap(), { payCode: this.payCode(), details: this.details() }));
   readonly dirty = this.dirtySignal;
-
   isDirty(): boolean { return this.dirtySignal(); }
 
   ngOnInit(): void {
@@ -83,8 +83,8 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
       this.api.getPayCode(code).subscribe({
         next: p => {
           this.payCode.set(p.payCode);
-          this.details.set(p.details ?? []);
-          this.snap.set(snapshot({ payCode: p.payCode, details: p.details ?? [] }));
+          this.details.set(p.details ?? emptyDetails());
+          this.snap.set(snapshot({ payCode: p.payCode, details: p.details }));
           this.loading.set(false);
         },
         error: err => {
@@ -93,22 +93,18 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         },
       });
     } else {
-      this.snap.set(snapshot({ payCode: this.payCode(), details: [] }));
+      this.snap.set(snapshot({ payCode: this.payCode(), details: null }));
     }
   }
 
-  // ── Details CRUD ──────────────────────────────────────────────────────────
+  // ── Field updaters ────────────────────────────────────────────────────────
 
-  addDetail(): void {
-    this.details.update(arr => [...arr, emptyDetail()]);
+  setPayCode<K extends keyof PayCodeDto>(field: K, value: PayCodeDto[K]): void {
+    this.payCode.update(c => ({ ...c, [field]: value }));
   }
 
-  removeDetail(idx: number): void {
-    this.details.update(arr => arr.filter((_, i) => i !== idx));
-  }
-
-  updateDetail(idx: number, field: keyof PayCodeDetailsDto, value: unknown): void {
-    this.details.update(arr => arr.map((d, i) => i === idx ? { ...d, [field]: value } : d));
+  setDetails<K extends keyof PayCodeDetailsDto>(field: K, value: PayCodeDetailsDto[K]): void {
+    this.details.update(d => ({ ...d, [field]: value }));
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -146,7 +142,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   delete(): void {
     const code = this.payCode().processCode;
     this.dialog.open(ConfirmDialogComponent, {
-      data: { message: `Delete payment code "${code}"? This will also delete all associated details.` },
+      data: { message: `Delete payment code "${code}"? This will also delete the associated detail record.` },
       width: '480px',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
@@ -161,6 +157,4 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
   }
 
   back(): void { this.router.navigate(['/pay-code']); }
-
-  trackByIdx(idx: number): number { return idx; }
 }

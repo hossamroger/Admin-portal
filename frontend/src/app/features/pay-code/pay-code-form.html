@@ -29,7 +29,7 @@
 
   <div class="pf-body">
 
-    <!-- ── Section 1: Pay Code (Master) ──────────────────────────────────── -->
+    <!-- ── Section 1: LKP_PAY_CODE (Master) ──────────────────────────────── -->
     <section class="pf-card">
       <div class="pf-card-header">
         <mat-icon>payments</mat-icon>
@@ -41,42 +41,42 @@
           <div class="pf-field">
             <label class="pf-label">Process Code <span class="req">*</span></label>
             <input class="pf-input" [value]="payCode().processCode"
-                   (input)="payCode.update(c => ({...c, processCode: $any($event.target).value}))"
+                   (input)="setPayCode('processCode', $any($event.target).value)"
                    [readonly]="!isNew()" placeholder="e.g. PC-001">
           </div>
 
           <div class="pf-field">
             <label class="pf-label">Process Identifier</label>
             <input class="pf-input" [value]="payCode().processIdentifier ?? ''"
-                   (input)="payCode.update(c => ({...c, processIdentifier: $any($event.target).value || null}))"
+                   (input)="setPayCode('processIdentifier', $any($event.target).value || null)"
                    placeholder="Optional identifier">
           </div>
 
           <div class="pf-field">
             <label class="pf-label">Entity Code <span class="req">*</span></label>
             <input class="pf-input" [value]="payCode().entityCode"
-                   (input)="payCode.update(c => ({...c, entityCode: $any($event.target).value}))"
+                   (input)="setPayCode('entityCode', $any($event.target).value)"
                    placeholder="e.g. ENT-01">
           </div>
 
           <div class="pf-field">
             <label class="pf-label">Entity Department Code <span class="req">*</span></label>
             <input class="pf-input" [value]="payCode().entityDepartmentCode"
-                   (input)="payCode.update(c => ({...c, entityDepartmentCode: $any($event.target).value}))"
+                   (input)="setPayCode('entityDepartmentCode', $any($event.target).value)"
                    placeholder="Department code">
           </div>
 
           <div class="pf-field">
             <label class="pf-label">Entity Service Category Code <span class="req">*</span></label>
             <input class="pf-input" [value]="payCode().entityServiceCategoryCode"
-                   (input)="payCode.update(c => ({...c, entityServiceCategoryCode: $any($event.target).value}))"
+                   (input)="setPayCode('entityServiceCategoryCode', $any($event.target).value)"
                    placeholder="Service category code">
           </div>
 
           <div class="pf-field">
             <label class="pf-label">Entity Service Code <span class="req">*</span></label>
             <input class="pf-input" [value]="payCode().entityServiceCode"
-                   (input)="payCode.update(c => ({...c, entityServiceCode: $any($event.target).value}))"
+                   (input)="setPayCode('entityServiceCode', $any($event.target).value)"
                    placeholder="Service code">
           </div>
 
@@ -84,90 +84,60 @@
       </div>
     </section>
 
-    <!-- ── Section 2: Pay Code Details (Children) ────────────────────────── -->
+    <!-- ── Section 2: LKP_PAY_CODE_DETAILS (one-to-one) ─────────────────── -->
     <section class="pf-card">
       <div class="pf-card-header">
         <mat-icon>list_alt</mat-icon>
         <span>Pay Code Details</span>
-        <span class="pf-badge">{{ details().length }}</span>
-        <span class="pf-spacer"></span>
-        <button mat-stroked-button (click)="addDetail()">
-          <mat-icon>add</mat-icon> Add Detail
-        </button>
+        <span class="pf-hint">Joined on all 5 FK columns — one record per pay code</span>
       </div>
+      <div class="pf-card-body">
+        <div class="pf-grid">
 
-      @if (details().length === 0) {
-        <div class="pf-empty-details">
-          <mat-icon>info_outline</mat-icon>
-          <span>No details yet — click "Add Detail" to start</span>
-        </div>
-      } @else {
-        <div class="pf-details-table-wrap">
-          <table class="pf-details-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Service Desc (AR) <span class="req">*</span></th>
-                <th>Service Desc (EN)</th>
-                <th>Entity Name (AR)</th>
-                <th>Entity Name (EN)</th>
-                <th>Entity Code</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (det of details(); track trackByIdx($index); let i = $index) {
-                <tr class="pf-detail-row">
-                  <td class="pf-detail-idx">{{ i + 1 }}</td>
+          <div class="pf-field">
+            <label class="pf-label">Service Description (AR) <span class="req">*</span></label>
+            <input class="pf-input rtl" [value]="details().serviceDescAr"
+                   (input)="setDetails('serviceDescAr', $any($event.target).value)"
+                   placeholder="وصف الخدمة">
+          </div>
 
-                  <td>
-                    <input class="pf-table-input rtl" [value]="det.serviceDescAr"
-                           (input)="updateDetail(i, 'serviceDescAr', $any($event.target).value)"
-                           placeholder="وصف الخدمة">
-                  </td>
+          <div class="pf-field">
+            <label class="pf-label">Service Description (EN)</label>
+            <input class="pf-input" [value]="details().serviceDescEn ?? ''"
+                   (input)="setDetails('serviceDescEn', $any($event.target).value || null)"
+                   placeholder="Service description">
+          </div>
 
-                  <td>
-                    <input class="pf-table-input" [value]="det.serviceDescEn ?? ''"
-                           (input)="updateDetail(i, 'serviceDescEn', $any($event.target).value || null)"
-                           placeholder="Service description">
-                  </td>
+          <div class="pf-field">
+            <label class="pf-label">Entity Name (AR)</label>
+            <input class="pf-input rtl" [value]="details().entityNameAr ?? ''"
+                   (input)="setDetails('entityNameAr', $any($event.target).value || null)"
+                   placeholder="اسم الجهة">
+          </div>
 
-                  <td>
-                    <input class="pf-table-input rtl" [value]="det.entityNameAr ?? ''"
-                           (input)="updateDetail(i, 'entityNameAr', $any($event.target).value || null)"
-                           placeholder="اسم الجهة">
-                  </td>
+          <div class="pf-field">
+            <label class="pf-label">Entity Name (EN)</label>
+            <input class="pf-input" [value]="details().entityNameEn ?? ''"
+                   (input)="setDetails('entityNameEn', $any($event.target).value || null)"
+                   placeholder="Entity name">
+          </div>
 
-                  <td>
-                    <input class="pf-table-input" [value]="det.entityNameEn ?? ''"
-                           (input)="updateDetail(i, 'entityNameEn', $any($event.target).value || null)"
-                           placeholder="Entity name">
-                  </td>
-
-                  <td>
-                    <select class="pf-table-select"
-                            (change)="updateDetail(i, 'entityCode', $any($event.target).value || null)">
-                      <option value="" [selected]="!det.entityCode">— Select —</option>
-                      @for (e of entities(); track e.entityCode) {
-                        <option [value]="e.entityCode" [selected]="det.entityCode === e.entityCode">
-                          {{ e.entityCode }}{{ e.entityNameEn ? ' — ' + e.entityNameEn : '' }}
-                        </option>
-                      }
-                    </select>
-                  </td>
-
-                  <td class="pf-detail-actions">
-                    <button mat-icon-button matTooltip="Remove" class="btn-del" (click)="removeDetail(i)">
-                      <mat-icon>delete_outline</mat-icon>
-                    </button>
-                  </td>
-                </tr>
+          <div class="pf-field">
+            <label class="pf-label">Entity Code</label>
+            <select class="pf-select"
+                    (change)="setDetails('entityCode', $any($event.target).value || null)">
+              <option value="" [selected]="!details().entityCode">— Select —</option>
+              @for (e of entities(); track e.entityCode) {
+                <option [value]="e.entityCode" [selected]="details().entityCode === e.entityCode">
+                  {{ e.entityCode }}{{ e.entityNameEn ? ' — ' + e.entityNameEn : '' }}
+                </option>
               }
-            </tbody>
-          </table>
+            </select>
+          </div>
+
         </div>
-      }
+      </div>
     </section>
 
-  </div><!-- /pf-body -->
+  </div>
 </div>
