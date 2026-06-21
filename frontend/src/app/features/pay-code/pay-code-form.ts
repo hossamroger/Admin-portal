@@ -116,7 +116,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         },
       });
     } else {
-      this.snap.set(snapshot({ payCode: this.payCode(), details: null }));
+      this.snap.set(snapshot({ payCode: this.payCode(), details: this.details() }));
     }
   }
 
