@@ -52,6 +52,7 @@ public class CrudEntities {
         hb.createdAtCol = "CREATED_AT";
         hb.updatedAtCol = "UPDATED_AT";
         hb.defaultOrderBy = "BANNER_ORDER NULLS LAST, ID";
+        hb.ops = new HashSet<>(Arrays.asList("SELECT","INSERT","UPDATE","DELETE"));
         hb.writableCols = new HashSet<>(Arrays.asList(
             "URL", "URL_SM", "PLATFORM", "LANGUAGE", "MIN_VERSION", "BANNER_ORDER",
             "START_DT", "EXPIRY_DT", "FORE_COLOR", "BG_COLOR", "MAIN_TITLE_COLOR",
