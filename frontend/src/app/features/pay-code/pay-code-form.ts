@@ -84,7 +84,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         next: p => {
           this.payCode.set(p.payCode);
           this.details.set(p.details ?? emptyDetails());
-          this.snap.set(snapshot({ payCode: p.payCode, details: p.details }));
+          this.snap.set(snapshot({ payCode: p.payCode, details: p.details ?? emptyDetails() }));
           this.loading.set(false);
         },
         error: err => {
