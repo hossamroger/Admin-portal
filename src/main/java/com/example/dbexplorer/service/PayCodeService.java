@@ -121,6 +121,7 @@ public class PayCodeService {
     @Transactional
     public void create(PayCodePayload req) {
         PayCodeDto c = req.payCode;
+        requireNoDuplicate(c, null);
         jdbc.update(
                 "INSERT INTO LKP_PAY_CODE"
                 + " (ID, ENTITY_CODE, ENTITY_DEPARTMENT_CODE, ENTITY_SERVICE_CATEGORY_CODE,"
@@ -139,6 +140,7 @@ public class PayCodeService {
     @Transactional
     public void update(String processCode, PayCodePayload req) {
         PayCodeDto c = req.payCode;
+        requireNoDuplicate(c, c.id);
         jdbc.update(
                 "UPDATE LKP_PAY_CODE SET"
                 + " ENTITY_CODE = ?, ENTITY_DEPARTMENT_CODE = ?,"
@@ -162,6 +164,34 @@ public class PayCodeService {
 
         if (req.details != null) {
             insertDetail(req.details, c);
+        }
+    }
+
+    /**
+     * A pay code's identity is the full 5-column composite key. Reject a save that
+     * would collide with an existing row (excluding the row being edited, by ID).
+     */
+    private void requireNoDuplicate(PayCodeDto c, Object excludeId) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM LKP_PAY_CODE"
+                + " WHERE ENTITY_CODE = ?"
+                + "   AND ENTITY_DEPARTMENT_CODE = ?"
+                + "   AND ENTITY_SERVICE_CATEGORY_CODE = ?"
+                + "   AND ENTITY_SERVICE_CODE = ?"
+                + "   AND PROCESS_CODE = ?");
+        List<Object> args = new ArrayList<>();
+        args.add(c.entityCode); args.add(c.entityDepartmentCode);
+        args.add(c.entityServiceCategoryCode); args.add(c.entityServiceCode);
+        args.add(c.processCode);
+        if (excludeId != null) {
+            sql.append(" AND ID <> ?");
+            args.add(excludeId);
+        }
+        Long count = jdbc.queryForObject(sql.toString(), Long.class, args.toArray());
+        if (count != null && count > 0) {
+            throw new IllegalArgumentException(
+                "A pay code with the same Entity Code, Department Code, Service Category Code, "
+                + "Service Code and Process Code already exists.");
         }
     }
 
