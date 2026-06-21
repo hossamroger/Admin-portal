@@ -15,13 +15,15 @@ export const KB: KbEntry[] = [
     answer:
       'The **DS Admin Portal** lets you manage:\n' +
       '• **Service Config** — BPM service/process configuration\n' +
+      '• **Payment Codes** — pay codes and their service detail mappings\n' +
+      '• **Entity Management** — entities, logos, status, and Android/iOS availability\n' +
       '• **Process Statuses** — lookup list of process statuses\n' +
       '• **Home Banner Config** — home screen banners\n' +
       '• **Donation Projects** — projects, categories, and organizations\n' +
       '• **Attachments** — upload files and get public URLs\n' +
       '• **User Management** (admins) — users, roles, and privileges\n\n' +
       'Use the **left sidebar** to switch sections, and the **chatbot** (bottom-right) for help any time.',
-    related: ['service-config', 'donations', 'attachments', 'manage-lists'],
+    related: ['service-config', 'pay-codes', 'entities', 'donations', 'attachments', 'manage-lists'],
   },
   {
     id: 'sync',
@@ -99,6 +101,37 @@ export const KB: KbEntry[] = [
     related: ['service-config', 'service-create'],
   },
 
+  // ── Payment Codes ────────────────────────────────────────────────────────
+  {
+    id: 'pay-codes',
+    title: 'Managing payment codes',
+    keywords: ['pay', 'payment', 'pay code', 'payment code', 'pay codes', 'billing', 'process code', 'fee code'],
+    answer:
+      'Open **Payment Codes** from the sidebar to manage pay codes and their service detail mappings.\n\n' +
+      'The list is searchable and paginated. Click a pay code to edit it, or use **+ New** to create one. ' +
+      'Each pay code has a master record (process/entity/service codes) and a one-to-one **Details** section ' +
+      '(service and entity descriptions in Arabic and English). ' +
+      'The process code is the unique key and is read-only when editing.',
+    related: ['service-config', 'entities'],
+  },
+
+  // ── Entity Management ────────────────────────────────────────────────────
+  {
+    id: 'entities',
+    title: 'Managing entities',
+    keywords: ['entity', 'entities', 'entity management', 'entity code', 'logo', 'android', 'ios', 'entity status', 'action url', 'action type'],
+    answer:
+      'Open **Entities** from the sidebar to manage entity records.\n\n' +
+      'The list shows entity code, English/Arabic names, and status — and is searchable and paginated. ' +
+      'Click an entity to edit it, or use **+ New Entity** to create one. Each entity has:\n' +
+      '• **Entity Code** (unique key, read-only when editing), **Name (EN)**, **Name (AR)**, **Logo URL**\n' +
+      '• **Status** — Active (T) or Inactive (F)\n' +
+      '• **Android** / **iOS** availability (Y/N)\n' +
+      '• **Action Type** and **Action URL**\n\n' +
+      'You can also **delete** an entity from its editor (with a confirmation prompt).',
+    related: ['pay-codes', 'overview'],
+  },
+
   // ── Donations ────────────────────────────────────────────────────────────
   {
     id: 'donations',
@@ -132,7 +165,8 @@ export const KB: KbEntry[] = [
     keywords: ['manage', 'list', 'lists', 'process status', 'home banner', 'lookup', 'crud', 'entity', 'records', 'add', 'edit', 'delete'],
     answer:
       'Configuration entities — **Process Statuses**, **Home Banner Config**, and the donation lists — appear as links in the sidebar. ' +
-      'Each opens a searchable, sortable, paginated list where you can **add**, **edit**, and **delete** records through a generated form. ' +
+      'Each opens a searchable, sortable, paginated list where you can **add** and **edit** records through a generated form. ' +
+      '**Delete** is available where it is permitted (e.g. **Home Banner Config** and the donation lists), shown as a button in the editor with a confirmation prompt. ' +
       'Forms warn you before leaving with unsaved changes.',
     related: ['donations', 'service-config'],
   },
@@ -194,7 +228,8 @@ export const KB: KbEntry[] = [
 export const SUGGESTIONS = [
   'What can I do in this portal?',
   'How do I create a new service?',
-  'How do I save service tabs?',
+  'How do I manage payment codes?',
+  'How do I manage entities?',
   'What do the service flags mean?',
   'How do I manage donations?',
   'How do I upload a file?',

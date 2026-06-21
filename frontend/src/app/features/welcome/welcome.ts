@@ -57,6 +57,27 @@ export class WelcomeComponent {
       accent: 'green',
     },
     {
+      icon: 'payments',
+      title: 'Payment Codes',
+      description: 'Manage pay codes and their service detail mappings for billing and payments.',
+      link: '/pay-code',
+      accent: 'teal',
+    },
+    {
+      icon: 'business',
+      title: 'Entity Management',
+      description: 'Maintain entities — names, logos, status, and platform availability for Android and iOS.',
+      link: '/entity',
+      accent: 'lime',
+    },
+    {
+      icon: 'view_carousel',
+      title: 'Home Banner Config',
+      description: 'Schedule and target home banners by platform and language, with full create, edit, and delete.',
+      link: '/manage/home-banner',
+      accent: 'mint',
+    },
+    {
       icon: 'volunteer_activism',
       title: 'Donation Projects',
       description: 'Manage donation projects, categories, and organizations across the platform.',
@@ -85,7 +106,9 @@ export class WelcomeComponent {
 
   readonly tips: QuickTip[] = [
     { icon: 'settings',        text: 'Open <strong>Service Config</strong> from the sidebar to configure BPM processes end-to-end.' },
-    { icon: 'tab',             text: 'Each service has tabs: <strong>Basic Info, Steps, Fees, Documents, Providers, Audience, Confirmation</strong>.' },
+    { icon: 'business',        text: 'Use <strong>Entity Management</strong> to maintain entity names, logos, status, and Android/iOS availability.' },
+    { icon: 'payments',        text: 'Manage <strong>Payment Codes</strong> and their service detail mappings for billing.' },
+    { icon: 'view_carousel',   text: 'Schedule home banners in <strong>Home Banner Config</strong> — create, edit, and delete by platform and language.' },
     { icon: 'volunteer_activism', text: 'Use <strong>Donation Projects</strong> to manage amounts, categories, and organizations.' },
     { icon: 'sync',            text: 'Hit <strong>Sync</strong> in the toolbar whenever the DB schema changes.' },
     { icon: 'chat',            text: 'Use the <strong>help chatbot</strong> (bottom-right) for guidance at any time.' },
