@@ -64,9 +64,9 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
 
   readonly entities = signal<EntityLookup[]>([]);
 
-  private snap = '';
+  private readonly snap = signal('');
 
-  private readonly dirtySignal = computed(() => isDirty(this.snap, { payCode: this.payCode(), details: this.details() }));
+  private readonly dirtySignal = computed(() => isDirty(this.snap(), { payCode: this.payCode(), details: this.details() }));
   readonly dirty = this.dirtySignal;
 
   isDirty(): boolean { return this.dirtySignal(); }
@@ -84,7 +84,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         next: p => {
           this.payCode.set(p.payCode);
           this.details.set(p.details ?? []);
-          this.snap = snapshot({ payCode: p.payCode, details: p.details ?? [] });
+          this.snap.set(snapshot({ payCode: p.payCode, details: p.details ?? [] }));
           this.loading.set(false);
         },
         error: err => {
@@ -93,7 +93,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
         },
       });
     } else {
-      this.snap = snapshot({ payCode: this.payCode(), details: [] });
+      this.snap.set(snapshot({ payCode: this.payCode(), details: [] }));
     }
   }
 
@@ -128,7 +128,7 @@ export class PayCodeFormComponent implements OnInit, Dirtyable {
 
     req$.subscribe({
       next: () => {
-        this.snap = snapshot(payload);
+        this.snap.set(snapshot(payload));
         this.saving.set(false);
         this.notify.success(this.isNew() ? 'Payment code created' : 'Payment code updated');
         if (this.isNew()) this.router.navigate(['/pay-code', pc.processCode], { replaceUrl: true });
