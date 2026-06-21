@@ -112,6 +112,7 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     titleSingular: 'Banner',
     icon: 'view_carousel',
     pk: 'ID',
+    canDelete: true,
     searchPlaceholder: 'Search by URL or platform…',
     listColumns: [
       { col: 'ID',           label: 'ID', mono: true },
