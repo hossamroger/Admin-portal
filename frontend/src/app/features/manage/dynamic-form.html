@@ -124,6 +124,13 @@
     <button type="button" mat-stroked-button (click)="save(true)" [disabled]="saving()">
       Save & Continue Editing
     </button>
+    @if (!isNew()) {
+      <button type="button" mat-stroked-button color="warn" class="df-delete"
+              (click)="delete()" [disabled]="saving() || deleting()">
+        <mat-icon>delete_outline</mat-icon>
+        {{ deleting() ? 'Deleting…' : 'Delete' }}
+      </button>
+    }
     @if (isDirty()) { <span class="dirty-hint">Unsaved changes</span> }
   </div>
 

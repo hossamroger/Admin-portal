@@ -7,12 +7,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 import { ApiService } from '../../core/api.service';
 import { NotifyService } from '../../core/notify.service';
 import { Dirtyable } from '../../core/guards';
 import { CrudRow, LookupItem } from '../../core/models';
 import { LookupCacheService } from '../../core/lookup-cache.service';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog';
 import { normalizeFlag, snapshot, isDirty } from '../../shared/form-utils';
 import { ENTITY_CONFIGS, EntityConfig, FieldDef } from './entity-configs';
 
@@ -31,7 +33,7 @@ interface FormSection {
 @Component({
   selector: 'app-dynamic-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, MatButtonModule, MatIconModule, MatTooltipModule, MatProgressBarModule],
+  imports: [FormsModule, MatButtonModule, MatIconModule, MatTooltipModule, MatProgressBarModule, MatDialogModule],
   templateUrl: './dynamic-form.html',
   styleUrl:    './dynamic-form.scss',
 })
@@ -41,6 +43,9 @@ export class DynamicFormComponent implements OnInit, Dirtyable {
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
   private readonly lookupCache = inject(LookupCacheService);
+  private readonly dialog = inject(MatDialog);
+
+  readonly deleting = signal(false);
 
   readonly cfg = signal<EntityConfig | null>(null);
 
@@ -232,6 +237,31 @@ export class DynamicFormComponent implements OnInit, Dirtyable {
   }
 
   back(): void { this.router.navigate(['/manage', this.cfg()!.name]); }
+
+  // ── Delete ───────────────────────────────────────────────────────────────────
+
+  delete(): void {
+    const cfg = this.cfg()!;
+    if (this.deleting() || this.saving()) return;
+    const id = this.dto()[cfg.pk];
+    if (id == null) return;
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { message: `Delete this ${cfg.titleSingular.toLowerCase()} (#${id})? This cannot be undone.` },
+      width: 'auto',
+    }).afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.deleting.set(true);
+      this.api.crudDelete(cfg.name, String(id)).subscribe({
+        next: () => {
+          // Clear dirty state so the leave-guard doesn't fire on navigation.
+          this.takeSnapshot();
+          this.notify.success(`${cfg.titleSingular} deleted`);
+          this.router.navigate(['/manage', cfg.name]);
+        },
+        error: err => { this.deleting.set(false); this.notify.error(err, 'Delete failed'); },
+      });
+    });
+  }
 
   // ── Template value helpers ─────────────────────────────────────────────────
 
