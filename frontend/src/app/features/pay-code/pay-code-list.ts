@@ -102,7 +102,10 @@ export class PayCodeListComponent implements AfterViewInit, OnDestroy {
   clearSearch(): void { this.search.set(''); this.load(true); }
 
   create(): void { this.router.navigate(['/pay-code', 'new']); }
-  edit(id: number | null): void { if (id != null) this.router.navigate(['/pay-code', id]); }
+  edit(id: number | null): void {
+    if (id == null) { this.notify.error(null, 'This record has no ID and cannot be edited'); return; }
+    this.router.navigate(['/pay-code', id]);
+  }
 
   remove(id: number | null, processCode: string): void {
     if (id == null) return;

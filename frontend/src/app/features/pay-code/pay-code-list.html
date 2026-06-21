@@ -40,7 +40,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of items(); track item.id) {
+          @for (item of items(); track $index) {
             <tr class="pc-row" (click)="edit(item.id)">
               <td class="mono">{{ item.processCode }}</td>
               <td>{{ item.processIdentifier || '—' }}</td>
