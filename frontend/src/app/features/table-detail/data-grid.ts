@@ -251,7 +251,7 @@ export class DataGridComponent {
       const confirmed = await firstValueFrom(
         this.dialog.open(ConfirmDialogComponent, {
           data: { message: `Delete ${this.deleted().size} row(s)? This cannot be undone.` },
-          width: '480px',
+          width: 'auto',
         }).afterClosed(),
       );
       if (!confirmed) return;

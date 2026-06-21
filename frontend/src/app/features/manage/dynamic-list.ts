@@ -163,7 +163,7 @@ export class DynamicListComponent implements OnDestroy {
     const name = cfg.nameCol ? String(row[cfg.nameCol] ?? '').trim() : '';
     this.dialog.open(ConfirmDialogComponent, {
       data: { message: `Delete ${cfg.titleSingular} #${id}${name ? ` "${name}"` : ''}? This cannot be undone.` },
-      width: '480px',
+      width: 'auto',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.doDelete(cfg, id);

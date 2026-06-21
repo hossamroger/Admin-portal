@@ -44,7 +44,7 @@ export class UserManagementComponent {
     this.dialog
       .open(ConfirmDialogComponent, {
         data: { message: `Delete user "${username}"? This cannot be undone.` },
-        width: '400px',
+        width: 'auto',
       })
       .afterClosed()
       .subscribe(confirmed => {

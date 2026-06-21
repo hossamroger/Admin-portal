@@ -14,68 +14,95 @@ export interface ConfirmDialogData {
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="confirm-wrap">
-      <div class="confirm-head">
-        <div class="warn-badge">
-          <mat-icon>warning</mat-icon>
-        </div>
-        <h3 mat-dialog-title>Confirm</h3>
+    <div class="cd">
+      <div class="cd-icon">
+        <mat-icon>warning_amber</mat-icon>
       </div>
-      <mat-dialog-content>{{ data.message }}</mat-dialog-content>
-      <mat-dialog-actions align="end">
-        <button mat-stroked-button mat-dialog-close>Cancel</button>
-        <button mat-flat-button color="warn" (click)="ref.close(true)">
+      <p class="cd-title">Are you sure?</p>
+      <p class="cd-msg">{{ data.message }}</p>
+      <div class="cd-actions">
+        <button class="cd-btn cd-btn--cancel" mat-dialog-close>Cancel</button>
+        <button class="cd-btn cd-btn--confirm" (click)="ref.close(true)">
           {{ data.confirmLabel ?? 'Delete' }}
         </button>
-      </mat-dialog-actions>
+      </div>
     </div>
   `,
   styles: [`
-    .confirm-wrap {
-      padding: 24px 24px 16px;
-      min-width: 320px;
-      max-width: 420px;
+    :host { display: block; }
+
+    .cd {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 32px 28px 24px;
+      width: 380px;
+      box-sizing: border-box;
     }
-    .confirm-head {
+
+    .cd-icon {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .warn-badge {
-      display: inline-flex;
-      align-items: center;
       justify-content: center;
-      flex: 0 0 auto;
-      width: 40px;
-      height: 40px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: color-mix(in srgb, var(--app-error) 14%, transparent);
+      background: #fff3f3;
+      border: 6px solid #fff7f7;
+      margin-bottom: 16px;
     }
-    .warn-badge mat-icon {
-      color: var(--app-error);
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+    .cd-icon mat-icon {
+      color: #e53935;
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
     }
-    h3 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      line-height: 1.2;
+
+    .cd-title {
+      margin: 0 0 8px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.3;
     }
-    mat-dialog-content {
-      margin: 0;
-      padding: 0;
-      color: var(--app-muted);
+
+    .cd-msg {
+      margin: 0 0 24px;
+      font-size: 13.5px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .cd-actions {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .cd-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 8px;
       font-size: 14px;
-      line-height: 1.5;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, box-shadow 0.15s;
     }
-    mat-dialog-actions {
-      gap: 8px;
-      padding: 20px 0 0;
-      margin: 0;
-      min-height: 0;
+    .cd-btn:hover { opacity: 0.88; }
+    .cd-btn:active { opacity: 0.75; }
+
+    .cd-btn--cancel {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1.5px solid #e5e7eb;
+    }
+
+    .cd-btn--confirm {
+      background: #e53935;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(229,57,53,.35);
     }
   `],
 })

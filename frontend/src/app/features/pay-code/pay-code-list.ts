@@ -111,7 +111,7 @@ export class PayCodeListComponent implements AfterViewInit, OnDestroy {
     if (id == null) return;
     this.dialog.open(ConfirmDialogComponent, {
       data: { message: `Delete payment code "${processCode}"? This will also delete the associated detail record.` },
-      width: '480px',
+      width: 'auto',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.api.deletePayCode(id).subscribe({

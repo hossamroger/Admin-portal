@@ -35,6 +35,6 @@ export const dirtyGuard: CanDeactivateFn<Dirtyable> = (component) => {
   if (!component?.isDirty?.()) return true;
   return inject(MatDialog).open(ConfirmDialogComponent, {
     data: { message: 'You have unsaved changes. Leave this page and discard them?', confirmLabel: 'Discard' },
-    width: '480px',
+    width: 'auto',
   }).afterClosed().pipe(map(confirmed => !!confirmed));
 };

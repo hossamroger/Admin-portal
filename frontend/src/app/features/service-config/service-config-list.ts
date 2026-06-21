@@ -125,7 +125,7 @@ export class ServiceConfigListComponent implements AfterViewInit, OnDestroy {
   remove(code: string, labelEn: string | null): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: { message: `Delete service "${labelEn || code}"? This will also delete all steps, fees, documents and related data.` },
-      width: '480px',
+      width: 'auto',
     }).afterClosed().subscribe(confirmed => {
       if (!confirmed) return;
       this.api.deleteService(code).subscribe({

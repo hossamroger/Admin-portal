@@ -230,7 +230,7 @@ export class DonationProjectFormComponent implements OnInit, Dirtyable {
   private confirmRemoval(message: string, action: () => void): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: { message, confirmLabel: 'Remove' },
-      width: '480px',
+      width: 'auto',
     }).afterClosed().subscribe(confirmed => { if (confirmed) action(); });
   }
 
